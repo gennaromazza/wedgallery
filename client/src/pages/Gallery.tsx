@@ -95,11 +95,41 @@ export default function Gallery() {
           name: galleryData.name,
           date: galleryData.date,
           location: galleryData.location,
+          hasChapters: galleryData.hasChapters || false
         });
+        
+        // Fetch chapters if the gallery has them
+        if (galleryData.hasChapters) {
+          try {
+            const chaptersRef = collection(db, "galleries", galleryDoc.id, "chapters");
+            const chaptersQuery = query(chaptersRef, orderBy("position", "asc"));
+            const chaptersSnapshot = await getDocs(chaptersQuery);
+            
+            if (!chaptersSnapshot.empty) {
+              const chaptersData = chaptersSnapshot.docs.map(doc => ({
+                id: doc.id,
+                ...doc.data()
+              })) as ChapterData[];
+              
+              setChapters(chaptersData);
+              console.log(`Caricati ${chaptersData.length} capitoli`);
+            }
+          } catch (chaptersError) {
+            console.error("Errore nel caricamento dei capitoli:", chaptersError);
+          }
+        }
         
         // Fetch photos for the gallery
         const photosRef = collection(db, "galleries", galleryDoc.id, "photos");
-        const photosSnapshot = await getDocs(photosRef);
+        let photosSnapshot;
+        
+        // Create query based on hasChapters
+        if (galleryData.hasChapters) {
+          const q = query(photosRef, orderBy("chapterPosition", "asc"));
+          photosSnapshot = await getDocs(q);
+        } else {
+          photosSnapshot = await getDocs(photosRef);
+        }
         
         let photosData = photosSnapshot.docs.map(doc => ({
           id: doc.id,
@@ -306,22 +336,107 @@ export default function Gallery() {
                   </p>
                 </div>
               ) : (
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8">
-                  {photos.map((photo, index) => (
-                    <div
-                      key={photo.id}
-                      className="gallery-image"
-                      onClick={() => openLightbox(index)}
-                    >
-                      <img
-                        src={photo.url}
-                        alt={photo.name || `Foto ${index + 1}`}
-                        className="w-full h-full object-cover"
-                        loading="lazy"
-                      />
+                <>
+                  {gallery.hasChapters && chapters.length > 0 ? (
+                    <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full mb-8">
+                      <TabsList className="mb-6 flex overflow-x-auto">
+                        <TabsTrigger value="all">
+                          Tutte le foto ({photos.length})
+                        </TabsTrigger>
+                        
+                        <TabsTrigger value="unassigned">
+                          Non assegnate ({photos.filter(p => !p.chapterId).length})
+                        </TabsTrigger>
+                        
+                        {chapters.map(chapter => (
+                          <TabsTrigger key={chapter.id} value={chapter.id}>
+                            {chapter.title} ({photos.filter(p => p.chapterId === chapter.id).length})
+                          </TabsTrigger>
+                        ))}
+                      </TabsList>
+                      
+                      <TabsContent value="all" className="space-y-6">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8">
+                          {photos.map((photo, index) => (
+                            <div
+                              key={photo.id}
+                              className="gallery-image"
+                              onClick={() => openLightbox(photos.findIndex(p => p.id === photo.id))}
+                            >
+                              <img
+                                src={photo.url}
+                                alt={photo.name || `Foto ${index + 1}`}
+                                className="w-full h-full object-cover"
+                                loading="lazy"
+                              />
+                            </div>
+                          ))}
+                        </div>
+                      </TabsContent>
+                      
+                      <TabsContent value="unassigned" className="space-y-6">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8">
+                          {photos.filter(p => !p.chapterId).map((photo, index) => (
+                            <div
+                              key={photo.id}
+                              className="gallery-image"
+                              onClick={() => openLightbox(photos.findIndex(p => p.id === photo.id))}
+                            >
+                              <img
+                                src={photo.url}
+                                alt={photo.name || `Foto ${index + 1}`}
+                                className="w-full h-full object-cover"
+                                loading="lazy"
+                              />
+                            </div>
+                          ))}
+                        </div>
+                      </TabsContent>
+                      
+                      {chapters.map(chapter => (
+                        <TabsContent key={chapter.id} value={chapter.id} className="space-y-4">
+                          {chapter.description && (
+                            <p className="text-blue-gray italic mb-6">{chapter.description}</p>
+                          )}
+                          
+                          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8">
+                            {photos.filter(p => p.chapterId === chapter.id).map((photo, index) => (
+                              <div
+                                key={photo.id}
+                                className="gallery-image"
+                                onClick={() => openLightbox(photos.findIndex(p => p.id === photo.id))}
+                              >
+                                <img
+                                  src={photo.url}
+                                  alt={photo.name || `Foto ${index + 1}`}
+                                  className="w-full h-full object-cover"
+                                  loading="lazy"
+                                />
+                              </div>
+                            ))}
+                          </div>
+                        </TabsContent>
+                      ))}
+                    </Tabs>
+                  ) : (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8">
+                      {photos.map((photo, index) => (
+                        <div
+                          key={photo.id}
+                          className="gallery-image"
+                          onClick={() => openLightbox(index)}
+                        >
+                          <img
+                            src={photo.url}
+                            alt={photo.name || `Foto ${index + 1}`}
+                            className="w-full h-full object-cover"
+                            loading="lazy"
+                          />
+                        </div>
+                      ))}
                     </div>
-                  ))}
-                </div>
+                  )}
+                </>
               )}
             </div>
           </div>
