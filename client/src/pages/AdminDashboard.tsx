@@ -485,47 +485,65 @@ export default function AdminDashboard() {
       <Navigation isAdminNav={true} />
 
       <header className="bg-white shadow">
-        <div className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
-          <div className="md:flex md:items-center md:justify-between">
+        <div className="max-w-7xl mx-auto py-4 px-4 sm:py-6 sm:px-6 lg:px-8">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
             <div className="flex-1 min-w-0">
-              <h2 className="text-2xl font-bold leading-7 text-blue-gray font-playfair sm:text-3xl sm:truncate">
+              <h2 className="text-xl font-bold leading-7 text-blue-gray font-playfair sm:text-2xl md:text-3xl truncate">
                 Pannello Amministrazione
               </h2>
             </div>
-            <div className="mt-4 flex space-x-4 md:mt-0 md:ml-4">
+            <div className="mt-4 flex flex-wrap gap-2 sm:mt-0 sm:ml-4">
               <Button 
                 onClick={() => navigate("/")}
                 variant="outline"
-                className="px-4 py-2"
+                size="sm"
+                className="px-3 py-1 text-sm sm:px-4 sm:py-2"
               >
-                Vai al sito
+                <span className="flex items-center">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+                  </svg>
+                  <span>Home</span>
+                </span>
               </Button>
               {activeTab === 'galleries' && (
                 <Button 
                   onClick={openModal}
-                  className="btn-primary px-4 py-2"
+                  className="btn-primary px-3 py-1 text-sm sm:px-4 sm:py-2"
+                  size="sm"
                 >
-                  Nuova Galleria
+                  <span className="flex items-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                    </svg>
+                    <span>Nuova</span>
+                  </span>
                 </Button>
               )}
               <Button 
                 onClick={handleLogout}
                 variant="destructive"
-                className="px-4 py-2"
+                size="sm"
+                className="px-3 py-1 text-sm sm:px-4 sm:py-2"
               >
-                Logout
+                <span className="flex items-center">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                  </svg>
+                  <span>Logout</span>
+                </span>
               </Button>
             </div>
           </div>
         </div>
       </header>
 
-      <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
+      <main className="max-w-7xl mx-auto py-4 px-4 sm:py-6 sm:px-6 lg:px-8">
         {/* Tab Navigation */}
         <div className="mb-6 border-b border-gray-200 overflow-x-auto pb-1">
           <div className="flex whitespace-nowrap">
             <button
-              className={`py-4 px-3 mr-4 border-b-2 font-medium text-sm ${activeTab === 'galleries' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'}`}
+              className={`py-3 px-2 mr-2 border-b-2 font-medium text-xs sm:text-sm sm:py-4 sm:px-3 sm:mr-4 ${activeTab === 'galleries' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'}`}
               onClick={() => setActiveTab('galleries')}
             >
               <span className="flex items-center">
@@ -537,7 +555,7 @@ export default function AdminDashboard() {
               </span>
             </button>
             <button
-              className={`py-4 px-3 mr-4 border-b-2 font-medium text-sm ${activeTab === 'slideshow' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'}`}
+              className={`py-3 px-2 mr-2 border-b-2 font-medium text-xs sm:text-sm sm:py-4 sm:px-3 sm:mr-4 ${activeTab === 'slideshow' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'}`}
               onClick={() => setActiveTab('slideshow')}
             >
               <span className="flex items-center">
@@ -549,7 +567,7 @@ export default function AdminDashboard() {
               </span>
             </button>
             <button
-              className={`py-4 px-3 mr-4 border-b-2 font-medium text-sm ${activeTab === 'requests' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'}`}
+              className={`py-3 px-2 mr-2 border-b-2 font-medium text-xs sm:text-sm sm:py-4 sm:px-3 sm:mr-4 ${activeTab === 'requests' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'}`}
               onClick={() => setActiveTab('requests')}
             >
               <span className="flex items-center">
@@ -561,7 +579,7 @@ export default function AdminDashboard() {
               </span>
             </button>
             <button
-              className={`py-4 px-3 mr-4 border-b-2 font-medium text-sm ${activeTab === 'settings' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'}`}
+              className={`py-3 px-2 mr-2 border-b-2 font-medium text-xs sm:text-sm sm:py-4 sm:px-3 sm:mr-4 ${activeTab === 'settings' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'}`}
               onClick={() => setActiveTab('settings')}
             >
               <span className="flex items-center">
