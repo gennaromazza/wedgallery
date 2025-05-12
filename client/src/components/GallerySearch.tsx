@@ -118,7 +118,7 @@ export default function GallerySearch() {
                 >
                   <div className="flex justify-between">
                     <span className="font-medium text-blue-gray">{gallery.name}</span>
-                    <span className="text-sm text-gray-500">{gallery.date}</span>
+                    <span className="text-sm text-gray-500">Data: {gallery.date}</span>
                   </div>
                 </li>
               ))}

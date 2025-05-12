@@ -24,8 +24,9 @@ interface GalleryItem {
 export default function AdminDashboard() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [galleries, setGalleries] = useState<GalleryItem[]>([]);
+  const [passwordRequests, setPasswordRequests] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<'galleries' | 'slideshow'>('galleries');
+  const [activeTab, setActiveTab] = useState<'galleries' | 'slideshow' | 'requests'>('galleries');
   const { currentUser } = useAuth();
   const [, navigate] = useLocation();
   const { toast } = useToast();

@@ -22,10 +22,10 @@ export default function PasswordResult() {
 
       setLoading(true);
       try {
-        // Cerca la galleria con il codice fornito
+        // Cerca la galleria usando l'ID
         const galleriesRef = collection(db, 'galleries');
-        const galleryQuery = doc(galleriesRef, params.code);
-        const gallerySnap = await getDoc(galleryQuery);
+        const galleryDoc = doc(galleriesRef, params.code);
+        const gallerySnap = await getDoc(galleryDoc);
 
         if (gallerySnap.exists()) {
           setGallery({
@@ -33,12 +33,26 @@ export default function PasswordResult() {
             ...gallerySnap.data()
           });
         } else {
-          toast({
-            title: 'Errore',
-            description: 'Galleria non trovata',
-            variant: 'destructive'
-          });
-          navigate('/');
+          console.log('Galleria non trovata con ID, provo con codice');
+          
+          // Se non troviamo per ID, proviamo a cercare per codice galleria
+          const q = query(galleriesRef, where('code', '==', params.code));
+          const querySnapshot = await getDocs(q);
+          
+          if (!querySnapshot.empty) {
+            const galleryData = querySnapshot.docs[0];
+            setGallery({
+              id: galleryData.id,
+              ...galleryData.data()
+            });
+          } else {
+            toast({
+              title: 'Errore',
+              description: 'Galleria non trovata',
+              variant: 'destructive'
+            });
+            navigate('/');
+          }
         }
       } catch (error) {
         console.error('Error fetching gallery:', error);

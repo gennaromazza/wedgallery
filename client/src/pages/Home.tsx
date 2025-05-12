@@ -254,7 +254,7 @@ export default function Home() {
                             onClick={() => handleGallerySelect(gallery)}
                           >
                             <span className="font-medium">{gallery.name}</span>
-                            <span className="text-sm text-gray-500">{gallery.date}</span>
+                            <span className="text-sm text-gray-500">Data: {gallery.date}</span>
                           </li>
                         ))}
                       </ul>
