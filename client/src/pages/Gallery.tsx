@@ -656,11 +656,14 @@ export default function Gallery() {
                   
                   {/* Pulsante "Carica altre foto" */}
                   {hasMorePhotos && (
-                    <div className="w-full flex justify-center mt-8 mb-4">
+                    <div className="w-full flex flex-col items-center mt-8 mb-4">
+                      <div className="w-full max-w-xs h-8 opacity-20 mb-4">
+                        <FloralDivider />
+                      </div>
                       <button
                         onClick={loadMorePhotos}
                         disabled={loadingMorePhotos}
-                        className="px-4 py-2 bg-sage text-white rounded-md shadow-sm hover:bg-sage-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="relative px-6 py-2.5 bg-sage text-white rounded-md shadow-sm hover:bg-sage-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed group"
                       >
                         {loadingMorePhotos ? (
                           <span className="flex items-center">
@@ -671,7 +674,12 @@ export default function Gallery() {
                             Caricamento...
                           </span>
                         ) : (
-                          'Carica altre foto'
+                          <>
+                            <span className="relative z-10">Carica altre foto</span>
+                            <span className="absolute left-0 top-0 w-full h-full rounded-md overflow-hidden opacity-0 group-hover:opacity-10 transition-opacity">
+                              <BackgroundDecoration />
+                            </span>
+                          </>
                         )}
                       </button>
                     </div>
