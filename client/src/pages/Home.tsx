@@ -9,6 +9,7 @@ import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
 import GallerySearch from "@/components/GallerySearch";
 import HeroSlideshow from "@/components/HeroSlideshow";
+import { CoupleIllustration, FloralCorner, FloralDivider, BackgroundDecoration } from '@/components/WeddingIllustrations';
 
 export default function Home() {
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -233,19 +234,11 @@ export default function Home() {
       </section>
 
       {/* Request Password Section */}
-      <section id="request-password" className="py-16 bg-cream relative">
+      <section id="request-password" className="py-16 bg-cream relative overflow-hidden">
         {/* Decorazioni a tema matrimonio */}
-        <div className="absolute left-10 top-40 w-24 h-24 opacity-15 pointer-events-none">
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" className="w-full h-full text-terracotta">
-            <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
-            <circle cx="12" cy="10" r="3"></circle>
-          </svg>
-        </div>
-        <div className="absolute right-10 top-60 w-20 h-20 opacity-15 pointer-events-none rotate-12">
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" className="w-full h-full text-terracotta">
-            <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path>
-          </svg>
-        </div>
+        <FloralCorner position="top-left" className="absolute top-0 left-0 w-40 h-40 opacity-20 pointer-events-none" />
+        <FloralCorner position="bottom-right" className="absolute bottom-0 right-0 w-40 h-40 opacity-20 pointer-events-none" />
+        <BackgroundDecoration className="absolute inset-0 w-full h-full opacity-15 pointer-events-none" />
         
         <div className="max-w-xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
           <div className="relative">
@@ -407,19 +400,21 @@ export default function Home() {
         </div>
       </section>
 
+      {/* Separatore decorativo */}
+      <div className="w-full flex justify-center py-2 bg-off-white">
+        <FloralDivider className="w-full h-12" />
+      </div>
+
       {/* About Section */}
-      <section id="about" className="py-16 bg-white relative">
-        {/* Decorazioni a tema matrimonio */}
-        <div className="absolute left-0 top-24 w-40 h-40 opacity-10 pointer-events-none">
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" className="w-full h-full text-sage">
-            <path d="M5,9C11,9 11,4 11,4C11,4 11,9 17,9C11,9 11,14 11,14C11,14 11,9 5,9M18,16C18,16 18,18 21,18C18,18 18,20 18,20C18,20 18,18 15,18C18,18 18,16 18,16M12,16C12,16 12,19 17,19C12,19 12,22 12,22C12,22 12,19 7,19C12,19 12,16 12,16Z" fill="currentColor" />
-          </svg>
+      <section id="about" className="py-16 bg-white relative overflow-hidden">
+        {/* Illustrazione della coppia */}
+        <div className="absolute left-1/2 top-0 transform -translate-x-1/2 w-64 h-64 opacity-10 pointer-events-none">
+          <CoupleIllustration />
         </div>
-        <div className="absolute right-0 bottom-12 w-36 h-36 opacity-10 pointer-events-none">
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" className="w-full h-full text-sage">
-            <path d="M19 1L17.74 3.75L15 5L17.74 6.26L19 9L20.25 6.26L23 5L20.25 3.75L19 1M9 4L6.5 9.5L1 12L6.5 14.5L9 20L11.5 14.5L17 12L11.5 9.5L9 4M23 16L21.75 18.25L19.5 19.5L21.75 20.75L23 23L24.25 20.75L26.5 19.5L24.25 18.25L23 16Z" fill="currentColor" />
-          </svg>
-        </div>
+        
+        {/* Decorazioni floreali agli angoli */}
+        <FloralCorner position="top-left" className="absolute top-0 left-0 w-32 h-32 opacity-20 pointer-events-none" />
+        <FloralCorner position="bottom-right" className="absolute bottom-0 right-0 w-32 h-32 opacity-20 pointer-events-none" />
         
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
           <div className="lg:text-center">
@@ -585,6 +580,11 @@ export default function Home() {
         </div>
       </section>
 
+      {/* Separatore decorativo */}
+      <div className="w-full flex justify-center py-2 bg-white">
+        <FloralDivider className="w-full h-12" />
+      </div>
+
       {/* Contact Section */}
       <section id="contact" className="bg-mint py-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -599,26 +599,45 @@ export default function Home() {
                 </p>
               </div>
               <div className="mt-9">
-                <div className="flex">
-                  <div className="flex-shrink-0">
-                    <svg className="h-6 w-6 text-gray-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
-                    </svg>
+                {studioSettings.phone && (
+                  <div className="flex">
+                    <div className="flex-shrink-0">
+                      <svg className="h-6 w-6 text-sage" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+                      </svg>
+                    </div>
+                    <div className="ml-3 text-base text-gray-500">
+                      <p>{studioSettings.phone}</p>
+                    </div>
                   </div>
-                  <div className="ml-3 text-base text-gray-500">
-                    <p>+39 123 456 7890</p>
+                )}
+                
+                {studioSettings.email && (
+                  <div className="mt-6 flex">
+                    <div className="flex-shrink-0">
+                      <svg className="h-6 w-6 text-sage" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                      </svg>
+                    </div>
+                    <div className="ml-3 text-base text-gray-500">
+                      <p>{studioSettings.email}</p>
+                    </div>
                   </div>
-                </div>
-                <div className="mt-6 flex">
-                  <div className="flex-shrink-0">
-                    <svg className="h-6 w-6 text-gray-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                    </svg>
+                )}
+                
+                {studioSettings.address && (
+                  <div className="mt-6 flex">
+                    <div className="flex-shrink-0">
+                      <svg className="h-6 w-6 text-sage" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                      </svg>
+                    </div>
+                    <div className="ml-3 text-base text-gray-500">
+                      <p>{studioSettings.address}</p>
+                    </div>
                   </div>
-                  <div className="ml-3 text-base text-gray-500">
-                    <p>info@memoriesospese.it</p>
-                  </div>
-                </div>
+                )}
               </div>
             </div>
             
