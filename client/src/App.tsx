@@ -4,6 +4,7 @@ import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { AuthProvider } from "./context/AuthContext";
+import { StudioProvider } from "./context/StudioContext";
 import { ThemeProvider } from "next-themes";
 import { trackPageView } from "./lib/analytics";
 import { useEffect } from "react";
@@ -52,10 +53,12 @@ function App() {
     <QueryClientProvider client={queryClient}>
       <ThemeProvider attribute="class" defaultTheme="light">
         <AuthProvider>
-          <TooltipProvider>
-            <Toaster />
-            <Router />
-          </TooltipProvider>
+          <StudioProvider>
+            <TooltipProvider>
+              <Toaster />
+              <Router />
+            </TooltipProvider>
+          </StudioProvider>
         </AuthProvider>
       </ThemeProvider>
     </QueryClientProvider>
