@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Link, useLocation } from "wouter";
 import { useAuth } from "@/context/AuthContext";
+import { useStudio } from "@/context/StudioContext";
 
 interface NavigationProps {
   isAdminNav?: boolean;
@@ -11,6 +12,7 @@ export default function Navigation({ isAdminNav = false, galleryOwner }: Navigat
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [location] = useLocation();
   const { currentUser, signOut } = useAuth();
+  const { studioSettings } = useStudio();
 
   const handleSignOut = async () => {
     try {
@@ -80,7 +82,16 @@ export default function Navigation({ isAdminNav = false, galleryOwner }: Navigat
         <div className="flex justify-between items-center h-20">
           <div className="flex-shrink-0 flex items-center">
             <Link href="/">
-              <h1 className="text-blue-gray font-playfair font-semibold text-2xl cursor-pointer">Memorie Sospese</h1>
+              {studioSettings.logo ? (
+                <img 
+                  src={studioSettings.logo} 
+                  alt={`${studioSettings.name} Logo`} 
+                  className="h-10 w-auto mr-2"
+                />
+              ) : null}
+              <h1 className="text-blue-gray font-playfair font-semibold text-2xl cursor-pointer">
+                {studioSettings.name || "Memorie Sospese"}
+              </h1>
             </Link>
           </div>
           <div className="hidden md:block">
