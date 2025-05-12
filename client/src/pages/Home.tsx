@@ -221,31 +221,72 @@ export default function Home() {
               </div>
             </div>
             
-            <form className="space-y-6" onSubmit={(e) => e.preventDefault()}>
+            <form className="space-y-6" onSubmit={handleSubmit}>
               <div className="grid grid-cols-1 gap-y-6 sm:grid-cols-2 sm:gap-x-8">
+                <div className="sm:col-span-2 relative">
+                  <label htmlFor="gallerySearch" className="block text-sm font-medium text-blue-gray">
+                    Nome Galleria/Sposi
+                  </label>
+                  <div className="mt-1">
+                    <input
+                      type="text"
+                      id="gallerySearch"
+                      name="gallerySearch"
+                      placeholder="Es. Maria & Luca"
+                      value={formData.gallerySearch}
+                      onChange={handleInputChange}
+                      className="w-full border-beige rounded-md py-3 px-4 focus:ring-sage focus:border-sage"
+                      autoComplete="off"
+                    />
+                    <p className="mt-1 text-xs text-gray-500">Inserisci il nome degli sposi o della galleria</p>
+                  </div>
+                  
+                  {/* Search results dropdown */}
+                  {searchResults.length > 0 && (
+                    <div className="absolute z-10 w-full mt-1 bg-white shadow-lg rounded-md border border-gray-200 max-h-60 overflow-auto">
+                      <ul className="py-1">
+                        {searchResults.map(gallery => (
+                          <li 
+                            key={gallery.id}
+                            className="px-4 py-2 hover:bg-gray-100 cursor-pointer flex justify-between"
+                            onClick={() => handleGallerySelect(gallery)}
+                          >
+                            <span className="font-medium">{gallery.name}</span>
+                            <span className="text-sm text-gray-500">{gallery.date}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                </div>
+
                 <div>
-                  <label htmlFor="first-name" className="block text-sm font-medium text-blue-gray">
+                  <label htmlFor="firstName" className="block text-sm font-medium text-blue-gray">
                     Nome
                   </label>
                   <div className="mt-1">
                     <input
                       type="text"
-                      id="first-name"
-                      name="first-name"
+                      id="firstName"
+                      name="firstName"
+                      value={formData.firstName}
+                      onChange={handleInputChange}
                       className="w-full border-beige rounded-md py-3 px-4 focus:ring-sage focus:border-sage"
                     />
                   </div>
                 </div>
                 
                 <div>
-                  <label htmlFor="last-name" className="block text-sm font-medium text-blue-gray">
+                  <label htmlFor="lastName" className="block text-sm font-medium text-blue-gray">
                     Cognome
                   </label>
                   <div className="mt-1">
                     <input
                       type="text"
-                      id="last-name"
-                      name="last-name"
+                      id="lastName"
+                      name="lastName"
+                      value={formData.lastName}
+                      onChange={handleInputChange}
                       className="w-full border-beige rounded-md py-3 px-4 focus:ring-sage focus:border-sage"
                     />
                   </div>
@@ -260,24 +301,10 @@ export default function Home() {
                       type="email"
                       id="email"
                       name="email"
+                      value={formData.email}
+                      onChange={handleInputChange}
                       className="w-full border-beige rounded-md py-3 px-4 focus:ring-sage focus:border-sage"
                     />
-                  </div>
-                </div>
-                
-                <div className="sm:col-span-2">
-                  <label htmlFor="gallery-search" className="block text-sm font-medium text-blue-gray">
-                    Nome Galleria/Sposi
-                  </label>
-                  <div className="mt-1">
-                    <input
-                      type="text"
-                      id="gallery-search"
-                      name="gallery-search"
-                      placeholder="Es. Maria & Luca"
-                      className="w-full border-beige rounded-md py-3 px-4 focus:ring-sage focus:border-sage"
-                    />
-                    <p className="mt-1 text-xs text-gray-500">Inserisci il nome degli sposi o della galleria</p>
                   </div>
                 </div>
                 
@@ -289,6 +316,8 @@ export default function Home() {
                     <select
                       id="relation"
                       name="relation"
+                      value={formData.relation}
+                      onChange={handleInputChange}
                       className="w-full border-beige rounded-md py-3 px-4 focus:ring-sage focus:border-sage"
                     >
                       <option value="">Seleziona...</option>
@@ -303,9 +332,20 @@ export default function Home() {
                 <div className="sm:col-span-2">
                   <button
                     type="submit"
-                    className="w-full inline-flex items-center justify-center px-6 py-3 border border-transparent rounded-md shadow-sm text-base font-medium text-white bg-blue-gray hover:bg-dark-sage focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-sage btn-primary"
+                    disabled={isSubmitting}
+                    className="w-full inline-flex items-center justify-center px-6 py-3 border border-transparent rounded-md shadow-sm text-base font-medium text-white bg-blue-gray hover:bg-dark-sage focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-sage btn-primary disabled:opacity-50"
                   >
-                    Richiedi Password
+                    {isSubmitting ? (
+                      <>
+                        <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                        Invio in corso...
+                      </>
+                    ) : (
+                      'Richiedi Password'
+                    )}
                   </button>
                 </div>
               </div>
