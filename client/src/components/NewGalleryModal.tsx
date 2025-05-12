@@ -3,13 +3,14 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { ref, uploadBytesResumable, getDownloadURL } from "firebase/storage";
 import { collection, addDoc, serverTimestamp } from "firebase/firestore";
-import { db, storage } from "@/lib/firebase";
+import { db, storage, auth } from "@/lib/firebase";
 import { insertGallerySchema } from "@shared/schema";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useQueryClient } from "@tanstack/react-query";
+import { FileUpload } from "@/components/ui/file-upload";
 
 interface NewGalleryModalProps {
   isOpen: boolean;
@@ -102,6 +103,20 @@ export default function NewGalleryModal({ isOpen, onClose }: NewGalleryModalProp
     try {
       setUploading(true);
       
+      // Verifica che l'utente sia autenticato
+      if (!auth.currentUser) {
+        console.error("Utente non autenticato");
+        toast({
+          title: "Errore di autorizzazione",
+          description: "Devi essere autenticato per creare una galleria.",
+          variant: "destructive",
+        });
+        setUploading(false);
+        return;
+      }
+      
+      console.log("Utente autenticato:", auth.currentUser.email);
+      
       // Create gallery document first
       const galleryData = {
         name: data.name,
@@ -112,8 +127,10 @@ export default function NewGalleryModal({ isOpen, onClose }: NewGalleryModalProp
         createdAt: serverTimestamp(),
         photoCount: selectedFiles.length,
         active: true,
+        createdBy: auth.currentUser.email,
       };
       
+      console.log("Creazione galleria con dati:", galleryData);
       const galleryRef = await addDoc(collection(db, "galleries"), galleryData);
       
       // Upload photos if any are selected
@@ -245,43 +262,35 @@ export default function NewGalleryModal({ isOpen, onClose }: NewGalleryModalProp
 
                     <div>
                       <Label>Carica Foto</Label>
-                      <div className="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-md">
-                        <div className="space-y-1 text-center">
-                          <svg className="mx-auto h-12 w-12 text-gray-400" stroke="currentColor" fill="none" viewBox="0 0 48 48" aria-hidden="true">
-                            <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                          </svg>
-                          <div className="flex text-sm text-gray-600">
-                            <label htmlFor="file-upload" className="relative cursor-pointer bg-white rounded-md font-medium text-blue-gray hover:text-sage">
-                              <span>Carica file</span>
-                              <input
-                                id="file-upload"
-                                name="file-upload"
-                                type="file"
-                                multiple
-                                className="sr-only"
-                                onChange={handleFileChange}
-                                ref={fileInputRef}
-                              />
-                            </label>
-                            <p className="pl-1">o trascina qui</p>
-                          </div>
-                          <p className="text-xs text-gray-500">
-                            PNG, JPG, JPEG fino a 10MB
-                          </p>
-                        </div>
+                      <div className="mt-2">
+                        <FileUpload
+                          onFilesSelected={(files: File[]) => {
+                            setSelectedFiles(prevFiles => [...prevFiles, ...files]);
+                            const newPreviews = files.map(file => URL.createObjectURL(file));
+                            setPreviews(prevPreviews => [...prevPreviews, ...newPreviews]);
+                          }}
+                          multiple={true}
+                          maxFiles={10}
+                          accept="image/*"
+                          currentFiles={selectedFiles}
+                          previews={previews}
+                          onRemoveFile={(index: number) => {
+                            if (index < selectedFiles.length) {
+                              const newFiles = [...selectedFiles];
+                              newFiles.splice(index, 1);
+                              setSelectedFiles(newFiles);
+                              
+                              const newPreviews = [...previews];
+                              URL.revokeObjectURL(newPreviews[index]);
+                              newPreviews.splice(index, 1);
+                              setPreviews(newPreviews);
+                            }
+                          }}
+                        />
                       </div>
-                      {previews.length > 0 && (
-                        <div className="mt-4 grid grid-cols-3 gap-2">
-                          {previews.map((preview, index) => (
-                            <div key={index} className="aspect-w-1 aspect-h-1 bg-gray-200 rounded-md overflow-hidden">
-                              <img src={preview} alt={`Preview ${index + 1}`} className="object-cover" />
-                            </div>
-                          ))}
-                        </div>
-                      )}
                     </div>
                   </div>
-
+                  
                   <div className="mt-5 sm:mt-6 sm:grid sm:grid-cols-2 sm:gap-3 sm:grid-flow-row-dense">
                     <Button
                       type="submit"

@@ -11,6 +11,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { Switch } from "@/components/ui/switch";
+import { FileUpload } from "@/components/ui/file-upload";
 
 interface SlideshowImage {
   id: string;
@@ -82,6 +83,12 @@ export default function SlideshowManager() {
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       setFile(e.target.files[0]);
+    }
+  };
+  
+  const handleFilesSelected = (files: File[]) => {
+    if (files.length > 0) {
+      setFile(files[0]);
     }
   };
 
@@ -249,13 +256,16 @@ export default function SlideshowManager() {
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
               <div>
                 <Label htmlFor="image">Seleziona immagine</Label>
-                <Input
-                  id="image"
-                  type="file"
-                  accept="image/*"
-                  onChange={handleFileChange}
-                  className="mt-1"
-                />
+                <div className="mt-1">
+                  <FileUpload
+                    onFilesSelected={handleFilesSelected}
+                    multiple={false}
+                    maxFiles={1}
+                    accept="image/*"
+                    currentFiles={file ? [file] : []}
+                    onRemoveFile={() => setFile(null)}
+                  />
+                </div>
               </div>
               <div>
                 <Label htmlFor="alt-text">Testo alternativo</Label>
