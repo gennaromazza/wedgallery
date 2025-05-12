@@ -273,9 +273,9 @@ export function FileUpload({
               <h4 className="text-sm font-medium mb-2 text-blue-gray">Informazioni compressione</h4>
               <div className="space-y-2">
                 {/* File in fase di compressione */}
-                {compressingFiles.map(fileName => (
+                {compressingFiles.map((fileName, idx) => (
                   <ImageCompressionInfo
-                    key={`compressing-${fileName}`}
+                    key={`compressing-${fileName}-${idx}`}
                     fileName={fileName}
                     isCompressing={true}
                     originalSize={undefined}
@@ -288,7 +288,7 @@ export function FileUpload({
                   const compressionInfo = compressionData[file.name];
                   return compressionInfo ? (
                     <ImageCompressionInfo
-                      key={`compressed-${file.name}`}
+                      key={`compressed-${file.name}-${index}`}
                       fileName={file.name}
                       isCompressing={false}
                       originalSize={compressionInfo.originalSize}
@@ -297,7 +297,7 @@ export function FileUpload({
                     />
                   ) : file.type.startsWith('image/') ? (
                     <ImageCompressionInfo
-                      key={`file-${file.name}`}
+                      key={`file-${file.name}-${index}`}
                       fileName={file.name}
                       isCompressing={false}
                       originalSize={file.size}
@@ -313,7 +313,7 @@ export function FileUpload({
           {/* Anteprima dei file selezionati */}
           <div className="mt-4 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
             {currentFiles.map((file, index) => (
-              <div key={`file-${index}`} className="relative group">
+              <div key={`file-upload-${file.name}-${index}`} className="relative group">
                 <div className="relative aspect-square rounded-md overflow-hidden border bg-background">
                   <img
                     src={URL.createObjectURL(file)}
