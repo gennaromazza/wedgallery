@@ -433,57 +433,48 @@ export default function Home() {
             </p>
           </div>
 
-          {/* Informazioni con mappa e social */}
-          <div className="mt-16 bg-off-white rounded-lg p-8 shadow-sm">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-              {/* Colonna di sinistra con mappa */}
-              <div>
-                <h3 className="text-lg font-medium text-terracotta mb-4">La nostra sede</h3>
-                
-                <div className="space-y-3">
-                  {studioSettings.address && (
-                    <div>
-                      <div className="flex items-start mb-4">
-                        <div className="h-7 w-7 mr-2">
-                          <DecorativeImage type="wedding-cake" className="w-full h-auto opacity-80" alt="Icona indirizzo" />
-                        </div>
-                        <span className="text-gray-600">{studioSettings.address}</span>
-                      </div>
-                      
-                      {/* Immagine statica della mappa */}
-                      <div className="h-56 rounded-md overflow-hidden shadow-sm">
-                        <img 
-                          src={`https://maps.googleapis.com/maps/api/staticmap?center=${encodeURIComponent(studioSettings.address)}&zoom=15&size=600x300&maptype=roadmap&markers=color:red%7C${encodeURIComponent(studioSettings.address)}&key=nokey`}
-                          alt="Mappa dello studio" 
-                          className="w-full h-full object-cover"
-                          onError={(e) => {
-                            // In caso di errore nel caricamento dell'immagine (probabile senza API key), mostriamo un'immagine alternativa
-                            e.currentTarget.src = "https://placehold.co/600x300/EAECEE/415A77?text=Visita+il+nostro+studio";
-                          }}
-                        />
-                      </div>
-                      
-                      {/* Pulsante con link a Google Maps */}
-                      <a 
-                        href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(studioSettings.address)}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="inline-flex items-center mt-4 px-4 py-2 bg-white border border-sage text-sage rounded-md text-sm hover:bg-sage hover:text-white transition-colors"
-                      >
-                        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
-                        </svg>
-                        Indicazioni stradali
-                      </a>
-                    </div>
-                  )}
+          {/* Feature Cards - sostituisce Informazioni con mappa e social */}
+          <div className="mt-16">
+            <div className="space-y-10 sm:space-y-0 sm:grid sm:grid-cols-2 lg:grid-cols-3 sm:gap-6 md:gap-8">
+              {/* Card Dove Siamo */}
+              <div className="bg-off-white rounded-lg p-6 shadow-sm flex flex-col items-center text-center">
+                <div className="h-16 w-16 mb-4">
+                  <DecorativeImage type="wedding-cake" className="w-full h-auto opacity-80" alt="Icona indirizzo" />
                 </div>
+                <h3 className="text-xl font-medium text-terracotta mb-3">La nostra sede</h3>
+                {studioSettings.address ? (
+                  <>
+                    <p className="text-gray-600 mb-4">{studioSettings.address}</p>
+                    <a 
+                      href={`https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(studioSettings.address)}&travelmode=driving`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center px-4 py-2 bg-white border border-sage text-sage rounded-md text-sm hover:bg-sage hover:text-white transition-colors"
+                    >
+                      <svg className="h-4 w-4 mr-2" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M19 17h2c.6 0 1-.4 1-1v-3c0-.9-.7-1.7-1.5-1.9C18.7 10.6 16 10 16 10s-1.3-1.4-2.2-2.3c-.5-.6-1.3-.9-2.1-.9H5c-.6 0-1.1.4-1.4.9l-1.4 2.9A3.7 3.7 0 0 0 2 12v4c0 .6.4 1 1 1h2" />
+                        <circle cx="7" cy="17" r="2" />
+                        <circle cx="17" cy="17" r="2" />
+                      </svg>
+                      <span className="relative">
+                        Naviga fino a noi
+                        <span className="absolute -top-1 -right-3 animate-ping">→</span>
+                      </span>
+                    </a>
+                  </>
+                ) : (
+                  <p className="text-gray-600">Indirizzo non disponibile</p>
+                )}
               </div>
-              
-              {/* Colonna di destra con social */}
-              <div>
-                <h3 className="text-lg font-medium text-terracotta mb-4">Seguici sui social</h3>
-                <div className="flex space-x-4">
+                
+              {/* Card Social */}
+              <div className="bg-off-white rounded-lg p-6 shadow-sm flex flex-col items-center text-center">
+                <div className="h-16 w-16 mb-4">
+                  <DecorativeImage type="heart-balloon" className="w-full h-auto opacity-80" alt="Icona social" />
+                </div>
+                <h3 className="text-xl font-medium text-terracotta mb-3">Seguici sui social</h3>
+                <p className="text-gray-600 mb-4">Scopri le nostre ultime opere e rimani aggiornato sui nostri servizi!</p>
+                <div className="flex space-x-4 mt-2">
                   {studioSettings.socialLinks.facebook && (
                     <a href={studioSettings.socialLinks.facebook} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:text-blue-800">
                       <svg className="h-8 w-8" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
@@ -508,41 +499,39 @@ export default function Home() {
                     </a>
                   )}
                 </div>
-                
-                {(studioSettings.socialLinks.instagram || studioSettings.socialLinks.facebook) && (
-                  <div className="mt-6 bg-white p-4 rounded-md shadow-sm border border-beige">
-                    <h4 className="text-base font-medium text-sage mb-2">Le nostre ultime opere</h4>
-                    <p className="text-sm text-gray-500">
-                      Seguici sui nostri canali social per vedere le ultime fotografie di matrimonio e rimanere aggiornato sulle nostre disponibilità!
-                    </p>
+              </div>
+              
+              {/* Card Contatti */}
+              <div className="bg-off-white rounded-lg p-6 shadow-sm flex flex-col items-center text-center">
+                <div className="h-16 w-16 mb-4">
+                  <DecorativeImage type="standing" className="w-full h-auto opacity-80" alt="Icona contatti" />
+                </div>
+                <h3 className="text-xl font-medium text-terracotta mb-3">Contatti diretti</h3>
+                {studioSettings.phone && (
+                  <div className="mb-3">
+                    <p className="text-xs text-gray-400 mb-1">Telefono</p>
+                    <p className="text-gray-600">{studioSettings.phone}</p>
                   </div>
                 )}
                 
-                <div className="mt-6 pt-4 border-t border-beige space-y-4">
-                  {studioSettings.phone && (
-                    <div className="flex items-start">
-                      <div className="flex-shrink-0 h-7 w-7">
-                        <DecorativeImage type="heart-balloon" className="w-full h-auto opacity-80" alt="Icona telefono" />
-                      </div>
-                      <div className="ml-3 text-base text-gray-500">
-                        <p className="text-xs text-gray-400 mb-1">Chiamaci</p>
-                        <p>{studioSettings.phone}</p>
-                      </div>
-                    </div>
-                  )}
-                  
-                  {studioSettings.email && (
-                    <div className="flex items-start">
-                      <div className="flex-shrink-0 h-7 w-7">
-                        <DecorativeImage type="standing" className="w-full h-auto opacity-80" alt="Icona email" />
-                      </div>
-                      <div className="ml-3 text-base text-gray-500">
-                        <p className="text-xs text-gray-400 mb-1">Scrivici via email</p>
-                        <p>{studioSettings.email}</p>
-                      </div>
-                    </div>
-                  )}
-                </div>
+                {studioSettings.email && (
+                  <div className="mb-4">
+                    <p className="text-xs text-gray-400 mb-1">Email</p>
+                    <p className="text-gray-600">{studioSettings.email}</p>
+                  </div>
+                )}
+                
+                {studioSettings.phone && (
+                  <a 
+                    href={`tel:${studioSettings.phone.replace(/\s/g, '')}`}
+                    className="inline-flex items-center px-4 py-2 bg-white border border-sage text-sage rounded-md text-sm hover:bg-sage hover:text-white transition-colors"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+                    </svg>
+                    Chiamaci ora
+                  </a>
+                )}
               </div>
             </div>
           </div>
