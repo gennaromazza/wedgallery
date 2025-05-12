@@ -1,6 +1,6 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { useParams, useLocation } from "wouter";
-import { collection, query, where, getDocs, doc, getDoc, addDoc, serverTimestamp, orderBy } from "firebase/firestore";
+import { collection, query, where, getDocs, doc, getDoc, addDoc, serverTimestamp, orderBy, limit } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { useStudio } from "@/context/StudioContext";
 import { trackGalleryView } from "@/lib/analytics";
@@ -50,6 +50,9 @@ export default function Gallery() {
   const [isLoading, setIsLoading] = useState(true);
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [currentPhotoIndex, setCurrentPhotoIndex] = useState(0);
+  const [hasMorePhotos, setHasMorePhotos] = useState(true);
+  const [loadingMorePhotos, setLoadingMorePhotos] = useState(false);
+  const [photosPerPage, setPhotosPerPage] = useState(20); // Carica 20 foto alla volta
   const { toast } = useToast();
   const { studioSettings } = useStudio();
 
@@ -417,8 +420,16 @@ export default function Gallery() {
                               <img
                                 src={photo.url}
                                 alt={photo.name || `Foto ${index + 1}`}
-                                className="w-full h-full object-cover"
+                                className="w-full h-full object-cover transition-opacity duration-300 opacity-0 hover:opacity-95"
                                 loading="lazy"
+                                onLoad={(e) => {
+                                  // Imposta l'opacità a 1 quando l'immagine è caricata
+                                  (e.target as HTMLImageElement).classList.replace('opacity-0', 'opacity-100');
+                                }}
+                                style={{ 
+                                  backgroundColor: '#f3f4f6',
+                                  objectFit: 'cover',
+                                }}
                               />
                             </div>
                           ))}
@@ -436,8 +447,16 @@ export default function Gallery() {
                               <img
                                 src={photo.url}
                                 alt={photo.name || `Foto ${index + 1}`}
-                                className="w-full h-full object-cover"
+                                className="w-full h-full object-cover transition-opacity duration-300 opacity-0 hover:opacity-95"
                                 loading="lazy"
+                                onLoad={(e) => {
+                                  // Imposta l'opacità a 1 quando l'immagine è caricata
+                                  (e.target as HTMLImageElement).classList.replace('opacity-0', 'opacity-100');
+                                }}
+                                style={{ 
+                                  backgroundColor: '#f3f4f6',
+                                  objectFit: 'cover',
+                                }}
                               />
                             </div>
                           ))}
@@ -460,8 +479,16 @@ export default function Gallery() {
                                 <img
                                   src={photo.url}
                                   alt={photo.name || `Foto ${index + 1}`}
-                                  className="w-full h-full object-cover"
+                                  className="w-full h-full object-cover transition-opacity duration-300 opacity-0 hover:opacity-95"
                                   loading="lazy"
+                                  onLoad={(e) => {
+                                    // Imposta l'opacità a 1 quando l'immagine è caricata
+                                    (e.target as HTMLImageElement).classList.replace('opacity-0', 'opacity-100');
+                                  }}
+                                  style={{ 
+                                    backgroundColor: '#f3f4f6',
+                                    objectFit: 'cover',
+                                  }}
                                 />
                               </div>
                             ))}
@@ -480,14 +507,22 @@ export default function Gallery() {
                       {photos.map((photo, index) => (
                         <div
                           key={photo.id}
-                          className="gallery-image"
+                          className="gallery-image h-52 sm:h-64"
                           onClick={() => openLightbox(index)}
                         >
                           <img
                             src={photo.url}
                             alt={photo.name || `Foto ${index + 1}`}
-                            className="w-full h-full object-cover"
+                            className="w-full h-full object-cover transition-opacity duration-300 opacity-0 hover:opacity-95"
                             loading="lazy"
+                            onLoad={(e) => {
+                              // Imposta l'opacità a 1 quando l'immagine è caricata
+                              (e.target as HTMLImageElement).classList.replace('opacity-0', 'opacity-100');
+                            }}
+                            style={{ 
+                              backgroundColor: '#f3f4f6',
+                              objectFit: 'cover',
+                            }}
                           />
                         </div>
                       ))}
