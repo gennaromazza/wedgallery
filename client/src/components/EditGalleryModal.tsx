@@ -239,16 +239,58 @@ export default function EditGalleryModal({ isOpen, onClose, gallery }: EditGalle
             </div>
             
             <div className="space-y-2">
-              <Label htmlFor="password">Password galleria</Label>
-              <Input
-                id="password"
-                type="text" 
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="Password per l'accesso alla galleria"
-              />
+              <div className="flex justify-between items-center">
+                <Label htmlFor="password">Password galleria</Label>
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  type="button"
+                  onClick={() => {
+                    // Genera una password casuale (8 caratteri alfanumerici)
+                    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+                    let newPassword = '';
+                    for (let i = 0; i < 8; i++) {
+                      newPassword += chars.charAt(Math.floor(Math.random() * chars.length));
+                    }
+                    setPassword(newPassword);
+                  }}
+                  className="text-xs"
+                >
+                  Genera password
+                </Button>
+              </div>
+              <div className="relative flex items-center">
+                <Input
+                  id="password"
+                  type="text" 
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="Password per l'accesso alla galleria"
+                  className="pr-16"
+                />
+                {password && (
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    className="absolute right-0 h-full px-2"
+                    onClick={() => {
+                      // Copia la password negli appunti
+                      navigator.clipboard.writeText(password);
+                      toast({
+                        title: "Password copiata",
+                        description: "La password è stata copiata negli appunti",
+                      });
+                    }}
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002-2h2a2 2 0 002 2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3" />
+                    </svg>
+                  </Button>
+                )}
+              </div>
               <p className="text-sm text-gray-500">
-                Questa password verrà utilizzata per proteggere l'accesso alla galleria.
+                Questa password verrà utilizzata per proteggere l'accesso alla galleria. Puoi generare una password casuale o inserirne una personalizzata.
               </p>
             </div>
             
