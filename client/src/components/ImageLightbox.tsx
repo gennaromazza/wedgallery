@@ -126,65 +126,59 @@ export default function ImageLightbox({ isOpen, onClose, photos, initialIndex }:
         duration: 3000,
       });
       
-      // Metodo 1: Usa l'elemento immagine già caricato
-      const imgElement = imageRef.current;
-      if (imgElement && imgElement.complete) {
-        // Crea un canvas e disegna l'immagine su di esso
-        const canvas = document.createElement('canvas');
-        canvas.width = imgElement.naturalWidth;
-        canvas.height = imgElement.naturalHeight;
-        
-        const ctx = canvas.getContext('2d');
-        ctx?.drawImage(imgElement, 0, 0);
-        
-        // Converti il canvas in un'immagine scaricabile
-        canvas.toBlob((blob) => {
-          if (blob) {
-            const url = URL.createObjectURL(blob);
-            const link = document.createElement('a');
-            link.style.display = 'none';
-            link.href = url;
-            link.download = fileName;
-            document.body.appendChild(link);
-            link.click();
-            
-            setTimeout(() => {
-              document.body.removeChild(link);
-              URL.revokeObjectURL(url);
-            }, 100);
-            
-            // Mostra un toast di successo
-            toast({
-              title: "Download completato",
-              description: `${fileName} è stato scaricato con successo.`,
-              duration: 3000,
-            });
-          }
-        }, 'image/jpeg', 0.95);
-        return;
+      // Otteniamo l'immagine come blob
+      const response = await fetch(currentPhoto.url);
+      if (!response.ok) throw new Error('Network response was not ok');
+      
+      // Creiamo un URL oggetto per il blob
+      const blob = await response.blob();
+      
+      // Determiniamo il tipo MIME corretto
+      let mimeType = blob.type;
+      if (!mimeType || mimeType === 'application/octet-stream') {
+        // Se il tipo non è definito, proviamo a determinarlo dall'estensione del file
+        const extension = fileName.split('.').pop()?.toLowerCase();
+        if (extension === 'jpg' || extension === 'jpeg') mimeType = 'image/jpeg';
+        else if (extension === 'png') mimeType = 'image/png';
+        else if (extension === 'gif') mimeType = 'image/gif';
+        else if (extension === 'webp') mimeType = 'image/webp';
+        else mimeType = 'image/jpeg'; // Default fallback
       }
       
-      // Metodo 2: Fallback - carica direttamente l'URL
-      // Aggiungiamo parametri all'URL per evitare la cache e forzare il download
-      const downloadUrl = `${currentPhoto.url}?alt=media&downloadToken=${Date.now()}`;
+      // Creiamo un nuovo blob con il tipo MIME corretto
+      const newBlob = new Blob([blob], { type: mimeType });
+      
+      // Creiamo un URL per il download
+      const url = window.URL.createObjectURL(newBlob);
+      
+      // Facciamo una breve pausa prima di iniziare il download
+      // Questo può aiutare alcuni browser a processare meglio la richiesta
+      await new Promise(resolve => setTimeout(resolve, 100));
+      
+      // Creiamo e clicchiamo un link invisibile per avviare il download
       const link = document.createElement('a');
       link.style.display = 'none';
-      link.href = downloadUrl;
-      link.setAttribute('download', fileName);
-      link.setAttribute('target', '_self'); // Mantiene nello stesso contesto
+      link.href = url;
+      link.download = fileName;
       document.body.appendChild(link);
+      
+      // Clicchiamo il link per avviare il download
       link.click();
       
+      // Puliamo dopo un breve ritardo
       setTimeout(() => {
         document.body.removeChild(link);
-      }, 100);
+        window.URL.revokeObjectURL(url);
+      }, 200);
       
-      // Mostra un toast di successo
-      toast({
-        title: "Download completato",
-        description: `${fileName} è stato scaricato con successo.`,
-        duration: 3000,
-      });
+      // Mostra un toast di successo dopo un breve ritardo
+      setTimeout(() => {
+        toast({
+          title: "Download completato",
+          description: `${fileName} è stato scaricato con successo.`,
+          duration: 3000,
+        });
+      }, 500);
     } catch (error) {
       console.error('Errore durante il download:', error);
       toast({
