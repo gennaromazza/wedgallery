@@ -16,6 +16,15 @@ export interface StudioSettings {
   };
   about: string;
   logo?: string;
+  // Testi personalizzabili della Hero Section
+  heroTitle: string;
+  heroSubtitle: string;
+  heroButtonText: string;
+  // Testi personalizzabili della sezione WhatsApp
+  whatsappTitle: string;
+  whatsappSubtitle: string;
+  whatsappText: string;
+  whatsappButtonText: string;
 }
 
 const defaultSettings: StudioSettings = {
@@ -31,7 +40,16 @@ const defaultSettings: StudioSettings = {
     twitter: ''
   },
   about: '',
-  logo: ''
+  logo: '',
+  // Valori predefiniti per i testi della Hero Section
+  heroTitle: 'I momenti più belli del loro giorno speciale',
+  heroSubtitle: 'Rivivi le emozioni condivise al matrimonio attraverso immagini professionali, facilmente accessibili con la password ricevuta dagli sposi.',
+  heroButtonText: 'Trova la tua galleria',
+  // Valori predefiniti per i testi della sezione WhatsApp
+  whatsappTitle: 'Contattaci su WhatsApp',
+  whatsappSubtitle: 'Assistenza rapida e personalizzata',
+  whatsappText: 'Per ricevere informazioni sui nostri servizi fotografici per matrimoni o per qualsiasi altra domanda, contattaci direttamente su WhatsApp. Riceverai una risposta rapida e personalizzata per le tue esigenze.',
+  whatsappButtonText: 'Scrivici su WhatsApp'
 };
 
 interface StudioContextType {
