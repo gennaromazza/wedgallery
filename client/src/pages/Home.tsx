@@ -1,9 +1,142 @@
+import { useState, FormEvent } from "react";
+import { useLocation } from 'wouter';
+import { httpsCallable } from 'firebase/functions';
+import { collection, query, where, getDocs } from 'firebase/firestore';
+import { db, functions } from '@/lib/firebase';
+import { useToast } from '@/hooks/use-toast';
+import { trackPasswordRequest } from '@/lib/analytics';
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
 import GallerySearch from "@/components/GallerySearch";
 import HeroSlideshow from "@/components/HeroSlideshow";
 
 export default function Home() {
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [searchResults, setSearchResults] = useState<any[]>([]);
+  const [selectedGallery, setSelectedGallery] = useState<any>(null);
+  const { toast } = useToast();
+  const [, navigate] = useLocation();
+  
+  // Form data state
+  const [formData, setFormData] = useState({
+    firstName: '',
+    lastName: '',
+    email: '',
+    relation: '',
+    gallerySearch: ''
+  });
+  
+  // Handle input changes
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({ ...prev, [name]: value }));
+    
+    // If changing gallery search, search for galleries
+    if (name === 'gallerySearch' && value.length >= 3) {
+      searchGalleries(value);
+    } else if (name === 'gallerySearch' && value.length < 3) {
+      setSearchResults([]);
+      setSelectedGallery(null);
+    }
+  };
+  
+  // Search galleries by name
+  const searchGalleries = async (searchTerm: string) => {
+    if (searchTerm.length < 3) return;
+    
+    try {
+      const galleryRef = collection(db, 'galleries');
+      const q = query(galleryRef, where('active', '==', true));
+      const querySnapshot = await getDocs(q);
+      
+      // Filter galleries based on search term
+      const results: any[] = [];
+      querySnapshot.forEach(doc => {
+        const data = doc.data();
+        const galleryName = data.name.toLowerCase();
+        const searchTermLower = searchTerm.toLowerCase();
+        
+        // Check if gallery name contains search term
+        if (galleryName.includes(searchTermLower)) {
+          results.push({
+            id: doc.id,
+            ...data
+          });
+        }
+      });
+      
+      setSearchResults(results);
+    } catch (error) {
+      console.error('Error searching galleries:', error);
+    }
+  };
+  
+  // Handle gallery selection
+  const handleGallerySelect = (gallery: any) => {
+    setSelectedGallery(gallery);
+    setFormData(prev => ({ ...prev, gallerySearch: gallery.name }));
+    setSearchResults([]);
+  };
+  
+  // Submit form to request password
+  const handleSubmit = async (e: FormEvent) => {
+    e.preventDefault();
+    
+    if (!selectedGallery) {
+      toast({
+        title: 'Errore',
+        description: 'Seleziona una galleria valida.',
+        variant: 'destructive'
+      });
+      return;
+    }
+    
+    if (!formData.firstName || !formData.lastName || !formData.email || !formData.relation) {
+      toast({
+        title: 'Errore',
+        description: 'Compila tutti i campi richiesti.',
+        variant: 'destructive'
+      });
+      return;
+    }
+    
+    setIsSubmitting(true);
+    
+    try {
+      // Call Firebase function to send email
+      const sendPasswordEmail = httpsCallable(functions, 'sendPasswordEmail');
+      await sendPasswordEmail({
+        galleryId: selectedGallery.id,
+        galleryCode: selectedGallery.code,
+        firstName: formData.firstName,
+        lastName: formData.lastName,
+        email: formData.email,
+        relation: formData.relation
+      });
+      
+      // Track password request in analytics
+      trackPasswordRequest(selectedGallery.code);
+      
+      // Show success message
+      toast({
+        title: 'Richiesta inviata',
+        description: 'La password è stata inviata al tuo indirizzo email.',
+      });
+      
+      // Redirect to gallery
+      navigate(`/gallery/${selectedGallery.code}`);
+    } catch (error) {
+      console.error('Error sending password request:', error);
+      toast({
+        title: 'Errore',
+        description: 'Si è verificato un errore nell\'invio della richiesta. Riprova più tardi.',
+        variant: 'destructive'
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+  
   return (
     <div className="min-h-screen">
       <Navigation />
