@@ -9,6 +9,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import { useQueryClient } from "@tanstack/react-query";
 import { FileUpload } from "@/components/ui/file-upload";
 import ChaptersModal from "@/components/ChaptersModal";
@@ -393,6 +394,45 @@ export default function NewGalleryModal({ isOpen, onClose }: NewGalleryModalProp
                           />
                           {form.formState.errors.location && (
                             <p className="text-red-500 text-sm mt-1">{form.formState.errors.location.message}</p>
+                          )}
+                        </div>
+                      </div>
+                      
+                      <div>
+                        <Label htmlFor="description">Descrizione (opzionale)</Label>
+                        <div className="mt-1">
+                          <Textarea
+                            id="description"
+                            placeholder="Inserisci una breve descrizione della galleria"
+                            {...form.register("description")}
+                            rows={3}
+                          />
+                          <p className="mt-1 text-xs text-gray-500">Una breve descrizione che sarà visibile nella pagina della galleria.</p>
+                        </div>
+                      </div>
+                      
+                      <div>
+                        <Label htmlFor="coverImage">Immagine di copertina (opzionale)</Label>
+                        <div className="mt-1">
+                          <Input
+                            id="coverImage"
+                            type="file"
+                            accept="image/*"
+                            ref={coverInputRef}
+                            onChange={handleCoverImageChange}
+                          />
+                          <p className="mt-1 text-xs text-gray-500">
+                            Scegli un'immagine di copertina per la tua galleria. Dimensione consigliata: 1920x600px.
+                          </p>
+                          
+                          {coverPreview && (
+                            <div className="mt-2 border rounded-md overflow-hidden">
+                              <img 
+                                src={coverPreview} 
+                                alt="Anteprima copertina" 
+                                className="w-full h-48 object-cover"
+                              />
+                            </div>
                           )}
                         </div>
                       </div>
