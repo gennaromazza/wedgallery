@@ -15,13 +15,14 @@ interface GalleryData {
   location: string;
 }
 
-interface PhotoData extends Photo {
+// Non estendere da Photo ma definiamo i nostri campi
+interface PhotoData {
   id: string;
   name: string;
   url: string;
   contentType: string;
-  size?: number;
-  createdAt?: any;
+  size: number;
+  createdAt: any;
 }
 
 export default function Gallery() {
@@ -219,7 +220,14 @@ export default function Gallery() {
       <ImageLightbox
         isOpen={lightboxOpen}
         onClose={closeLightbox}
-        photos={photos}
+        photos={photos.map(photo => ({
+          id: photo.id,
+          name: photo.name,
+          url: photo.url,
+          size: photo.size || 0,
+          contentType: photo.contentType,
+          createdAt: photo.createdAt || new Date()
+        }))}
         initialIndex={currentPhotoIndex}
       />
     </div>

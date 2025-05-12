@@ -155,7 +155,14 @@ export default function AdminDashboard() {
                 Pannello Amministrazione
               </h2>
             </div>
-            <div className="mt-4 flex md:mt-0 md:ml-4">
+            <div className="mt-4 flex space-x-4 md:mt-0 md:ml-4">
+              <Button 
+                onClick={() => navigate("/")}
+                variant="outline"
+                className="px-4 py-2"
+              >
+                Vai al sito
+              </Button>
               {activeTab === 'galleries' && (
                 <Button 
                   onClick={openModal}

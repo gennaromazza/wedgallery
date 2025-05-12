@@ -28,8 +28,7 @@ export default function HeroSlideshow() {
           // Se abbiamo documenti possiamo fare la query più complessa
           if (!querySnapshot.empty) {
             const slideshowQuery = query(
-              slideshowCollection, 
-              where('active', '==', true), 
+              slideshowCollection,
               orderBy('position')
             );
             const filteredSnapshot = await getDocs(slideshowQuery);
