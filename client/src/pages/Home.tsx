@@ -252,10 +252,8 @@ export default function Home() {
           
           <div className="bg-white shadow-lg rounded-lg p-8 space-y-6 border border-sage/10">
             <div className="flex items-center justify-center mb-4">
-              <div className="flex items-center justify-center h-14 w-14 rounded-full bg-sage text-white shadow-md">
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-7 w-7" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                </svg>
+              <div className="h-20 w-20">
+                <WeddingImage type="heart-balloon" className="w-full h-auto" alt="Decorazione con palloncino a cuore" />
               </div>
             </div>
             
@@ -417,10 +415,8 @@ export default function Home() {
               {studioSettings.name}
               
               {/* Elemento decorativo */}
-              <span className="absolute left-1/2 -top-3 transform -translate-x-1/2 w-40 h-5 flex justify-center opacity-30">
-                <svg viewBox="0 0 100 20" className="w-full">
-                  <path d="M0,10 C30,0 70,0 100,10" fill="none" stroke="currentColor" strokeWidth="2" />
-                </svg>
+              <span className="absolute left-1/2 -top-10 transform -translate-x-1/2 w-40 h-10 flex justify-center opacity-30">
+                <DecorativeImage type="flower-bouquet" className="w-full h-auto transform rotate-180" alt="Decorazione floreale" />
               </span>
             </p>
             <p className="mt-2 text-xl text-terracotta lg:mx-auto font-medium">
@@ -503,10 +499,8 @@ export default function Home() {
             <div className="space-y-10 md:space-y-0 md:grid md:grid-cols-3 md:gap-x-8 md:gap-y-10">
               {/* Feature 1 */}
               <div className="relative group">
-                <div className="absolute flex items-center justify-center h-12 w-12 rounded-md bg-sage text-white group-hover:bg-terracotta transition-colors duration-300">
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-                  </svg>
+                <div className="absolute h-14 w-14">
+                  <DecorativeImage type="heart-balloon" className="w-full h-auto" alt="Icona palloncino a cuore" />
                 </div>
                 <div className="ml-16">
                   <h3 className="text-lg leading-6 font-medium text-blue-gray font-playfair">
@@ -516,20 +510,13 @@ export default function Home() {
                     Solo gli ospiti del matrimonio hanno accesso alle gallerie, mantenendo i ricordi privati e speciali.
                   </p>
                 </div>
-                <div className="absolute right-4 bottom-1 opacity-10 w-8 h-8 text-sage">
-                  <svg viewBox="0 0 64 64" fill="currentColor">
-                    <path d="M25.12,1.25A15.43,15.43,0,0,0,9.69,16.68V27.5a3.13,3.13,0,0,0,3.12,3.13h6.25V16.68a6.07,6.07,0,0,1,12.13,0V27.5h6.25a3.13,3.13,0,0,0,3.12-3.13V16.68A15.43,15.43,0,0,0,25.12,1.25Z"/>
-                    <path d="M48.75,30.63H39.68c0,.1,0,.2,0,.31v9.37a6.06,6.06,0,0,1-6.06,6.07H16.68a6.07,6.07,0,0,1-6.06-6.07V30.94c0-.11,0-.21,0-.31H1.56A1.56,1.56,0,0,0,0,32.19V56.87A6.07,6.07,0,0,0,6.06,62.94H45A6.07,6.07,0,0,0,51,56.87V32.19A1.56,1.56,0,0,0,48.75,30.63ZM25.53,51.84a4.66,4.66,0,0,1-1.53,1,4.4,4.4,0,0,1-3.77,0,4.66,4.66,0,0,1-1.53-1A5.17,5.17,0,0,1,17.65,50a4.22,4.22,0,0,1-.35-1.71,4.3,4.3,0,0,1,.35-1.74,4.84,4.84,0,0,1,1.05-1.46,5.3,5.3,0,0,1,1.53-1,4.4,4.4,0,0,1,3.77,0,5.3,5.3,0,0,1,1.53,1,4.84,4.84,0,0,1,1,1.46,4.3,4.3,0,0,1,.35,1.74A4.22,4.22,0,0,1,26.59,50,5.17,5.17,0,0,1,25.53,51.84Z"/>
-                  </svg>
-                </div>
+
               </div>
 
               {/* Feature 2 */}
               <div className="relative group">
-                <div className="absolute flex items-center justify-center h-12 w-12 rounded-md bg-sage text-white group-hover:bg-terracotta transition-colors duration-300">
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                  </svg>
+                <div className="absolute h-14 w-14">
+                  <DecorativeImage type="wedding-cake" className="w-full h-auto" alt="Icona torta nuziale" />
                 </div>
                 <div className="ml-16">
                   <h3 className="text-lg leading-6 font-medium text-blue-gray font-playfair">
@@ -539,19 +526,13 @@ export default function Home() {
                     Rivivi ogni emozione del matrimonio con immagini professionali che catturano l'essenza di ogni momento.
                   </p>
                 </div>
-                <div className="absolute right-4 bottom-1 opacity-10 w-8 h-8 text-sage">
-                  <svg viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M20,4H16.83L15,2H9L7.17,4H4A2,2,0,0,0,2,6V18a2,2,0,0,0,2,2H20a2,2,0,0,0,2-2V6A2,2,0,0,0,20,4Zm0,14H4V6H8.05l1.83-2h4.24L16,6h4ZM12,7a5,5,0,1,0,5,5A5,5,0,0,0,12,7Zm0,8a3,3,0,1,1,3-3A3,3,0,0,1,12,15Z"/>
-                  </svg>
-                </div>
+
               </div>
 
               {/* Feature 3 */}
               <div className="relative group">
-                <div className="absolute flex items-center justify-center h-12 w-12 rounded-md bg-sage text-white group-hover:bg-terracotta transition-colors duration-300">
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
-                  </svg>
+                <div className="absolute h-14 w-14">
+                  <DecorativeImage type="standing" className="w-full h-auto" alt="Icona sposi" />
                 </div>
                 <div className="ml-16">
                   <h3 className="text-lg leading-6 font-medium text-blue-gray font-playfair">
@@ -561,11 +542,7 @@ export default function Home() {
                     Condividi facilmente l'indirizzo della galleria con altri ospiti del matrimonio o richiedi la password agli sposi.
                   </p>
                 </div>
-                <div className="absolute right-4 bottom-1 opacity-10 w-8 h-8 text-sage">
-                  <svg viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M18,16.08a2.912,2.912,0,0,0-1.96.77L8.91,12.7A3.274,3.274,0,0,0,9,12a3.274,3.274,0,0,0-.09-.7l7.05-4.11A2.993,2.993,0,1,0,15,5a3.274,3.274,0,0,0,.09.7L8.04,9.81a3,3,0,1,0,0,4.38l7.12,4.16a2.821,2.821,0,0,0-.08.65A2.92,2.92,0,1,0,18,16.08Z"/>
-                  </svg>
-                </div>
+
               </div>
             </div>
           </div>
@@ -593,10 +570,8 @@ export default function Home() {
               <div className="mt-9">
                 {studioSettings.phone && (
                   <div className="flex">
-                    <div className="flex-shrink-0">
-                      <svg className="h-6 w-6 text-sage" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
-                      </svg>
+                    <div className="flex-shrink-0 h-7 w-7">
+                      <DecorativeImage type="heart-balloon" className="w-full h-auto opacity-80" alt="Icona contatto" />
                     </div>
                     <div className="ml-3 text-base text-gray-500">
                       <p>{studioSettings.phone}</p>
@@ -606,10 +581,8 @@ export default function Home() {
                 
                 {studioSettings.email && (
                   <div className="mt-6 flex">
-                    <div className="flex-shrink-0">
-                      <svg className="h-6 w-6 text-sage" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                      </svg>
+                    <div className="flex-shrink-0 h-7 w-7">
+                      <DecorativeImage type="standing" className="w-full h-auto opacity-80" alt="Icona contatto" />
                     </div>
                     <div className="ml-3 text-base text-gray-500">
                       <p>{studioSettings.email}</p>
