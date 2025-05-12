@@ -111,7 +111,10 @@ export default function ImageLightbox({ isOpen, onClose, photos, initialIndex }:
   };
 
   // Funzione per il download diretto
-  const handleDownload = () => {
+  const handleDownload = (e: React.MouseEvent) => {
+    // Impedisce l'apertura in una nuova finestra
+    e.preventDefault();
+    
     // Crea un link temporaneo con attributo 'download' per forzare il download
     const link = document.createElement('a');
     
@@ -119,23 +122,23 @@ export default function ImageLightbox({ isOpen, onClose, photos, initialIndex }:
     link.href = currentPhoto.url;
     
     // Imposta l'attributo 'download' con il nome del file
-    link.download = currentPhoto.name || `photo_${currentIndex + 1}.jpg`;
+    const fileName = currentPhoto.name || `photo_${currentIndex + 1}.jpg`;
+    link.download = fileName;
     
-    // Imposta un flag per indicare che l'URL è sicuro
-    link.setAttribute('target', '_blank');
-    link.setAttribute('rel', 'noopener noreferrer');
-    
-    // Aggiungi l'attributo di download forzato
-    link.setAttribute('download', '');
+    // Non aprire in una nuova finestra, forza il download
+    // Non impostare target="_blank" per evitare conflitti col download
     
     // Aggiungi temporaneamente il link al documento
     document.body.appendChild(link);
     
-    // Simula un click
+    // Simula un click per scaricare
     link.click();
     
     // Rimuovi il link dal documento
     document.body.removeChild(link);
+    
+    // Mostra indicatore visivo di download avviato
+    console.log(`Download avviato: ${fileName}`);
   };
 
   return (
