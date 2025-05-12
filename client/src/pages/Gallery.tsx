@@ -1,11 +1,12 @@
 import { useState, useEffect } from "react";
 import { useParams, useLocation } from "wouter";
-import { collection, query, where, getDocs, doc, getDoc, addDoc, serverTimestamp } from "firebase/firestore";
+import { collection, query, where, getDocs, doc, getDoc, addDoc, serverTimestamp, orderBy } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import Navigation from "@/components/Navigation";
 import ImageLightbox from "@/components/ImageLightbox";
 import { useToast } from "@/hooks/use-toast";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Photo } from "@shared/schema";
 
 interface GalleryData {
@@ -13,6 +14,7 @@ interface GalleryData {
   name: string;
   date: string;
   location: string;
+  hasChapters?: boolean;
 }
 
 // Non estendere da Photo ma definiamo i nostri campi
@@ -23,6 +25,15 @@ interface PhotoData {
   contentType: string;
   size: number;
   createdAt: any;
+  chapterId?: string | null;
+  chapterPosition?: number;
+}
+
+interface ChapterData {
+  id: string;
+  title: string;
+  description?: string;
+  position: number;
 }
 
 export default function Gallery() {
@@ -30,6 +41,8 @@ export default function Gallery() {
   const [, navigate] = useLocation();
   const [gallery, setGallery] = useState<GalleryData | null>(null);
   const [photos, setPhotos] = useState<PhotoData[]>([]);
+  const [chapters, setChapters] = useState<ChapterData[]>([]);
+  const [activeTab, setActiveTab] = useState<string>("all");
   const [isLoading, setIsLoading] = useState(true);
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [currentPhotoIndex, setCurrentPhotoIndex] = useState(0);
