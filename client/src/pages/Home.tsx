@@ -4,6 +4,7 @@ import { collection, query, where, getDocs, addDoc, serverTimestamp } from 'fire
 import { db } from '@/lib/firebase';
 import { useToast } from '@/hooks/use-toast';
 import { trackPasswordRequest } from '@/lib/analytics';
+import { useStudio } from '@/context/StudioContext';
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
 import GallerySearch from "@/components/GallerySearch";
@@ -15,6 +16,7 @@ export default function Home() {
   const [selectedGallery, setSelectedGallery] = useState<any>(null);
   const { toast } = useToast();
   const [, navigate] = useLocation();
+  const { studioSettings } = useStudio();
   
   // Form data state
   const [formData, setFormData] = useState({
