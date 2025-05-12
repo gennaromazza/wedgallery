@@ -1,11 +1,10 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useParams, Link } from "wouter";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
-import { doc, getDoc, collection, query, where, getDocs, addDoc, serverTimestamp } from "firebase/firestore";
-import { httpsCallable } from "firebase/functions";
-import { db, functions } from "@/lib/firebase";
+import { collection, query, where, getDocs, addDoc, serverTimestamp } from "firebase/firestore";
+import { db } from "@/lib/firebase";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -76,7 +75,7 @@ export default function RequestPassword() {
     }
     
     checkGallery();
-  }, [id]);
+  }, [id, toast]);
 
   const onSubmit = async (data: RequestFormData) => {
     if (!id) return;
@@ -197,7 +196,7 @@ export default function RequestPassword() {
                     </p>
                   )}
                   <p className="mt-2 text-gray-600">
-                    Compila il form per ricevere la password della galleria via email
+                    Compila il form per ricevere la password della galleria
                   </p>
                 </div>
                 
