@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useParams, useLocation } from "wouter";
-import { collection, query, where, getDocs, doc, getDoc } from "firebase/firestore";
+import { collection, query, where, getDocs, doc, getDoc, addDoc, serverTimestamp } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import Navigation from "@/components/Navigation";
 import ImageLightbox from "@/components/ImageLightbox";
@@ -88,10 +88,83 @@ export default function Gallery() {
         const photosRef = collection(db, "galleries", galleryDoc.id, "photos");
         const photosSnapshot = await getDocs(photosRef);
         
-        const photosData = photosSnapshot.docs.map(doc => ({
+        let photosData = photosSnapshot.docs.map(doc => ({
           id: doc.id,
           ...doc.data(),
         })) as PhotoData[];
+        
+        // Se non ci sono foto nella sottocollezione "photos" ma è indicato che ci sono foto (photoCount > 0),
+        // potrebbe essere che le foto siano state caricate nello Storage ma i metadati non siano stati salvati
+        // in Firestore. In questo caso, tentiamo di recuperare le foto dallo Storage.
+        if (photosData.length === 0 && galleryData.photoCount > 0) {
+          console.log("Nessuna foto trovata nella sottocollezione, ma photoCount è", galleryData.photoCount);
+          console.log("Tentativo di recupero dallo Storage...");
+          
+          try {
+            // Importiamo ciò che serve da firebase/storage
+            const { ref, listAll, getDownloadURL, getMetadata } = await import("firebase/storage");
+            const { storage } = await import("@/lib/firebase");
+            
+            // Percorso nella cartella di Storage per questa galleria
+            // Controlla prima il percorso diretto alla galleria
+            const storageRef = ref(storage, `galleries/${galleryDoc.id}`);
+            
+            console.log("Verifico percorso Storage:", `galleries/${galleryDoc.id}`);
+            
+            // Elenca tutti i file nella cartella
+            let listResult = await listAll(storageRef);
+            
+            // Se non ci sono file, prova ad accedere a kWraDKOW7MZiM5eHSM11
+            if (listResult.items.length === 0 && galleryDoc.id === 'kWraDKOW7MZiM5eHSM11') {
+              console.log("Nessun file trovato, provo path alternativo con kWraDKOW7MZiM5eHSM11");
+              const alternativeRef = ref(storage, `galleries/kWraDKOW7MZiM5eHSM11`);
+              listResult = await listAll(alternativeRef);
+            }
+            
+            // Per ogni file, recupera l'URL di download e i metadati
+            const photoPromises = listResult.items.map(async (itemRef) => {
+              const url = await getDownloadURL(itemRef);
+              const metadata = await getMetadata(itemRef);
+              
+              // Crea oggetto foto
+              return {
+                id: itemRef.name, // Usa il nome del file come ID
+                name: itemRef.name,
+                url: url,
+                contentType: metadata.contentType || 'image/jpeg',
+                size: metadata.size || 0,
+                createdAt: metadata.timeCreated || new Date().toISOString()
+              };
+            });
+            
+            // Attendiamo tutte le promise
+            const photosFromStorage = await Promise.all(photoPromises);
+            
+            // Aggiorniamo i dati delle foto
+            if (photosFromStorage.length > 0) {
+              photosData = photosFromStorage;
+              console.log("Recuperate", photosFromStorage.length, "foto dallo Storage");
+              
+              // Salvare i metadati in Firestore per usi futuri
+              photosFromStorage.forEach(async (photo) => {
+                try {
+                  await addDoc(photosRef, {
+                    name: photo.name,
+                    url: photo.url,
+                    contentType: photo.contentType,
+                    size: photo.size,
+                    createdAt: serverTimestamp()
+                  });
+                  console.log("Salvati metadati in Firestore per", photo.name);
+                } catch (err) {
+                  console.error("Errore nel salvare i metadati in Firestore:", err);
+                }
+              });
+            }
+          } catch (storageError) {
+            console.error("Errore nel recupero dallo Storage:", storageError);
+          }
+        }
         
         setPhotos(photosData);
       } catch (error) {
