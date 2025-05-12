@@ -53,8 +53,10 @@ function App() {
     <QueryClientProvider client={queryClient}>
       <ThemeProvider attribute="class" defaultTheme="light">
         <TooltipProvider>
-          <Toaster />
-          <Router />
+          <StudioProvider>
+            <Toaster />
+            <Router />
+          </StudioProvider>
         </TooltipProvider>
       </ThemeProvider>
     </QueryClientProvider>
