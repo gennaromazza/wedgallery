@@ -66,14 +66,8 @@ export function FileUpload({
     if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
       const newFiles = Array.from(e.dataTransfer.files);
       
-      // Controlla che non si superi il numero massimo di file
-      if (multiple) {
-        const totalFiles = currentFiles.length + newFiles.length;
-        if (totalFiles > maxFiles) {
-          alert(`Puoi caricare al massimo ${maxFiles} file.`);
-          return;
-        }
-      } else if (newFiles.length > 1) {
+      // Controlla se multiple è abilitato
+      if (!multiple && newFiles.length > 1) {
         // Se multiple è false, accetta solo un file
         alert('Puoi caricare solo un file.');
         return;
@@ -144,14 +138,7 @@ export function FileUpload({
     if (e.target.files && e.target.files.length > 0) {
       const newFiles = Array.from(e.target.files);
       
-      // Controlla che non si superi il numero massimo di file
-      if (multiple) {
-        const totalFiles = currentFiles.length + newFiles.length;
-        if (totalFiles > maxFiles) {
-          alert(`Puoi caricare al massimo ${maxFiles} file.`);
-          return;
-        }
-      }
+      // Nessun controllo sul numero massimo di file
       
       try {
         // Comprime le immagini se l'opzione è abilitata
@@ -247,11 +234,19 @@ export function FileUpload({
           Trascina le foto qui o{" "}
           <span className="text-primary">selezionane dal computer</span>
         </p>
-        <p className="text-xs text-muted-foreground">
-          {multiple 
-            ? `Puoi caricare fino a ${maxFiles} immagini` 
-            : "Puoi caricare una sola immagine"}
-        </p>
+        <div className="text-xs text-muted-foreground space-y-1">
+          <p>
+            {multiple 
+              ? "Carica quante immagini desideri" 
+              : "Puoi caricare una sola immagine"}
+          </p>
+          <p className="text-xs">
+            Formato consigliato: max 2000px di lato lungo, max 5MB, 72-300 DPI
+          </p>
+          <p className="text-xs">
+            Immagini più grandi saranno compresse automaticamente
+          </p>
+        </div>
       </div>
 
       {/* Input file nascosto */}
