@@ -6,12 +6,12 @@ import { useStudio } from "@/context/StudioContext";
 import { trackGalleryView } from "@/lib/analytics";
 import Navigation from "@/components/Navigation";
 import ImageLightbox from "@/components/ImageLightbox";
-import WeddingAnimation from "@/components/WeddingAnimation";
 import { useToast } from "@/hooks/use-toast";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Photo } from "@shared/schema";
-import { CoupleIllustration, FloralCorner, FloralDivider, BackgroundDecoration } from '@/components/WeddingIllustrations';
+import { FloralCorner, FloralDivider, BackgroundDecoration } from '@/components/WeddingIllustrations';
+import { WeddingImage, DecorativeImage } from '@/components/WeddingImages';
 
 interface GalleryData {
   id: string;
@@ -463,8 +463,8 @@ export default function Gallery() {
             <div className="absolute inset-0 overflow-hidden opacity-10">
               <BackgroundDecoration />
             </div>
-            <div className="w-48 h-48 md:w-60 md:h-60 opacity-25">
-              <CoupleIllustration />
+            <div className="md:w-72 w-60 h-auto">
+              <DecorativeImage type="standing" alt={`Immagine coppia di sposi per ${gallery.name}`} />
             </div>
           </div>
         )}
@@ -624,7 +624,12 @@ export default function Gallery() {
                           
                           {photos.filter(p => p.chapterId === chapter.id).length === 0 && (
                             <div className="text-center py-8">
-                              <p className="text-gray-500 italic">Nessuna foto in questo capitolo</p>
+                              <div className="flex flex-col items-center">
+                                <div className="w-32 h-32 mb-4">
+                                  <WeddingImage type="wedding-cake" alt="Immagine decorativa torta nuziale" className="w-full h-auto opacity-30" />
+                                </div>
+                                <p className="text-gray-500 italic">Nessuna foto in questo capitolo</p>
+                              </div>
                             </div>
                           )}
                         </TabsContent>
@@ -739,8 +744,8 @@ export default function Gallery() {
           </div>
           
           <div className="mt-12 pt-6 border-t border-gray-200 text-center text-gray-500 text-sm">
-            <div className="w-24 h-24 mx-auto mb-4 opacity-15">
-              <CoupleIllustration />
+            <div className="w-20 h-20 mx-auto mb-4">
+              <WeddingImage type="flower-bouquet" className="w-full h-auto opacity-20" />
             </div>
             <p>© {new Date().getFullYear()} {studioSettings.name}. Tutti i diritti riservati.</p>
             <p className="mt-2">
