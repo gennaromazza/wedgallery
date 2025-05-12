@@ -152,14 +152,14 @@ export default function Home() {
         <div className="relative max-w-7xl mx-auto py-24 px-4 sm:py-32 sm:px-6 lg:px-8">
           <div className="relative z-10 backdrop-blur-sm bg-white/5 p-6 sm:p-8 rounded-lg shadow-lg inline-block">
             <h1 className="text-4xl font-bold tracking-tight text-white sm:text-5xl lg:text-6xl font-playfair animate-slide-up drop-shadow-md">
-              Ricordi preziosi, <br />custoditi con cura
+              I momenti più belli <br />del loro giorno speciale
             </h1>
             <p className="mt-6 text-xl text-white max-w-2xl font-sans animate-slide-up drop-shadow" style={{ animationDelay: "100ms" }}>
-              Le tue gallerie fotografiche private, accessibili in modo sicuro e semplice su qualsiasi dispositivo.
+              Rivivi le emozioni condivise al matrimonio attraverso immagini professionali, facilmente accessibili con la password ricevuta dagli sposi.
             </p>
             <div className="mt-10 animate-slide-up" style={{ animationDelay: "200ms" }}>
               <a href="#access-gallery" className="px-8 py-3 bg-sage text-white font-medium rounded-md shadow-md hover:bg-dark-sage transition-all hover:shadow-lg inline-block">
-                Accedi alla tua galleria
+                Trova la tua galleria
               </a>
             </div>
           </div>
@@ -167,24 +167,38 @@ export default function Home() {
       </div>
 
       {/* Access Gallery Form */}
-      <section id="access-gallery" className="py-16 bg-off-white">
-        <div className="max-w-md mx-auto animate-fade-in">
+      <section id="access-gallery" className="py-16 bg-off-white relative">
+        {/* Decorazioni a tema matrimonio */}
+        <div className="absolute left-0 top-0 w-32 h-32 opacity-20 pointer-events-none">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" className="w-full h-full text-sage">
+            <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" strokeWidth="1"></path>
+          </svg>
+        </div>
+        <div className="absolute right-0 bottom-0 w-32 h-32 opacity-20 pointer-events-none">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" className="w-full h-full text-sage">
+            <path d="M12 17.75l-6.172 3.245l1.179 -6.873l-5 -4.867l6.9 -1l3.086 -6.253l3.086 6.253l6.9 1l-5 4.867l1.179 6.873z" strokeWidth="1"></path>
+          </svg>
+        </div>
+        
+        <div className="max-w-md mx-auto animate-fade-in relative z-10">
           <div className="bg-white shadow-lg rounded-lg overflow-hidden border border-sage/10">
-            {/* Header decorativo */}
+            {/* Header decorativo con anelli matrimoniali */}
             <div className="relative h-12 bg-gradient-to-r from-sage/30 via-sage/40 to-sage/30 flex items-center justify-center">
               <div className="absolute -bottom-6 left-1/2 transform -translate-x-1/2 flex items-center justify-center h-12 w-12 rounded-full bg-sage text-white shadow-md">
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-7 w-7" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                  <circle cx="9" cy="12" r="3" strokeWidth="1.5"/>
+                  <circle cx="15" cy="12" r="3" strokeWidth="1.5"/>
+                  <path d="M6 12h12" strokeWidth="0"/>
                 </svg>
               </div>
             </div>
             
             <div className="px-8 pt-12 pb-8">
               <h2 className="text-center text-2xl font-bold text-blue-gray font-playfair mb-3">
-                Accedi alla tua Galleria
+                Accedi alle Foto del Matrimonio
               </h2>
               <p className="text-center text-gray-600 mb-8 italic">
-                Cerca la galleria usando il nome degli sposi
+                Inserisci il nome degli sposi che hai celebrato
               </p>
               
               <div className="space-y-6">
@@ -200,13 +214,13 @@ export default function Home() {
                 
                 <div className="text-center">
                   <p className="text-sm text-gray-600 mb-4 font-medium">
-                    Non trovi la galleria o non hai la password?
+                    Gli sposi non ti hanno ancora inviato la password?
                   </p>
                   <a 
                     href="#request-password" 
                     className="inline-block px-6 py-2.5 rounded-md border border-sage text-sage hover:bg-sage hover:text-white transition-all duration-200 shadow-sm hover:shadow font-medium"
                   >
-                    Richiedi la password
+                    Richiedi il tuo accesso
                   </a>
                 </div>
               </div>
@@ -219,20 +233,43 @@ export default function Home() {
       </section>
 
       {/* Request Password Section */}
-      <section id="request-password" className="py-16 bg-cream">
-        <div className="max-w-xl mx-auto px-4 sm:px-6 lg:px-8">
-          <h2 className="text-center text-3xl font-bold text-blue-gray font-playfair mb-2">
-            Richiedi la Password
-          </h2>
-          <p className="text-center text-gray-600 mb-8">
-            Compila il form per ricevere la password della galleria via email
-          </p>
+      <section id="request-password" className="py-16 bg-cream relative">
+        {/* Decorazioni a tema matrimonio */}
+        <div className="absolute left-10 top-40 w-24 h-24 opacity-15 pointer-events-none">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" className="w-full h-full text-terracotta">
+            <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+            <circle cx="12" cy="10" r="3"></circle>
+          </svg>
+        </div>
+        <div className="absolute right-10 top-60 w-20 h-20 opacity-15 pointer-events-none rotate-12">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" className="w-full h-full text-terracotta">
+            <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path>
+          </svg>
+        </div>
+        
+        <div className="max-w-xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+          <div className="relative">
+            <h2 className="text-center text-3xl font-bold text-blue-gray font-playfair mb-2">
+              Richiedi il Tuo Invito Digitale
+            </h2>
+            <p className="text-center text-gray-600 mb-8">
+              Gli sposi ti invieranno la password per accedere ai ricordi del loro giorno speciale
+            </p>
+            
+            {/* Elemento decorativo */}
+            <div className="absolute w-full flex justify-center -top-8 opacity-20 pointer-events-none">
+              <svg className="w-32 h-16" viewBox="0 0 100 50" xmlns="http://www.w3.org/2000/svg">
+                <path d="M 10,25 C 30,5 70,5 90,25" fill="none" stroke="currentColor" className="text-blue-gray" strokeWidth="2"></path>
+                <path d="M 10,25 C 30,45 70,45 90,25" fill="none" stroke="currentColor" className="text-blue-gray" strokeWidth="2"></path>
+              </svg>
+            </div>
+          </div>
           
-          <div className="bg-white shadow-lg rounded-lg p-8 space-y-6">
+          <div className="bg-white shadow-lg rounded-lg p-8 space-y-6 border border-sage/10">
             <div className="flex items-center justify-center mb-4">
-              <div className="flex items-center justify-center h-12 w-12 rounded-full bg-sage text-white">
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+              <div className="flex items-center justify-center h-14 w-14 rounded-full bg-sage text-white shadow-md">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-7 w-7" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                 </svg>
               </div>
             </div>
@@ -371,14 +408,33 @@ export default function Home() {
       </section>
 
       {/* About Section */}
-      <section id="about" className="py-16 bg-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <section id="about" className="py-16 bg-white relative">
+        {/* Decorazioni a tema matrimonio */}
+        <div className="absolute left-0 top-24 w-40 h-40 opacity-10 pointer-events-none">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" className="w-full h-full text-sage">
+            <path d="M5,9C11,9 11,4 11,4C11,4 11,9 17,9C11,9 11,14 11,14C11,14 11,9 5,9M18,16C18,16 18,18 21,18C18,18 18,20 18,20C18,20 18,18 15,18C18,18 18,16 18,16M12,16C12,16 12,19 17,19C12,19 12,22 12,22C12,22 12,19 7,19C12,19 12,16 12,16Z" fill="currentColor" />
+          </svg>
+        </div>
+        <div className="absolute right-0 bottom-12 w-36 h-36 opacity-10 pointer-events-none">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" className="w-full h-full text-sage">
+            <path d="M19 1L17.74 3.75L15 5L17.74 6.26L19 9L20.25 6.26L23 5L20.25 3.75L19 1M9 4L6.5 9.5L1 12L6.5 14.5L9 20L11.5 14.5L17 12L11.5 9.5L9 4M23 16L21.75 18.25L19.5 19.5L21.75 20.75L23 23L24.25 20.75L26.5 19.5L24.25 18.25L23 16Z" fill="currentColor" />
+          </svg>
+        </div>
+        
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
           <div className="lg:text-center">
             <h2 className="text-base text-terracotta font-semibold tracking-wide uppercase">
-              Chi Siamo
+              La Fotografia Che Crea Ricordi
             </h2>
-            <p className="mt-2 text-3xl leading-8 font-bold tracking-tight text-blue-gray sm:text-4xl font-playfair">
+            <p className="mt-2 text-3xl leading-8 font-bold tracking-tight text-blue-gray sm:text-4xl font-playfair relative">
               {studioSettings.name}
+              
+              {/* Elemento decorativo */}
+              <span className="absolute left-1/2 -top-3 transform -translate-x-1/2 w-40 h-5 flex justify-center opacity-30">
+                <svg viewBox="0 0 100 20" className="w-full">
+                  <path d="M0,10 C30,0 70,0 100,10" fill="none" stroke="currentColor" strokeWidth="2" />
+                </svg>
+              </span>
             </p>
             <p className="mt-2 text-xl text-terracotta lg:mx-auto font-medium">
               {studioSettings.slogan}
@@ -459,53 +515,69 @@ export default function Home() {
           <div className="mt-16">
             <div className="space-y-10 md:space-y-0 md:grid md:grid-cols-3 md:gap-x-8 md:gap-y-10">
               {/* Feature 1 */}
-              <div className="relative">
-                <div className="absolute flex items-center justify-center h-12 w-12 rounded-md bg-sage text-white">
+              <div className="relative group">
+                <div className="absolute flex items-center justify-center h-12 w-12 rounded-md bg-sage text-white group-hover:bg-terracotta transition-colors duration-300">
                   <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
                   </svg>
                 </div>
                 <div className="ml-16">
                   <h3 className="text-lg leading-6 font-medium text-blue-gray font-playfair">
-                    Accesso sicuro
+                    Accesso riservato agli invitati
                   </h3>
                   <p className="mt-2 text-base text-gray-500">
-                    Ogni galleria è protetta da password e accessibile solo a chi possiede le credenziali.
+                    Solo gli ospiti del matrimonio hanno accesso alle gallerie, mantenendo i ricordi privati e speciali.
                   </p>
+                </div>
+                <div className="absolute right-4 bottom-1 opacity-10 w-8 h-8 text-sage">
+                  <svg viewBox="0 0 64 64" fill="currentColor">
+                    <path d="M25.12,1.25A15.43,15.43,0,0,0,9.69,16.68V27.5a3.13,3.13,0,0,0,3.12,3.13h6.25V16.68a6.07,6.07,0,0,1,12.13,0V27.5h6.25a3.13,3.13,0,0,0,3.12-3.13V16.68A15.43,15.43,0,0,0,25.12,1.25Z"/>
+                    <path d="M48.75,30.63H39.68c0,.1,0,.2,0,.31v9.37a6.06,6.06,0,0,1-6.06,6.07H16.68a6.07,6.07,0,0,1-6.06-6.07V30.94c0-.11,0-.21,0-.31H1.56A1.56,1.56,0,0,0,0,32.19V56.87A6.07,6.07,0,0,0,6.06,62.94H45A6.07,6.07,0,0,0,51,56.87V32.19A1.56,1.56,0,0,0,48.75,30.63ZM25.53,51.84a4.66,4.66,0,0,1-1.53,1,4.4,4.4,0,0,1-3.77,0,4.66,4.66,0,0,1-1.53-1A5.17,5.17,0,0,1,17.65,50a4.22,4.22,0,0,1-.35-1.71,4.3,4.3,0,0,1,.35-1.74,4.84,4.84,0,0,1,1.05-1.46,5.3,5.3,0,0,1,1.53-1,4.4,4.4,0,0,1,3.77,0,5.3,5.3,0,0,1,1.53,1,4.84,4.84,0,0,1,1,1.46,4.3,4.3,0,0,1,.35,1.74A4.22,4.22,0,0,1,26.59,50,5.17,5.17,0,0,1,25.53,51.84Z"/>
+                  </svg>
                 </div>
               </div>
 
               {/* Feature 2 */}
-              <div className="relative">
-                <div className="absolute flex items-center justify-center h-12 w-12 rounded-md bg-sage text-white">
+              <div className="relative group">
+                <div className="absolute flex items-center justify-center h-12 w-12 rounded-md bg-sage text-white group-hover:bg-terracotta transition-colors duration-300">
                   <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
                   </svg>
                 </div>
                 <div className="ml-16">
                   <h3 className="text-lg leading-6 font-medium text-blue-gray font-playfair">
-                    Gallerie di alta qualità
+                    Ricordi in alta qualità
                   </h3>
                   <p className="mt-2 text-base text-gray-500">
-                    Le tue foto vengono visualizzate con la massima qualità su qualsiasi dispositivo.
+                    Rivivi ogni emozione del matrimonio con immagini professionali che catturano l'essenza di ogni momento.
                   </p>
+                </div>
+                <div className="absolute right-4 bottom-1 opacity-10 w-8 h-8 text-sage">
+                  <svg viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M20,4H16.83L15,2H9L7.17,4H4A2,2,0,0,0,2,6V18a2,2,0,0,0,2,2H20a2,2,0,0,0,2-2V6A2,2,0,0,0,20,4Zm0,14H4V6H8.05l1.83-2h4.24L16,6h4ZM12,7a5,5,0,1,0,5,5A5,5,0,0,0,12,7Zm0,8a3,3,0,1,1,3-3A3,3,0,0,1,12,15Z"/>
+                  </svg>
                 </div>
               </div>
 
               {/* Feature 3 */}
-              <div className="relative">
-                <div className="absolute flex items-center justify-center h-12 w-12 rounded-md bg-sage text-white">
+              <div className="relative group">
+                <div className="absolute flex items-center justify-center h-12 w-12 rounded-md bg-sage text-white group-hover:bg-terracotta transition-colors duration-300">
                   <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 15l-2 5L9 9l11 4-5 2zm0 0l5 5M7.188 2.239l.777 2.897M5.136 7.965l-2.898-.777M13.95 4.05l-2.122 2.122m-5.657 5.656l-2.12 2.122" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
                   </svg>
                 </div>
                 <div className="ml-16">
                   <h3 className="text-lg leading-6 font-medium text-blue-gray font-playfair">
-                    Facile condivisione
+                    Condivisione tra invitati
                   </h3>
                   <p className="mt-2 text-base text-gray-500">
-                    Condividi facilmente il link della galleria con gli invitati che potranno richiedere la password.
+                    Condividi facilmente l'indirizzo della galleria con altri ospiti del matrimonio o richiedi la password agli sposi.
                   </p>
+                </div>
+                <div className="absolute right-4 bottom-1 opacity-10 w-8 h-8 text-sage">
+                  <svg viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M18,16.08a2.912,2.912,0,0,0-1.96.77L8.91,12.7A3.274,3.274,0,0,0,9,12a3.274,3.274,0,0,0-.09-.7l7.05-4.11A2.993,2.993,0,1,0,15,5a3.274,3.274,0,0,0,.09.7L8.04,9.81a3,3,0,1,0,0,4.38l7.12,4.16a2.821,2.821,0,0,0-.08.65A2.92,2.92,0,1,0,18,16.08Z"/>
+                  </svg>
                 </div>
               </div>
             </div>
