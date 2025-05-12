@@ -10,6 +10,8 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
+import { FloralCorner, FloralDivider, BackgroundDecoration } from '@/components/WeddingIllustrations';
+import { WeddingImage, DecorativeImage } from '@/components/WeddingImages';
 
 const loginSchema = z.object({
   email: z.string().email("Inserisci un'email valida"),
@@ -68,22 +70,39 @@ export default function AdminLogin() {
   };
 
   return (
-    <div className="min-h-screen bg-off-white flex flex-col">
+    <div className="min-h-screen bg-off-white flex flex-col relative">
+      {/* Decorazioni floreali agli angoli */}
+      <div className="absolute top-0 left-0 w-32 h-32 opacity-15 pointer-events-none">
+        <WeddingImage type="flower-bouquet" className="w-full h-auto" alt="Decorazione floreale" />
+      </div>
+      <div className="absolute top-0 right-0 w-32 h-32 opacity-15 pointer-events-none">
+        <WeddingImage type="flower-bouquet" className="w-full h-auto transform scale-x-[-1]" alt="Decorazione floreale" />
+      </div>
+      
       <Navigation />
       
-      <div className="flex-grow flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+      <div className="flex-grow flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8 relative z-10">
         <div className="max-w-md w-full space-y-8">
           <div className="text-center">
+            <div className="w-24 h-24 mx-auto mb-4">
+              <WeddingImage type="standing" className="w-full h-auto opacity-40" alt="Icona amministratore" />
+            </div>
             <h2 className="mt-6 text-3xl font-bold text-blue-gray font-playfair">
               Accesso Admin
             </h2>
             <p className="mt-2 text-center text-sm text-gray-600">
               Accedi per gestire le gallerie fotografiche
             </p>
+            <div className="w-full max-w-xs mx-auto h-6 opacity-20 my-4">
+              <FloralDivider />
+            </div>
           </div>
           
-          <Card>
-            <CardContent className="pt-6">
+          <Card className="border-sage/20 shadow-md overflow-hidden">
+            <div className="absolute inset-0 opacity-5 pointer-events-none">
+              <BackgroundDecoration />
+            </div>
+            <CardContent className="pt-6 relative z-10">
               <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
                 <div>
                   <label htmlFor="email" className="block text-sm font-medium text-blue-gray">

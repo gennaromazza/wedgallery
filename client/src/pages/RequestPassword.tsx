@@ -18,7 +18,7 @@ import {
 } from "@/components/ui/select";
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
-import { FloralCorner, FloralDivider, HeartFrameWithRings, BackgroundDecoration } from '@/components/WeddingIllustrations';
+import { FloralCorner, FloralDivider, BackgroundDecoration } from '@/components/WeddingIllustrations';
 import { WeddingImage, DecorativeImage } from '@/components/WeddingImages';
 
 const requestSchema = z.object({
