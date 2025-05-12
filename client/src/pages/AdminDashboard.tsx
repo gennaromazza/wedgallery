@@ -979,12 +979,20 @@ export default function AdminDashboard() {
                         </div>
                         <div className="space-y-2">
                           <Label htmlFor="studioInstagram">Instagram</Label>
-                          <Input 
-                            id="studioInstagram" 
-                            value={studioSettings.socialLinks.instagram || ''} 
-                            onChange={(e) => handleSettingsChange('socialLinks', e.target.value, 'instagram')}
-                            placeholder="Es. https://instagram.com/tuostudio"
-                          />
+                          <div className="space-y-1">
+                            <Input 
+                              id="studioInstagram" 
+                              value={studioSettings.socialLinks.instagram || ''} 
+                              onChange={(e) => {
+                                // Rimuovi eventuali URL completi e prendi solo lo username
+                                const value = e.target.value;
+                                const usernameOnly = value.replace(/^https?:\/\/(www\.)?instagram\.com\//i, '');
+                                handleSettingsChange('socialLinks', usernameOnly, 'instagram');
+                              }}
+                              placeholder="Es. tuostudio (solo username, senza URL completo)"
+                            />
+                            <p className="text-xs text-muted-foreground">Inserisci solo lo username (es: "fotografo_mario"), non l'URL completo</p>
+                          </div>
                         </div>
                         <div className="space-y-2">
                           <Label htmlFor="studioTwitter">Twitter</Label>
