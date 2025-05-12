@@ -7,6 +7,7 @@ import { formatPasswordRequestsForExcel, exportToExcel } from "@/lib/excelExport
 import { ref, listAll, deleteObject, uploadBytes, getDownloadURL } from "firebase/storage";
 import Navigation from "@/components/Navigation";
 import NewGalleryModal from "@/components/NewGalleryModal";
+import EditGalleryModal from "@/components/EditGalleryModal";
 import SlideshowManager from "@/components/SlideshowManager";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
@@ -46,6 +47,8 @@ interface StudioSettings {
 
 export default function AdminDashboard() {
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [selectedGallery, setSelectedGallery] = useState<GalleryItem | null>(null);
   const [galleries, setGalleries] = useState<GalleryItem[]>([]);
   const [passwordRequests, setPasswordRequests] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -80,81 +83,54 @@ export default function AdminDashboard() {
 
   // Fetch data (galleries, password requests and studio settings)
   useEffect(() => {
-    async function fetchData() {
-      setIsLoading(true);
+    async function loadAllData() {
+      // Carica gallerie
+      await fetchData();
+      
+      // Carica richieste password
       try {
-        // Carica gallerie
-        const galleriesCollection = collection(db, "galleries");
-        const gallerySnapshot = await getDocs(galleriesCollection);
+        const requestsCollection = collection(db, "passwordRequests");
+        const requestsSnapshot = await getDocs(requestsCollection);
         
-        const galleryList = gallerySnapshot.docs.map(doc => ({
-          id: doc.id,
-          ...doc.data()
-        })) as GalleryItem[];
+        const requestsList = requestsSnapshot.docs.map(doc => {
+          const data = doc.data();
+          return {
+            id: doc.id,
+            ...data,
+            timestamp: data.createdAt?.toDate?.() || new Date()
+          };
+        });
         
         // Sort by creation date, newest first
-        galleryList.sort((a, b) => {
-          const dateA = a.createdAt?.toDate?.() || new Date(0);
-          const dateB = b.createdAt?.toDate?.() || new Date(0);
-          return dateB.getTime() - dateA.getTime();
-        });
+        requestsList.sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime());
         
-        setGalleries(galleryList);
+        setPasswordRequests(requestsList);
+        console.log(`Caricate ${requestsList.length} richieste di password`);
+      } catch (error) {
+        console.error("Error fetching password requests:", error);
+      }
+      
+      // Carica impostazioni studio
+      try {
+        setIsSettingsLoading(true);
+        const settingsDoc = doc(db, "settings", "studio");
+        const settingsSnapshot = await getDoc(settingsDoc);
         
-        // Carica richieste password
-        try {
-          const requestsCollection = collection(db, "passwordRequests");
-          const requestsSnapshot = await getDocs(requestsCollection);
-          
-          const requestsList = requestsSnapshot.docs.map(doc => {
-            const data = doc.data();
-            return {
-              id: doc.id,
-              ...data,
-              timestamp: data.createdAt?.toDate?.() || new Date()
-            };
-          });
-          
-          // Sort by creation date, newest first
-          requestsList.sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime());
-          
-          setPasswordRequests(requestsList);
-          console.log(`Caricate ${requestsList.length} richieste di password`);
-        } catch (error) {
-          console.error("Error fetching password requests:", error);
-        }
-        
-        // Carica impostazioni studio
-        try {
-          setIsSettingsLoading(true);
-          const settingsDoc = doc(db, "settings", "studio");
-          const settingsSnapshot = await getDoc(settingsDoc);
-          
-          if (settingsSnapshot.exists()) {
-            const settingsData = settingsSnapshot.data() as StudioSettings;
-            setStudioSettings(settingsData);
-          }
-        } catch (error) {
-          console.error("Error fetching studio settings:", error);
-        } finally {
-          setIsSettingsLoading(false);
+        if (settingsSnapshot.exists()) {
+          const settingsData = settingsSnapshot.data() as StudioSettings;
+          setStudioSettings(settingsData);
         }
       } catch (error) {
-        console.error("Error fetching galleries:", error);
-        toast({
-          title: "Errore",
-          description: "Si è verificato un errore nel caricamento delle gallerie.",
-          variant: "destructive",
-        });
+        console.error("Error fetching studio settings:", error);
       } finally {
-        setIsLoading(false);
+        setIsSettingsLoading(false);
       }
     }
     
     if (currentUser) {
-      fetchData();
+      loadAllData();
     }
-  }, [currentUser, toast]);
+  }, [currentUser]);
   
   // Funzione per gestire il cambio di valore nei campi delle impostazioni
   const handleSettingsChange = (
@@ -250,7 +226,55 @@ export default function AdminDashboard() {
   const closeModal = () => {
     setIsModalOpen(false);
     // Refresh the gallery list
-    queryClient.invalidateQueries({ queryKey: ["/api/galleries"] });
+    fetchData();
+  };
+  
+  const openEditModal = (gallery: GalleryItem) => {
+    setSelectedGallery(gallery);
+    setIsEditModalOpen(true);
+  };
+  
+  const closeEditModal = () => {
+    setIsEditModalOpen(false);
+    setSelectedGallery(null);
+    // Refresh the gallery list
+    fetchData();
+  };
+  
+  // Funzione di fetch data da usare anche dopo le modifiche
+  const fetchData = async () => {
+    setIsLoading(true);
+    try {
+      // Carica gallerie
+      const galleriesCollection = collection(db, "galleries");
+      const gallerySnapshot = await getDocs(galleriesCollection);
+      
+      const galleryList = gallerySnapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      })) as GalleryItem[];
+      
+      // Sort by creation date, newest first
+      galleryList.sort((a, b) => {
+        const dateA = a.createdAt?.toDate?.() || new Date(0);
+        const dateB = b.createdAt?.toDate?.() || new Date(0);
+        return dateB.getTime() - dateA.getTime();
+      });
+      
+      setGalleries(galleryList);
+      
+      console.log(`Caricate ${galleryList.length} gallerie dal database`);
+      console.log("Elenco gallerie:", galleryList.map(g => g.name).join(", "));
+    } catch (error) {
+      console.error("Error fetching galleries:", error);
+      toast({
+        title: "Errore",
+        description: "Si è verificato un errore nel caricamento delle gallerie.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
   
   // Esporta le richieste di password in un file Excel
@@ -517,7 +541,7 @@ export default function AdminDashboard() {
                             <p className="text-sm font-medium text-blue-gray truncate">
                               {gallery.name}
                             </p>
-                            <div className="ml-2 flex-shrink-0 flex items-center space-x-2">
+                            <div className="ml-2 flex-shrink-0 flex items-center space-x-2 flex-wrap justify-end">
                               <p className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${gallery.active ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
                                 {gallery.active ? 'Attiva' : 'Disattivata'}
                               </p>
@@ -525,6 +549,7 @@ export default function AdminDashboard() {
                                 variant="outline"
                                 size="sm"
                                 onClick={() => toggleGalleryStatus(gallery)}
+                                className="mb-1 md:mb-0"
                               >
                                 {gallery.active ? 'Disattiva' : 'Attiva'}
                               </Button>
@@ -532,13 +557,23 @@ export default function AdminDashboard() {
                                 variant="outline"
                                 size="sm"
                                 onClick={() => navigate(`/gallery/${gallery.code}`)}
+                                className="mb-1 md:mb-0"
                               >
                                 Visualizza
+                              </Button>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => openEditModal(gallery)}
+                                className="mb-1 md:mb-0"
+                              >
+                                Modifica
                               </Button>
                               <Button
                                 variant="destructive"
                                 size="sm"
                                 onClick={() => deleteGallery(gallery)}
+                                className="mb-1 md:mb-0"
                               >
                                 Elimina
                               </Button>
@@ -856,6 +891,7 @@ export default function AdminDashboard() {
       </main>
 
       <NewGalleryModal isOpen={isModalOpen} onClose={closeModal} />
+      <EditGalleryModal isOpen={isEditModalOpen} onClose={closeEditModal} gallery={selectedGallery} />
     </div>
   );
 }
