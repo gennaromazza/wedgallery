@@ -437,7 +437,7 @@ export default function Home() {
           <div className="mt-16 bg-off-white rounded-lg p-8 shadow-sm">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
               <div>
-                <h3 className="text-lg font-medium text-terracotta mb-4">Contattaci</h3>
+                <h3 className="text-lg font-medium text-terracotta mb-4">I nostri dati</h3>
                 
                 <div className="space-y-3">
                   {studioSettings.address && (
