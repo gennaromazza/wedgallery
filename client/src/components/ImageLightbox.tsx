@@ -113,28 +113,65 @@ export default function ImageLightbox({ isOpen, onClose, photos, initialIndex }:
   };
 
   // Funzione per il download diretto
-  const handleDownload = (e: React.MouseEvent) => {
+  const handleDownload = async (e: React.MouseEvent) => {
     e.preventDefault();
     
-    // Download diretto usando l'URL di Firebase Storage
-    const link = document.createElement('a');
-    link.href = currentPhoto.url;
-    link.setAttribute('download', currentPhoto.name || `photo_${currentIndex + 1}.jpg`);
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    
-    // Feedback visivo
-    toast({
+    try {
+      const fileName = currentPhoto.name || `photo_${currentIndex + 1}.jpg`;
+      
+      // Prima mostriamo il toast di avvio download
+      toast({
         title: "Download avviato",
         description: `Scaricamento di ${fileName} in corso...`,
+        duration: 3000,
+      });
+      
+      // Otteniamo l'immagine come blob
+      const response = await fetch(currentPhoto.url, {
+        headers: {
+          // Aggiungiamo un header Origin per evitare problemi CORS
+          'Origin': window.location.origin
+        },
+        mode: 'cors', // Assicuriamo che la richiesta sia cors
+        cache: 'no-cache' // Evitiamo cache per avere sempre l'ultima versione
+      });
+      
+      if (!response.ok) throw new Error('Network response was not ok');
+      
+      // Creiamo un URL oggetto per il blob
+      const blob = await response.blob();
+      
+      // Creiamo un oggetto URL per scaricare direttamente da browser
+      const blobUrl = window.URL.createObjectURL(blob);
+      
+      // Creiamo un link invisibile per avviare il download
+      const link = document.createElement('a');
+      link.style.display = 'none'; // Lo rendiamo invisibile
+      link.href = blobUrl;
+      link.setAttribute('download', fileName);
+      link.setAttribute('target', '_blank'); // Forza un nuovo contesto
+      
+      // Aggiungiamo il link al documento, lo clicchiamo, e lo rimuoviamo
+      document.body.appendChild(link);
+      link.click();
+      
+      // Rimuoviamo il link dopo un breve ritardo
+      setTimeout(() => {
+        document.body.removeChild(link);
+        window.URL.revokeObjectURL(blobUrl); // Rilasciamo la memoria
+      }, 100);
+      
+      // Mostra un toast di successo
+      toast({
+        title: "Download completato",
+        description: `${fileName} è stato scaricato con successo.`,
         duration: 3000,
       });
     } catch (error) {
       console.error('Errore durante il download:', error);
       toast({
         title: "Errore",
-        description: "Si è verificato un errore durante il download.",
+        description: "Si è verificato un errore durante il download dell'immagine.",
         variant: "destructive",
       });
     }
