@@ -40,6 +40,7 @@ function Router() {
       <Route path="/admin" component={AdminLogin} />
       <Route path="/admin/dashboard" component={AdminDashboard} />
       <Route path="/request-password/:id" component={RequestPassword} />
+      <Route path="/password-result/:id" component={NotFound} />
       <Route component={NotFound} />
     </Switch>
   );

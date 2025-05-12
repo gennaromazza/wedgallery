@@ -1,10 +1,9 @@
 import { useState, FormEvent } from "react";
 import { useLocation } from 'wouter';
-import { collection, query, where, getDocs } from 'firebase/firestore';
+import { collection, query, where, getDocs, addDoc, serverTimestamp } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { useToast } from '@/hooks/use-toast';
 import { trackPasswordRequest } from '@/lib/analytics';
-import { apiRequest } from '@/lib/queryClient';
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
 import GallerySearch from "@/components/GallerySearch";
@@ -103,16 +102,18 @@ export default function Home() {
     setIsSubmitting(true);
     
     try {
-      // Call our API to send the password email
-      const response = await apiRequest('/api/send-gallery-password', {
-        method: 'POST',
-        body: JSON.stringify({
-          galleryId: selectedGallery.id,
-          firstName: formData.firstName,
-          lastName: formData.lastName,
-          email: formData.email,
-          relation: formData.relation
-        })
+      // Salva la richiesta in Firestore
+      const passwordRequestsRef = collection(db, "passwordRequests");
+      await addDoc(passwordRequestsRef, {
+        galleryId: selectedGallery.id,
+        galleryCode: selectedGallery.code,
+        galleryName: selectedGallery.name,
+        firstName: formData.firstName,
+        lastName: formData.lastName,
+        email: formData.email,
+        relation: formData.relation,
+        status: 'completed',
+        createdAt: serverTimestamp()
       });
       
       // Track password request in analytics
@@ -120,14 +121,14 @@ export default function Home() {
       
       // Show success message
       toast({
-        title: 'Richiesta inviata',
-        description: 'La password è stata inviata al tuo indirizzo email.',
+        title: 'Richiesta ricevuta',
+        description: 'Password visualizzata. Le tue informazioni sono state salvate.',
       });
       
-      // Redirect to gallery
-      navigate(`/gallery/${selectedGallery.code}`);
+      // Redirect to password result page
+      navigate(`/password-result/${selectedGallery.id}`);
     } catch (error) {
-      console.error('Error sending password request:', error);
+      console.error('Error saving password request:', error);
       toast({
         title: 'Errore',
         description: 'Si è verificato un errore nell\'invio della richiesta. Riprova più tardi.',
