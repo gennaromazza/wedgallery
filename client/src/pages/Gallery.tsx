@@ -114,11 +114,37 @@ export default function Gallery() {
             // Elenca tutti i file nella cartella
             let listResult = await listAll(storageRef);
             
-            // Se non ci sono file, prova ad accedere a kWraDKOW7MZiM5eHSM11
+            // Se non ci sono file, prova percorsi alternativi
+            if (listResult.items.length === 0) {
+              console.log("Nessun file trovato, provo percorsi alternativi");
+              
+              // Prova con un possibile spazio nel path (come indicato dall'utente)
+              const pathWithSpace = ref(storage, `galleries/ ${galleryDoc.id}`);
+              console.log("Provo con path con spazio:", `galleries/ ${galleryDoc.id}`);
+              try {
+                const spaceResult = await listAll(pathWithSpace);
+                if (spaceResult.items.length > 0) {
+                  console.log("Trovate", spaceResult.items.length, "foto con path con spazio");
+                  listResult = spaceResult;
+                }
+              } catch (e) {
+                console.log("Errore con path con spazio:", e);
+              }
+            }
+            
+            // Se ancora non ci sono file e l'ID è quello specifico, prova direttamente con il path hardcoded
             if (listResult.items.length === 0 && galleryDoc.id === 'kWraDKOW7MZiM5eHSM11') {
-              console.log("Nessun file trovato, provo path alternativo con kWraDKOW7MZiM5eHSM11");
-              const alternativeRef = ref(storage, `galleries/kWraDKOW7MZiM5eHSM11`);
-              listResult = await listAll(alternativeRef);
+              console.log("Provo con path hardcoded galleries/kWraDKOW7MZiM5eHSM11");
+              try {
+                const hardCodedRef = ref(storage, `galleries/kWraDKOW7MZiM5eHSM11`);
+                const hardCodedResult = await listAll(hardCodedRef);
+                if (hardCodedResult.items.length > 0) {
+                  console.log("Trovate", hardCodedResult.items.length, "foto con path hardcoded");
+                  listResult = hardCodedResult;
+                }
+              } catch (e) {
+                console.log("Errore con path hardcoded:", e);
+              }
             }
             
             // Per ogni file, recupera l'URL di download e i metadati
