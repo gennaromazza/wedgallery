@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { Photo } from "@shared/schema";
 import { ArrowLeft, ArrowRight, Download, X, ZoomIn, ZoomOut, Maximize } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { useToast } from "@/hooks/use-toast";
 
 interface ImageLightboxProps {
   isOpen: boolean;
@@ -19,6 +20,7 @@ export default function ImageLightbox({ isOpen, onClose, photos, initialIndex }:
   const lightboxRef = useRef<HTMLDivElement>(null);
   const imageRef = useRef<HTMLImageElement>(null);
   const isMobile = useIsMobile();
+  const { toast } = useToast();
   
   // Reset current index when the component receives a new initialIndex
   useEffect(() => {
@@ -111,34 +113,48 @@ export default function ImageLightbox({ isOpen, onClose, photos, initialIndex }:
   };
 
   // Funzione per il download diretto
-  const handleDownload = (e: React.MouseEvent) => {
-    // Impedisce l'apertura in una nuova finestra
+  const handleDownload = async (e: React.MouseEvent) => {
     e.preventDefault();
     
-    // Crea un link temporaneo con attributo 'download' per forzare il download
-    const link = document.createElement('a');
-    
-    // Usa l'URL dell'immagine corrente
-    link.href = currentPhoto.url;
-    
-    // Imposta l'attributo 'download' con il nome del file
-    const fileName = currentPhoto.name || `photo_${currentIndex + 1}.jpg`;
-    link.download = fileName;
-    
-    // Non aprire in una nuova finestra, forza il download
-    // Non impostare target="_blank" per evitare conflitti col download
-    
-    // Aggiungi temporaneamente il link al documento
-    document.body.appendChild(link);
-    
-    // Simula un click per scaricare
-    link.click();
-    
-    // Rimuovi il link dal documento
-    document.body.removeChild(link);
-    
-    // Mostra indicatore visivo di download avviato
-    console.log(`Download avviato: ${fileName}`);
+    try {
+      // Fetch dell'immagine come blob
+      const response = await fetch(currentPhoto.url);
+      const blob = await response.blob();
+      
+      // Crea URL oggetto per il blob
+      const blobUrl = window.URL.createObjectURL(blob);
+      
+      // Crea link per il download
+      const link = document.createElement('a');
+      link.href = blobUrl;
+      
+      // Determina l'estensione del file dall'URL o usa jpg come fallback
+      const extension = currentPhoto.url.split('.').pop()?.toLowerCase() || 'jpg';
+      const fileName = currentPhoto.name || `photo_${currentIndex + 1}.${extension}`;
+      link.download = fileName;
+      
+      // Esegui il download
+      document.body.appendChild(link);
+      link.click();
+      
+      // Pulizia
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(blobUrl);
+      
+      // Feedback visivo
+      toast({
+        title: "Download avviato",
+        description: `Scaricamento di ${fileName} in corso...`,
+        duration: 3000,
+      });
+    } catch (error) {
+      console.error('Errore durante il download:', error);
+      toast({
+        title: "Errore",
+        description: "Si è verificato un errore durante il download.",
+        variant: "destructive",
+      });
+    }
   };
 
   return (
