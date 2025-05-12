@@ -55,17 +55,18 @@ export default function Navigation({ isAdminNav = false, galleryOwner }: Navigat
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-20">
             <div className="flex-shrink-0 flex items-center">
-              <Link href="/">
+              <Link href="/" className="flex items-center">
                 {studioSettings.logo ? (
                   <img 
                     src={studioSettings.logo} 
                     alt={`${studioSettings.name} Logo`} 
-                    className="h-10 w-auto mr-2"
+                    className="h-12 w-auto"
                   />
-                ) : null}
-                <h1 className="text-blue-gray font-playfair font-semibold text-2xl cursor-pointer">
-                  {studioSettings.name || "Memorie Sospese"}
-                </h1>
+                ) : (
+                  <h1 className="text-blue-gray font-playfair font-semibold text-2xl cursor-pointer">
+                    {studioSettings.name || "Memorie Sospese"}
+                  </h1>
+                )}
               </Link>
             </div>
             <div className="ml-4 flex items-center md:ml-6">
@@ -90,17 +91,18 @@ export default function Navigation({ isAdminNav = false, galleryOwner }: Navigat
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-20">
           <div className="flex-shrink-0 flex items-center">
-            <Link href="/">
+            <Link href="/" className="flex items-center">
               {studioSettings.logo ? (
                 <img 
                   src={studioSettings.logo} 
                   alt={`${studioSettings.name} Logo`} 
-                  className="h-10 w-auto mr-2"
+                  className="h-12 w-auto"
                 />
-              ) : null}
-              <h1 className="text-blue-gray font-playfair font-semibold text-2xl cursor-pointer">
-                {studioSettings.name || "Memorie Sospese"}
-              </h1>
+              ) : (
+                <h1 className="text-blue-gray font-playfair font-semibold text-2xl cursor-pointer">
+                  {studioSettings.name || "Memorie Sospese"}
+                </h1>
+              )}
             </Link>
           </div>
           <div className="hidden md:block">
