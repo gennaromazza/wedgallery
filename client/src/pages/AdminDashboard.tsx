@@ -1,8 +1,8 @@
 import { useState, useEffect, Fragment } from "react";
 import { useLocation } from "wouter";
-import { useAuth } from "@/context/AuthContext";
 import { collection, getDocs, doc, updateDoc, deleteDoc, query, orderBy, collectionGroup, setDoc, getDoc } from "firebase/firestore";
-import { db, storage } from "@/lib/firebase";
+import { getAuth, signOut } from "firebase/auth";
+import { db, storage, auth } from "@/lib/firebase";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { formatPasswordRequestsForExcel, exportToExcel } from "@/lib/excelExport";
 import { ref, listAll, deleteObject, uploadBytes, getDownloadURL } from "firebase/storage";
@@ -70,21 +70,18 @@ export default function AdminDashboard() {
     about: '',
     logo: ''
   });
-  const { currentUser } = useAuth();
   const [, navigate] = useLocation();
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
   // Check authentication
   useEffect(() => {
-    if (!currentUser) {
-      // Se non c'è un utente autenticato, verifica se esiste un token salvato
-      const isAdmin = localStorage.getItem('isAdmin');
-      if (!isAdmin) {
-        navigate("/admin");
-      }
+    // Verifica se esiste un flag isAdmin nel localStorage
+    const isAdmin = localStorage.getItem('isAdmin');
+    if (!isAdmin) {
+      navigate("/admin");
     }
-  }, [currentUser, navigate]);
+  }, [navigate]);
 
   // Fetch data (galleries, password requests and studio settings)
   useEffect(() => {
@@ -132,10 +129,10 @@ export default function AdminDashboard() {
       }
     }
     
-    if (currentUser) {
+    if (auth.currentUser) {
       loadAllData();
     }
-  }, [currentUser]);
+  }, []);
   
   // Funzione per gestire il cambio di valore nei campi delle impostazioni
   const handleSettingsChange = (
