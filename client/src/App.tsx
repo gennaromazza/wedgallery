@@ -1,10 +1,12 @@
-import { Switch, Route } from "wouter";
+import { Switch, Route, useLocation } from "wouter";
 import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { AuthProvider } from "./context/AuthContext";
 import { ThemeProvider } from "next-themes";
+import { trackPageView } from "./lib/analytics";
+import { useEffect } from "react";
 
 import Home from "@/pages/Home";
 import GalleryAccess from "@/pages/GalleryAccess";
@@ -14,7 +16,22 @@ import AdminDashboard from "@/pages/AdminDashboard";
 import RequestPassword from "@/pages/RequestPassword";
 import NotFound from "@/pages/not-found";
 
+// Hook per tracciare le visualizzazioni delle pagine
+function useAnalytics() {
+  const [location] = useLocation();
+  
+  useEffect(() => {
+    // Traccia il cambio di pagina
+    trackPageView(location);
+  }, [location]);
+  
+  return null;
+}
+
 function Router() {
+  // Utilizza il hook per tracciare le navigazioni
+  useAnalytics();
+  
   return (
     <Switch>
       <Route path="/" component={Home} />

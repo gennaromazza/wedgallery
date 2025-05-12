@@ -85,13 +85,13 @@ export default function Navigation({ isAdminNav = false, galleryOwner }: Navigat
           </div>
           <div className="hidden md:block">
             <div className="ml-10 flex items-center space-x-6">
-              <Link href="/">
-                <a className="font-medium text-blue-gray hover:text-dark-sage transition">Home</a>
+              <Link href="/" className="font-medium text-blue-gray hover:text-dark-sage transition">
+                Home
               </Link>
               <a href="#about" className="font-medium text-blue-gray hover:text-dark-sage transition">Come Funziona</a>
               <a href="#contact" className="font-medium text-blue-gray hover:text-dark-sage transition">Contatti</a>
-              <Link href="/admin">
-                <a className="px-4 py-2 rounded-md text-off-white bg-blue-gray hover:bg-dark-sage transition">Admin</a>
+              <Link href="/admin" className="px-4 py-2 rounded-md text-off-white bg-blue-gray hover:bg-dark-sage transition">
+                Admin
               </Link>
             </div>
           </div>
@@ -111,13 +111,13 @@ export default function Navigation({ isAdminNav = false, galleryOwner }: Navigat
       {/* Mobile menu */}
       <div className={`${isMenuOpen ? 'block' : 'hidden'} md:hidden bg-off-white`}>
         <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3">
-          <Link href="/">
-            <a className="block px-3 py-2 text-base font-medium text-blue-gray">Home</a>
+          <Link href="/" className="block px-3 py-2 text-base font-medium text-blue-gray">
+            Home
           </Link>
           <a href="#about" className="block px-3 py-2 text-base font-medium text-blue-gray">Come Funziona</a>
           <a href="#contact" className="block px-3 py-2 text-base font-medium text-blue-gray">Contatti</a>
-          <Link href="/admin">
-            <a className="block px-3 py-2 text-base font-medium text-blue-gray">Admin</a>
+          <Link href="/admin" className="block px-3 py-2 text-base font-medium text-blue-gray">
+            Admin
           </Link>
         </div>
       </div>

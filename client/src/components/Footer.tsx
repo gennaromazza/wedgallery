@@ -6,8 +6,8 @@ export default function Footer() {
       <div className="max-w-7xl mx-auto py-12 px-4 overflow-hidden sm:px-6 lg:px-8">
         <nav className="flex flex-wrap justify-center">
           <div className="px-5 py-2">
-            <Link href="/">
-              <a className="text-base text-off-white hover:text-cream">Home</a>
+            <Link href="/" className="text-base text-off-white hover:text-cream">
+              Home
             </Link>
           </div>
           <div className="px-5 py-2">
@@ -17,8 +17,8 @@ export default function Footer() {
             <a href="#contact" className="text-base text-off-white hover:text-cream">Contatti</a>
           </div>
           <div className="px-5 py-2">
-            <Link href="/admin">
-              <a className="text-base text-off-white hover:text-cream">Admin</a>
+            <Link href="/admin" className="text-base text-off-white hover:text-cream">
+              Admin
             </Link>
           </div>
         </nav>

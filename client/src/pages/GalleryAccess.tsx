@@ -134,13 +134,26 @@ export default function GalleryAccess() {
           ) : (
             <Card>
               <CardContent className="pt-6">
-                <div className="text-center mb-8">
+                {/* Gallery header with details */}
+                <div className="text-center mb-6">
+                  <div className="inline-block p-3 rounded-full bg-light-mint mb-4">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-blue-gray" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                    </svg>
+                  </div>
                   <h2 className="text-2xl font-bold text-blue-gray font-playfair">
                     {galleryDetails?.name || "Accedi alla Galleria"}
                   </h2>
-                  <p className="mt-2 text-gray-600">
-                    Inserisci la password per accedere alle foto
-                  </p>
+                  {galleryDetails?.date && galleryDetails?.location && (
+                    <p className="mt-2 text-gray-600">
+                      {galleryDetails.date} • {galleryDetails.location}
+                    </p>
+                  )}
+                  <div className="mt-4 pt-4 border-t border-beige">
+                    <p className="text-gray-600">
+                      Questa galleria è protetta. Inserisci la password per accedere alle foto.
+                    </p>
+                  </div>
                 </div>
                 
                 <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
@@ -154,6 +167,7 @@ export default function GalleryAccess() {
                       placeholder="Inserisci la password"
                       {...form.register("password")}
                       className="w-full px-3 py-2 border border-beige rounded-md focus:ring-sage focus:border-sage"
+                      autoFocus
                     />
                     {form.formState.errors.password && (
                       <p className="mt-1 text-sm text-red-500">{form.formState.errors.password.message}</p>
@@ -165,15 +179,16 @@ export default function GalleryAccess() {
                     className="w-full btn-primary py-2 rounded-md"
                     disabled={isLoading}
                   >
-                    {isLoading ? "Verifica in corso..." : "Accedi"}
+                    {isLoading ? "Verifica in corso..." : "Accedi alla Galleria"}
                   </Button>
                 </form>
                 
-                <div className="mt-6 text-center">
-                  <Link href={`/request-password/${id}`}>
-                    <a className="text-sm text-blue-gray hover:text-terracotta transition">
-                      Non hai la password? Richiedila qui
-                    </a>
+                <div className="mt-6 pt-4 border-t border-beige text-center">
+                  <p className="text-sm text-gray-600 mb-2">
+                    Non hai la password per questa galleria?
+                  </p>
+                  <Link href={`/request-password/${id}`} className="inline-block px-4 py-2 rounded text-blue-gray hover:text-terracotta transition">
+                    Richiedila qui
                   </Link>
                 </div>
               </CardContent>

@@ -32,17 +32,21 @@ export default function Home() {
       <section id="access-gallery" className="py-16 bg-off-white">
         <div className="max-w-md mx-auto bg-white shadow-lg rounded-lg overflow-hidden animate-fade-in">
           <div className="px-6 py-8">
-            <h2 className="text-center text-2xl font-bold text-blue-gray font-playfair mb-8">
+            <h2 className="text-center text-2xl font-bold text-blue-gray font-playfair mb-4">
               Accedi alla tua Galleria
             </h2>
+            <p className="text-center text-gray-600 mb-8">
+              Cerca la galleria usando il nome degli sposi
+            </p>
+            
             <div className="space-y-6">
               <div>
-                <label className="block text-sm font-medium text-blue-gray mb-1">
-                  Cerca Galleria
-                </label>
-                <p className="mb-2 text-xs text-gray-500">Cerca per nome degli sposi (es. Maria & Luca)</p>
+                <div className="flex items-center justify-center h-12 w-12 rounded-md bg-sage text-white mx-auto mb-4">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                  </svg>
+                </div>
                 
-                {/* Gallery Search Component */}
                 <div className="mt-1">
                   <GallerySearch />
                 </div>
@@ -50,15 +54,16 @@ export default function Home() {
               
               <div className="relative flex items-center py-5">
                 <div className="flex-grow border-t border-beige"></div>
-                <span className="flex-shrink mx-4 text-beige">oppure</span>
+                <span className="flex-shrink mx-4 text-gray-500">oppure</span>
                 <div className="flex-grow border-t border-beige"></div>
               </div>
               
               <div className="text-center">
-                <Link href="#request-password">
-                  <a className="inline-block px-4 py-2 rounded border border-sage text-sage hover:bg-sage hover:text-white transition duration-200">
-                    Richiedi la password
-                  </a>
+                <p className="text-sm text-gray-600 mb-4">
+                  Non trovi la galleria o non hai la password?
+                </p>
+                <Link href="#request-password" className="inline-block px-4 py-2 rounded border border-sage text-sage hover:bg-sage hover:text-white transition duration-200">
+                  Richiedi la password
                 </Link>
               </div>
             </div>
