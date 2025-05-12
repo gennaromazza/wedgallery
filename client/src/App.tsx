@@ -14,6 +14,7 @@ import GalleryAccess from "@/pages/GalleryAccess";
 import Gallery from "@/pages/Gallery";
 import AdminLogin from "@/pages/AdminLogin";
 import AdminDashboard from "@/pages/AdminDashboard";
+import AdminSetupPage from "@/pages/AdminSetupPage";
 import RequestPassword from "@/pages/RequestPassword";
 import PasswordResult from "@/pages/PasswordResult";
 import NotFound from "@/pages/not-found";
@@ -41,6 +42,7 @@ function Router() {
       <Route path="/view/:id" component={Gallery} />
       <Route path="/admin" component={AdminLogin} />
       <Route path="/admin/dashboard" component={AdminDashboard} />
+      <Route path="/admin/setup" component={AdminSetupPage} />
       <Route path="/request-password/:id" component={RequestPassword} />
       <Route path="/password-result/:id" component={PasswordResult} />
       <Route component={NotFound} />
