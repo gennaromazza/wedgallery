@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useLocation } from "wouter";
 import { useAuth } from "@/context/AuthContext";
 import { useToast } from "@/hooks/use-toast";
@@ -20,9 +20,16 @@ type LoginFormData = z.infer<typeof loginSchema>;
 
 export default function AdminLogin() {
   const [isLoading, setIsLoading] = useState(false);
-  const { signIn } = useAuth();
+  const { signIn, currentUser } = useAuth();
   const [, navigate] = useLocation();
   const { toast } = useToast();
+  
+  // Se l'utente è già autenticato o c'è un flag isAdmin nel localStorage, reindirizza alla dashboard
+  useEffect(() => {
+    if (currentUser || localStorage.getItem('isAdmin')) {
+      navigate('/admin/dashboard');
+    }
+  }, [currentUser, navigate]);
 
   const form = useForm<LoginFormData>({
     resolver: zodResolver(loginSchema),

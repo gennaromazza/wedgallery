@@ -50,7 +50,9 @@ export function AuthProvider({ children }: AuthProviderProps) {
     return signInWithEmailAndPassword(auth, email, password);
   };
 
-  const signOut = () => {
+  const signOut = async () => {
+    // Rimuove il flag isAdmin dal localStorage al logout
+    localStorage.removeItem('isAdmin');
     return firebaseSignOut(auth);
   };
 

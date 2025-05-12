@@ -411,9 +411,16 @@ export default function AdminDashboard() {
     }
   };
 
-  // If user is not authenticated
-  if (!currentUser) {
-    return null;
+  // Verifica se l'utente è autenticato
+  if (!currentUser && !localStorage.getItem('isAdmin')) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-off-white">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-sage mx-auto"></div>
+          <p className="mt-4 text-blue-gray">Verifica autenticazione...</p>
+        </div>
+      </div>
+    );
   }
 
   return (
