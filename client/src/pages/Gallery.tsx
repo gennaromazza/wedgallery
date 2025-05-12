@@ -396,14 +396,14 @@ export default function Gallery() {
                       {chapters.map(chapter => (
                         <TabsContent key={chapter.id} value={chapter.id} className="space-y-4">
                           {chapter.description && (
-                            <p className="text-blue-gray italic mb-6">{chapter.description}</p>
+                            <p className="text-blue-gray italic mb-4 md:mb-6 text-sm md:text-base">{chapter.description}</p>
                           )}
                           
-                          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8">
+                          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2 sm:gap-4 lg:gap-6">
                             {photos.filter(p => p.chapterId === chapter.id).map((photo, index) => (
                               <div
                                 key={photo.id}
-                                className="gallery-image"
+                                className="gallery-image h-40 sm:h-52 lg:h-64"
                                 onClick={() => openLightbox(photos.findIndex(p => p.id === photo.id))}
                               >
                                 <img
@@ -415,6 +415,12 @@ export default function Gallery() {
                               </div>
                             ))}
                           </div>
+                          
+                          {photos.filter(p => p.chapterId === chapter.id).length === 0 && (
+                            <div className="text-center py-8">
+                              <p className="text-gray-500 italic">Nessuna foto in questo capitolo</p>
+                            </div>
+                          )}
                         </TabsContent>
                       ))}
                     </Tabs>

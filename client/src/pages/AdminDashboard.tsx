@@ -1,16 +1,21 @@
 import { useState, useEffect } from "react";
 import { useLocation } from "wouter";
 import { useAuth } from "@/context/AuthContext";
-import { collection, getDocs, doc, updateDoc, deleteDoc, query, orderBy, collectionGroup } from "firebase/firestore";
+import { collection, getDocs, doc, updateDoc, deleteDoc, query, orderBy, collectionGroup, setDoc, getDoc } from "firebase/firestore";
 import { db, storage } from "@/lib/firebase";
 import { formatPasswordRequestsForExcel, exportToExcel } from "@/lib/excelExport";
-import { ref, listAll, deleteObject } from "firebase/storage";
+import { ref, listAll, deleteObject, uploadBytes, getDownloadURL } from "firebase/storage";
 import Navigation from "@/components/Navigation";
 import NewGalleryModal from "@/components/NewGalleryModal";
 import SlideshowManager from "@/components/SlideshowManager";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useQueryClient } from "@tanstack/react-query";
 
 interface GalleryItem {
@@ -23,12 +28,44 @@ interface GalleryItem {
   createdAt: any;
 }
 
+interface StudioSettings {
+  name: string;
+  slogan: string;
+  address: string;
+  phone: string;
+  email: string;
+  websiteUrl: string;
+  socialLinks: {
+    facebook?: string;
+    instagram?: string;
+    twitter?: string;
+  };
+  about: string;
+  logo?: string;
+}
+
 export default function AdminDashboard() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [galleries, setGalleries] = useState<GalleryItem[]>([]);
   const [passwordRequests, setPasswordRequests] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<'galleries' | 'slideshow' | 'requests'>('galleries');
+  const [isSettingsLoading, setIsSettingsLoading] = useState(true);
+  const [activeTab, setActiveTab] = useState<'galleries' | 'slideshow' | 'requests' | 'settings'>('galleries');
+  const [studioSettings, setStudioSettings] = useState<StudioSettings>({
+    name: '',
+    slogan: '',
+    address: '',
+    phone: '',
+    email: '',
+    websiteUrl: '',
+    socialLinks: {
+      facebook: '',
+      instagram: '',
+      twitter: ''
+    },
+    about: '',
+    logo: ''
+  });
   const { currentUser } = useAuth();
   const [, navigate] = useLocation();
   const { toast } = useToast();
@@ -283,25 +320,56 @@ export default function AdminDashboard() {
 
       <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
         {/* Tab Navigation */}
-        <div className="mb-6 border-b border-gray-200">
-          <div className="flex space-x-8">
+        <div className="mb-6 border-b border-gray-200 overflow-x-auto pb-1">
+          <div className="flex whitespace-nowrap">
             <button
-              className={`py-4 px-1 border-b-2 font-medium text-sm ${activeTab === 'galleries' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'}`}
+              className={`py-4 px-3 mr-4 border-b-2 font-medium text-sm ${activeTab === 'galleries' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'}`}
               onClick={() => setActiveTab('galleries')}
             >
-              Gestione Gallerie
+              <span className="flex items-center">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                </svg>
+                <span className="hidden sm:inline">Gestione Gallerie</span>
+                <span className="sm:hidden">Gallerie</span>
+              </span>
             </button>
             <button
-              className={`py-4 px-1 border-b-2 font-medium text-sm ${activeTab === 'slideshow' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'}`}
+              className={`py-4 px-3 mr-4 border-b-2 font-medium text-sm ${activeTab === 'slideshow' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'}`}
               onClick={() => setActiveTab('slideshow')}
             >
-              Slideshow Homepage
+              <span className="flex items-center">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                </svg>
+                <span className="hidden sm:inline">Slideshow Homepage</span>
+                <span className="sm:hidden">Slideshow</span>
+              </span>
             </button>
             <button
-              className={`py-4 px-1 border-b-2 font-medium text-sm ${activeTab === 'requests' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'}`}
+              className={`py-4 px-3 mr-4 border-b-2 font-medium text-sm ${activeTab === 'requests' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'}`}
               onClick={() => setActiveTab('requests')}
             >
-              Richieste Password
+              <span className="flex items-center">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                </svg>
+                <span className="hidden sm:inline">Richieste Password</span>
+                <span className="sm:hidden">Richieste</span>
+              </span>
+            </button>
+            <button
+              className={`py-4 px-3 mr-4 border-b-2 font-medium text-sm ${activeTab === 'settings' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'}`}
+              onClick={() => setActiveTab('settings')}
+            >
+              <span className="flex items-center">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                </svg>
+                <span className="hidden sm:inline">Impostazioni Studio</span>
+                <span className="sm:hidden">Impostazioni</span>
+              </span>
             </button>
           </div>
         </div>
