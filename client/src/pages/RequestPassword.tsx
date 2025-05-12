@@ -48,7 +48,7 @@ export default function RequestPassword() {
   });
 
   // Check if the gallery exists on component mount
-  useState(() => {
+  useEffect(() => {
     async function checkGallery() {
       if (!id) return;
       
@@ -99,31 +99,23 @@ export default function RequestPassword() {
       
       const galleryDoc = querySnapshot.docs[0];
       const galleryId = galleryDoc.id;
+      const galleryData = galleryDoc.data();
       
       // Add the request to the passwordRequests collection
       await addDoc(collection(db, "passwordRequests"), {
         galleryId,
         galleryCode: id,
+        galleryName: galleryData.name,
         firstName: data.firstName,
         lastName: data.lastName,
         email: data.email,
         relation: data.relation,
-        status: "pending",
+        status: "completed",
         createdAt: serverTimestamp(),
       });
       
-      // Call the sendPasswordEmail function
-      const sendPasswordEmail = httpsCallable(functions, 'sendPasswordEmail');
-      await sendPasswordEmail({
-        galleryId,
-        galleryCode: id,
-        firstName: data.firstName,
-        lastName: data.lastName,
-        email: data.email,
-      });
-      
-      setSuccess(true);
-      form.reset();
+      // Redirect to password result page
+      window.location.href = `/password-result/${id}`;
     } catch (error) {
       console.error("Error requesting password:", error);
       toast({
@@ -131,7 +123,6 @@ export default function RequestPassword() {
         description: "Si è verificato un errore durante l'invio della richiesta.",
         variant: "destructive",
       });
-    } finally {
       setIsLoading(false);
     }
   };

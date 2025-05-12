@@ -39,11 +39,12 @@ export default function AdminDashboard() {
     }
   }, [currentUser, navigate]);
 
-  // Fetch galleries
+  // Fetch data (galleries and password requests)
   useEffect(() => {
-    async function fetchGalleries() {
+    async function fetchData() {
       setIsLoading(true);
       try {
+        // Carica gallerie
         const galleriesCollection = collection(db, "galleries");
         const gallerySnapshot = await getDocs(galleriesCollection);
         
@@ -60,6 +61,29 @@ export default function AdminDashboard() {
         });
         
         setGalleries(galleryList);
+        
+        // Carica richieste password
+        try {
+          const requestsCollection = collection(db, "passwordRequests");
+          const requestsSnapshot = await getDocs(requestsCollection);
+          
+          const requestsList = requestsSnapshot.docs.map(doc => {
+            const data = doc.data();
+            return {
+              id: doc.id,
+              ...data,
+              timestamp: data.createdAt?.toDate?.() || new Date()
+            };
+          });
+          
+          // Sort by creation date, newest first
+          requestsList.sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime());
+          
+          setPasswordRequests(requestsList);
+          console.log(`Caricate ${requestsList.length} richieste di password`);
+        } catch (error) {
+          console.error("Error fetching password requests:", error);
+        }
       } catch (error) {
         console.error("Error fetching galleries:", error);
         toast({
@@ -73,7 +97,7 @@ export default function AdminDashboard() {
     }
     
     if (currentUser) {
-      fetchGalleries();
+      fetchData();
     }
   }, [currentUser, toast]);
 
