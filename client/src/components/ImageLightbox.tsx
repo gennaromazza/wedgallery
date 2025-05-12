@@ -113,17 +113,14 @@ export default function ImageLightbox({ isOpen, onClose, photos, initialIndex }:
   };
 
   // Funzione per il download diretto
-  const handleDownload = (e: React.MouseEvent) => {
+  const handleDownload = async (e: React.MouseEvent) => {
     e.preventDefault();
     
-    // Crea link diretto al download
     const extension = currentPhoto.url.split('.').pop()?.toLowerCase() || 'jpg';
     const fileName = currentPhoto.name || `photo_${currentIndex + 1}.${extension}`;
     
-    const link = document.createElement('a');
-    link.href = currentPhoto.url;
-    link.download = fileName;
-    link.click();
+    // Open in new tab to trigger browser download
+    window.open(currentPhoto.url, '_blank');
     
     // Feedback visivo
     toast({
