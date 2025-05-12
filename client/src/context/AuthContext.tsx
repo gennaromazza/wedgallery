@@ -5,6 +5,8 @@ import {
   signOut as firebaseSignOut,
   User,
   UserCredential,
+  setPersistence,
+  browserLocalPersistence
 } from "firebase/auth";
 import { auth } from "../lib/firebase";
 
@@ -42,7 +44,9 @@ export function AuthProvider({ children }: AuthProviderProps) {
     return unsubscribe;
   }, []);
 
-  const signIn = (email: string, password: string) => {
+  const signIn = async (email: string, password: string) => {
+    // Imposta la persistenza su LOCAL per mantenere l'utente connesso anche dopo la chiusura del browser
+    await setPersistence(auth, browserLocalPersistence);
     return signInWithEmailAndPassword(auth, email, password);
   };
 

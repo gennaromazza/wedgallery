@@ -77,7 +77,11 @@ export default function AdminDashboard() {
   // Check authentication
   useEffect(() => {
     if (!currentUser) {
-      navigate("/admin");
+      // Se non c'è un utente autenticato, verifica se esiste un token salvato
+      const isAdmin = localStorage.getItem('isAdmin');
+      if (!isAdmin) {
+        navigate("/admin");
+      }
     }
   }, [currentUser, navigate]);
 
