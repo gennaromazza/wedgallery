@@ -3,6 +3,7 @@ import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { z } from "zod";
 import { insertGallerySchema, insertPasswordRequestSchema } from "@shared/schema";
+import { sendPasswordEmail } from "./email";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // API Routes
@@ -139,6 +140,53 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error verifying gallery access:", error);
       res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  // Endpoint per inviare la password via email
+  app.post("/api/send-gallery-password", async (req, res) => {
+    try {
+      const { galleryId, firstName, lastName, email, relation } = req.body;
+      
+      if (!galleryId || !firstName || !lastName || !email || !relation) {
+        return res.status(400).json({ message: "Tutti i campi sono obbligatori" });
+      }
+      
+      // Recupera la galleria
+      const gallery = await storage.getGallery(parseInt(galleryId));
+      
+      if (!gallery) {
+        return res.status(404).json({ message: "Galleria non trovata" });
+      }
+      
+      // Salva la richiesta nel database
+      const passwordRequest = await storage.createPasswordRequest({
+        galleryId: gallery.id,
+        firstName,
+        lastName,
+        email,
+        status: 'completed',
+        relation
+      });
+      
+      // Invia l'email con la password
+      const emailSent = await sendPasswordEmail({
+        galleryName: gallery.name,
+        galleryCode: gallery.code,
+        galleryPassword: gallery.password,
+        recipientEmail: email,
+        recipientName: `${firstName} ${lastName}`,
+        siteUrl: process.env.SITE_URL || 'https://your-domain.com'
+      });
+      
+      if (!emailSent) {
+        return res.status(500).json({ message: "Errore nell'invio dell'email" });
+      }
+      
+      res.json({ success: true, message: "Password inviata con successo" });
+    } catch (error) {
+      console.error("Errore nell'invio della password:", error);
+      res.status(500).json({ message: "Errore del server" });
     }
   });
 

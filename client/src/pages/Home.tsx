@@ -1,10 +1,10 @@
 import { useState, FormEvent } from "react";
 import { useLocation } from 'wouter';
-import { httpsCallable } from 'firebase/functions';
 import { collection, query, where, getDocs } from 'firebase/firestore';
-import { db, functions } from '@/lib/firebase';
+import { db } from '@/lib/firebase';
 import { useToast } from '@/hooks/use-toast';
 import { trackPasswordRequest } from '@/lib/analytics';
+import { apiRequest } from '@/lib/queryClient';
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
 import GallerySearch from "@/components/GallerySearch";
@@ -103,15 +103,16 @@ export default function Home() {
     setIsSubmitting(true);
     
     try {
-      // Call Firebase function to send email
-      const sendPasswordEmail = httpsCallable(functions, 'sendPasswordEmail');
-      await sendPasswordEmail({
-        galleryId: selectedGallery.id,
-        galleryCode: selectedGallery.code,
-        firstName: formData.firstName,
-        lastName: formData.lastName,
-        email: formData.email,
-        relation: formData.relation
+      // Call our API to send the password email
+      const response = await apiRequest('/api/send-gallery-password', {
+        method: 'POST',
+        body: JSON.stringify({
+          galleryId: selectedGallery.id,
+          firstName: formData.firstName,
+          lastName: formData.lastName,
+          email: formData.email,
+          relation: formData.relation
+        })
       });
       
       // Track password request in analytics
