@@ -1,7 +1,8 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef } from 'react';
 import { Upload, X, Image as ImageIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from './button';
+import { compressImages } from '@/lib/imageCompression';
 
 interface FileUploadProps {
   onFilesSelected: (files: File[]) => void;
@@ -12,6 +13,11 @@ interface FileUploadProps {
   currentFiles?: File[];
   previews?: string[];
   onRemoveFile?: (index: number) => void;
+  enableCompression?: boolean;
+  compressionOptions?: {
+    maxSizeMB?: number;
+    maxWidthOrHeight?: number;
+  };
 }
 
 export function FileUpload({
@@ -22,7 +28,9 @@ export function FileUpload({
   className,
   currentFiles = [],
   previews = [],
-  onRemoveFile
+  onRemoveFile,
+  enableCompression = true,
+  compressionOptions = { maxSizeMB: 1, maxWidthOrHeight: 1920 }
 }: FileUploadProps) {
   const [isDragging, setIsDragging] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -43,7 +51,7 @@ export function FileUpload({
   };
 
   // Gestisce l'evento di drop
-  const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
+  const handleDrop = async (e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
     e.stopPropagation();
     setIsDragging(false);
@@ -64,12 +72,24 @@ export function FileUpload({
         return;
       }
       
-      onFilesSelected(newFiles);
+      try {
+        // Comprime le immagini se l'opzione è abilitata
+        if (enableCompression) {
+          const compressedFiles = await compressImages(newFiles, compressionOptions);
+          onFilesSelected(compressedFiles);
+        } else {
+          onFilesSelected(newFiles);
+        }
+      } catch (error) {
+        console.error("Errore durante la compressione delle immagini:", error);
+        // Fallback ai file originali in caso di errore
+        onFilesSelected(newFiles);
+      }
     }
   };
 
   // Gestisce la selezione dei file tramite il file input
-  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
       const newFiles = Array.from(e.target.files);
       
@@ -82,7 +102,19 @@ export function FileUpload({
         }
       }
       
-      onFilesSelected(newFiles);
+      try {
+        // Comprime le immagini se l'opzione è abilitata
+        if (enableCompression) {
+          const compressedFiles = await compressImages(newFiles, compressionOptions);
+          onFilesSelected(compressedFiles);
+        } else {
+          onFilesSelected(newFiles);
+        }
+      } catch (error) {
+        console.error("Errore durante la compressione delle immagini:", error);
+        // Fallback ai file originali in caso di errore
+        onFilesSelected(newFiles);
+      }
       
       // Reset dell'input file per permettere di selezionare lo stesso file più volte
       if (fileInputRef.current) {
