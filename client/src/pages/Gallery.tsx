@@ -6,6 +6,7 @@ import Navigation from "@/components/Navigation";
 import ImageLightbox from "@/components/ImageLightbox";
 import { useToast } from "@/hooks/use-toast";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Photo } from "@shared/schema";
 
 interface GalleryData {
   id: string;
@@ -14,11 +15,13 @@ interface GalleryData {
   location: string;
 }
 
-interface PhotoData {
+interface PhotoData extends Photo {
   id: string;
   name: string;
   url: string;
   contentType: string;
+  size?: number;
+  createdAt?: any;
 }
 
 export default function Gallery() {
@@ -32,12 +35,25 @@ export default function Gallery() {
   const { toast } = useToast();
 
   // Check authentication and fetch gallery data
+  // Check if current user is admin
+  const [isAdmin, setIsAdmin] = useState(false);
+  
+  useEffect(() => {
+    // Controlla se l'utente è un amministratore
+    const checkAdmin = () => {
+      const admin = localStorage.getItem('isAdmin') === 'true';
+      setIsAdmin(admin);
+    };
+    
+    checkAdmin();
+  }, []);
+  
   useEffect(() => {
     async function fetchGallery() {
-      // Check if user is authenticated for this gallery
+      // Check if user is authenticated for this gallery or is admin
       const isAuth = localStorage.getItem(`gallery_auth_${id}`);
-      if (!isAuth) {
-        navigate(`/gallery/${id}`);
+      if (!isAuth && !isAdmin) {
+        navigate(`/access/${id}`);
         return;
       }
 

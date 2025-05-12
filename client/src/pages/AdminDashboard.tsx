@@ -240,6 +240,13 @@ export default function AdminDashboard() {
                                 {gallery.active ? 'Disattiva' : 'Attiva'}
                               </Button>
                               <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => navigate(`/gallery/${gallery.code}`)}
+                              >
+                                Visualizza
+                              </Button>
+                              <Button
                                 variant="destructive"
                                 size="sm"
                                 onClick={() => deleteGallery(gallery)}

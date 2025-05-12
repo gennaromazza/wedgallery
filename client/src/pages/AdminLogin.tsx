@@ -35,7 +35,9 @@ export default function AdminLogin() {
   const onSubmit = async (data: LoginFormData) => {
     setIsLoading(true);
     try {
-      await signIn(data.email, data.password);
+      const userCredential = await signIn(data.email, data.password);
+      // Salva informazione che l'utente è un amministratore
+      localStorage.setItem('isAdmin', 'true');
       navigate("/admin/dashboard");
     } catch (error: any) {
       console.error("Login error:", error);
