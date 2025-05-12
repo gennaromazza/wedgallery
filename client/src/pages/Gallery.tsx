@@ -443,15 +443,8 @@ export default function Gallery() {
     <div className="min-h-screen bg-off-white">
       <Navigation galleryOwner={gallery.name.split(' - ')[0]} />
 
-      {/* Hero Section con decorazioni a tema matrimonio */}
+      {/* Hero Section */}
       <div className="relative w-full overflow-hidden">
-        {/* Elementi decorativi agli angoli */}
-        <div className="absolute top-0 left-0 w-36 h-36 opacity-20 pointer-events-none z-10 transform -translate-x-1/4">
-          <WeddingImage type="flower-bouquet" className="w-full h-auto" alt="Decorazione con fiori" />
-        </div>
-        <div className="absolute top-0 right-0 w-36 h-36 opacity-20 pointer-events-none z-10 transform translate-x-1/4">
-          <WeddingImage type="flower-bouquet" className="w-full h-auto transform scale-x-[-1]" alt="Decorazione con fiori" />
-        </div>
         
         {gallery.coverImageUrl ? (
           <div className="w-full h-64 md:h-96 overflow-hidden">
@@ -464,9 +457,6 @@ export default function Gallery() {
           </div>
         ) : (
           <div className="w-full h-64 md:h-80 bg-gradient-to-b from-sage/20 to-sage/5 flex items-center justify-center relative">
-            <div className="absolute inset-0 overflow-hidden opacity-10">
-              <BackgroundDecoration />
-            </div>
             <div className="md:w-72 w-60 h-auto">
               <DecorativeImage type="standing" alt={`Immagine coppia di sposi per ${gallery.name}`} />
             </div>

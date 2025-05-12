@@ -411,14 +411,14 @@ export default function Home() {
             <h2 className="text-base text-terracotta font-semibold tracking-wide uppercase">
               La Fotografia Che Crea Ricordi
             </h2>
-            <p className="mt-2 text-3xl leading-8 font-bold tracking-tight text-blue-gray sm:text-4xl font-playfair relative">
-              {studioSettings.name}
-              
-              {/* Elemento decorativo */}
-              <span className="absolute left-1/2 -top-10 transform -translate-x-1/2 w-40 h-10 flex justify-center opacity-30">
+            <div className="relative">
+              <div className="absolute left-1/2 -top-10 transform -translate-x-1/2 w-40 h-10 flex justify-center opacity-30">
                 <DecorativeImage type="flower-bouquet" className="w-full h-auto transform rotate-180" alt="Decorazione floreale" />
-              </span>
-            </p>
+              </div>
+              <p className="mt-2 text-3xl leading-8 font-bold tracking-tight text-blue-gray sm:text-4xl font-playfair">
+                {studioSettings.name}
+              </p>
+            </div>
             <p className="mt-2 text-xl text-terracotta lg:mx-auto font-medium">
               {studioSettings.slogan}
             </p>
@@ -436,10 +436,9 @@ export default function Home() {
                 <div className="space-y-3">
                   {studioSettings.address && (
                     <div className="flex items-start">
-                      <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-sage mr-3 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                      </svg>
+                      <div className="h-7 w-7 mr-2">
+                        <DecorativeImage type="wedding-cake" className="w-full h-auto opacity-80" alt="Icona indirizzo" />
+                      </div>
                       <span className="text-gray-600">{studioSettings.address}</span>
                     </div>
                   )}
