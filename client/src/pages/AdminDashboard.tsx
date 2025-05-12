@@ -1,8 +1,9 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, Fragment } from "react";
 import { useLocation } from "wouter";
 import { useAuth } from "@/context/AuthContext";
 import { collection, getDocs, doc, updateDoc, deleteDoc, query, orderBy, collectionGroup, setDoc, getDoc } from "firebase/firestore";
 import { db, storage } from "@/lib/firebase";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { formatPasswordRequestsForExcel, exportToExcel } from "@/lib/excelExport";
 import { ref, listAll, deleteObject, uploadBytes, getDownloadURL } from "firebase/storage";
 import Navigation from "@/components/Navigation";
@@ -408,6 +409,46 @@ export default function AdminDashboard() {
         description: "Non è stato possibile eliminare completamente la galleria. Alcune risorse potrebbero essere rimaste.",
         variant: "destructive",
       });
+    }
+  };
+  
+  // Funzione per generare una password casuale
+  const generateRandomPassword = (length = 8) => {
+    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+    let result = '';
+    for (let i = 0; i < length; i++) {
+      result += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    return result;
+  };
+  
+  // Funzione per cambiare rapidamente la password di una galleria
+  const changeGalleryPassword = async (galleryId: string, newPassword: string) => {
+    const galleryRef = doc(db, "galleries", galleryId);
+    
+    try {
+      await updateDoc(galleryRef, {
+        password: newPassword
+      });
+      
+      toast({
+        title: "Password aggiornata",
+        description: "La password della galleria è stata aggiornata con successo."
+      });
+      
+      // Update local state
+      fetchData();
+      
+      return true;
+    } catch (error) {
+      console.error("Error changing gallery password:", error);
+      toast({
+        title: "Errore",
+        description: "Si è verificato un errore durante l'aggiornamento della password.",
+        variant: "destructive"
+      });
+      
+      return false;
     }
   };
 
