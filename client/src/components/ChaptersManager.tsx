@@ -1,0 +1,334 @@
+import React, { useState, useEffect } from 'react';
+import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
+import { Plus, Trash2, GripVertical, Edit, Check, X, MoveUp, MoveDown } from 'lucide-react';
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Label } from "@/components/ui/label";
+import { cn } from '@/lib/utils';
+
+// Definisco le interfacce per i capitoli e le foto
+export interface Chapter {
+  id: string;
+  title: string;
+  description?: string;
+  position: number;
+}
+
+export interface PhotoWithChapter {
+  id: string;
+  file: File;
+  url: string;
+  name: string;
+  chapterId?: string; // ID del capitolo a cui appartiene la foto
+  position: number; // Posizione all'interno del capitolo
+}
+
+interface ChaptersManagerProps {
+  photos: PhotoWithChapter[];
+  onPhotosUpdate: (photos: PhotoWithChapter[]) => void;
+  chapters: Chapter[];
+  onChaptersUpdate: (chapters: Chapter[]) => void;
+}
+
+export default function ChaptersManager({
+  photos,
+  onPhotosUpdate,
+  chapters,
+  onChaptersUpdate
+}: ChaptersManagerProps) {
+  const [activeTab, setActiveTab] = useState<string>('all');
+  const [editingChapterId, setEditingChapterId] = useState<string | null>(null);
+  const [newChapterTitle, setNewChapterTitle] = useState('');
+  const [newChapterDescription, setNewChapterDescription] = useState('');
+  
+  // Quando cambiano i capitoli, aggiorna il tab attivo se necessario
+  useEffect(() => {
+    if (chapters.length === 0 && activeTab !== 'all') {
+      setActiveTab('all');
+    } else if (chapters.length > 0 && !chapters.some(c => c.id === activeTab) && activeTab !== 'all') {
+      setActiveTab('all');
+    }
+  }, [chapters, activeTab]);
+  
+  // Genera un ID unico
+  const generateId = () => `chapter_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+  
+  // Aggiunge un nuovo capitolo
+  const addChapter = () => {
+    const newChapter: Chapter = {
+      id: generateId(),
+      title: `Capitolo ${chapters.length + 1}`,
+      description: '',
+      position: chapters.length
+    };
+    
+    const updatedChapters = [...chapters, newChapter];
+    onChaptersUpdate(updatedChapters);
+    setActiveTab(newChapter.id);
+    setEditingChapterId(newChapter.id);
+    setNewChapterTitle(newChapter.title);
+    setNewChapterDescription('');
+  };
+  
+  // Rimuove un capitolo e le sue foto
+  const removeChapter = (chapterId: string) => {
+    if (!window.confirm('Sei sicuro di voler eliminare questo capitolo? Le foto verranno spostate in "Non assegnate".')) {
+      return;
+    }
+    
+    // Rimuovi il capitolo
+    const updatedChapters = chapters.filter(c => c.id !== chapterId);
+    
+    // Aggiorna le posizioni
+    const reorderedChapters = updatedChapters.map((c, index) => ({
+      ...c,
+      position: index
+    }));
+    
+    // Rimuovi l'assegnazione del capitolo dalle foto
+    const updatedPhotos = photos.map(photo => 
+      photo.chapterId === chapterId 
+        ? { ...photo, chapterId: undefined } 
+        : photo
+    );
+    
+    onChaptersUpdate(reorderedChapters);
+    onPhotosUpdate(updatedPhotos);
+    
+    // Se il tab attivo è il capitolo rimosso, passa a 'all'
+    if (activeTab === chapterId) {
+      setActiveTab('all');
+    }
+  };
+  
+  // Modifica il titolo di un capitolo
+  const saveChapterEdit = (chapterId: string) => {
+    const updatedChapters = chapters.map(chapter => 
+      chapter.id === chapterId
+        ? {
+            ...chapter,
+            title: newChapterTitle || `Capitolo ${chapter.position + 1}`,
+            description: newChapterDescription
+          }
+        : chapter
+    );
+    
+    onChaptersUpdate(updatedChapters);
+    setEditingChapterId(null);
+  };
+  
+  // Annulla la modifica
+  const cancelChapterEdit = () => {
+    setEditingChapterId(null);
+  };
+  
+  // Avvia la modifica di un capitolo
+  const startEditingChapter = (chapter: Chapter) => {
+    setEditingChapterId(chapter.id);
+    setNewChapterTitle(chapter.title);
+    setNewChapterDescription(chapter.description || '');
+  };
+  
+  // Sposta un capitolo su o giù
+  const moveChapter = (chapterId: string, direction: 'up' | 'down') => {
+    const chapterIndex = chapters.findIndex(c => c.id === chapterId);
+    if (chapterIndex === -1) return;
+    
+    const newChapters = [...chapters];
+    
+    if (direction === 'up' && chapterIndex > 0) {
+      // Scambia con il capitolo precedente
+      const temp = { ...newChapters[chapterIndex] };
+      newChapters[chapterIndex] = { ...newChapters[chapterIndex - 1], position: chapterIndex };
+      newChapters[chapterIndex - 1] = { ...temp, position: chapterIndex - 1 };
+    } else if (direction === 'down' && chapterIndex < newChapters.length - 1) {
+      // Scambia con il capitolo successivo
+      const temp = { ...newChapters[chapterIndex] };
+      newChapters[chapterIndex] = { ...newChapters[chapterIndex + 1], position: chapterIndex };
+      newChapters[chapterIndex + 1] = { ...temp, position: chapterIndex + 1 };
+    }
+    
+    onChaptersUpdate(newChapters);
+  };
+  
+  // Assegna una foto a un capitolo
+  const assignPhotoToChapter = (photoId: string, chapterId: string | undefined) => {
+    const updatedPhotos = photos.map(photo => 
+      photo.id === photoId 
+        ? { ...photo, chapterId } 
+        : photo
+    );
+    
+    onPhotosUpdate(updatedPhotos);
+  };
+  
+  // Filtra le foto in base al capitolo attivo
+  const filteredPhotos = activeTab === 'all' 
+    ? photos 
+    : photos.filter(photo => photo.chapterId === activeTab);
+  
+  // Foto non assegnate ad alcun capitolo
+  const unassignedPhotos = photos.filter(photo => !photo.chapterId);
+  
+  // Renderizza il componente
+  return (
+    <div className="w-full max-w-6xl mx-auto">
+      <Tabs 
+        value={activeTab} 
+        onValueChange={setActiveTab}
+        className="w-full"
+      >
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="text-lg font-medium">Organizza le foto in capitoli</h3>
+          <Button onClick={addChapter} className="flex items-center space-x-1">
+            <Plus className="h-4 w-4" />
+            <span>Nuovo Capitolo</span>
+          </Button>
+        </div>
+        
+        <TabsList className="mb-6 flex overflow-x-auto">
+          <TabsTrigger value="all">
+            Tutte le foto ({photos.length})
+          </TabsTrigger>
+          
+          <TabsTrigger value="unassigned">
+            Non assegnate ({unassignedPhotos.length})
+          </TabsTrigger>
+          
+          {chapters.map(chapter => (
+            <TabsTrigger key={chapter.id} value={chapter.id}>
+              {chapter.title} ({photos.filter(p => p.chapterId === chapter.id).length})
+            </TabsTrigger>
+          ))}
+        </TabsList>
+        
+        {/* Sezione dei capitoli */}
+        {activeTab !== 'all' && activeTab !== 'unassigned' && (
+          <div className="mb-6">
+            {chapters
+              .filter(chapter => chapter.id === activeTab)
+              .map(chapter => (
+                <Card key={chapter.id} className="bg-slate-50">
+                  <CardHeader className="pb-2">
+                    {editingChapterId === chapter.id ? (
+                      <div className="space-y-2">
+                        <Input
+                          value={newChapterTitle}
+                          onChange={e => setNewChapterTitle(e.target.value)}
+                          placeholder="Nome del capitolo"
+                          className="font-medium"
+                        />
+                        <Input
+                          value={newChapterDescription}
+                          onChange={e => setNewChapterDescription(e.target.value)}
+                          placeholder="Descrizione (opzionale)"
+                        />
+                        <div className="flex space-x-2">
+                          <Button 
+                            onClick={() => saveChapterEdit(chapter.id)}
+                            size="sm"
+                            className="flex items-center space-x-1"
+                          >
+                            <Check className="h-4 w-4" />
+                            <span>Salva</span>
+                          </Button>
+                          <Button 
+                            onClick={cancelChapterEdit}
+                            size="sm"
+                            variant="outline"
+                            className="flex items-center space-x-1"
+                          >
+                            <X className="h-4 w-4" />
+                            <span>Annulla</span>
+                          </Button>
+                        </div>
+                      </div>
+                    ) : (
+                      <>
+                        <div className="flex justify-between items-start">
+                          <CardTitle>{chapter.title}</CardTitle>
+                          <div className="flex space-x-1">
+                            <Button 
+                              variant="ghost" 
+                              size="sm"
+                              onClick={() => moveChapter(chapter.id, 'up')}
+                              disabled={chapter.position === 0}
+                            >
+                              <MoveUp className="h-4 w-4" />
+                            </Button>
+                            <Button 
+                              variant="ghost" 
+                              size="sm"
+                              onClick={() => moveChapter(chapter.id, 'down')}
+                              disabled={chapter.position === chapters.length - 1}
+                            >
+                              <MoveDown className="h-4 w-4" />
+                            </Button>
+                            <Button 
+                              variant="ghost" 
+                              size="sm"
+                              onClick={() => startEditingChapter(chapter)}
+                            >
+                              <Edit className="h-4 w-4" />
+                            </Button>
+                            <Button 
+                              variant="ghost" 
+                              size="sm"
+                              onClick={() => removeChapter(chapter.id)}
+                            >
+                              <Trash2 className="h-4 w-4 text-red-500" />
+                            </Button>
+                          </div>
+                        </div>
+                        {chapter.description && (
+                          <CardDescription>{chapter.description}</CardDescription>
+                        )}
+                      </>
+                    )}
+                  </CardHeader>
+                </Card>
+              ))}
+          </div>
+        )}
+        
+        {/* Mostra le foto */}
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+          {filteredPhotos.map(photo => (
+            <Card key={photo.id} className="overflow-hidden">
+              <div className="aspect-square relative">
+                <img 
+                  src={photo.url} 
+                  alt={photo.name} 
+                  className="w-full h-full object-cover"
+                />
+              </div>
+              <CardFooter className="p-2 flex-col items-start">
+                <p className="text-xs truncate w-full">{photo.name}</p>
+                <div className="w-full mt-2">
+                  <Label htmlFor={`chapter-select-${photo.id}`} className="text-xs">
+                    Capitolo:
+                  </Label>
+                  <select
+                    id={`chapter-select-${photo.id}`}
+                    value={photo.chapterId || ''}
+                    onChange={(e) => assignPhotoToChapter(photo.id, e.target.value || undefined)}
+                    className="w-full mt-1 text-xs border border-gray-200 rounded p-1"
+                  >
+                    <option value="">Non assegnata</option>
+                    {chapters.map(chapter => (
+                      <option key={chapter.id} value={chapter.id}>
+                        {chapter.title}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </CardFooter>
+            </Card>
+          ))}
+        </div>
+      </Tabs>
+    </div>
+  );
+}

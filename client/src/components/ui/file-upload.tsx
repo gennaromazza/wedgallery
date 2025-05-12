@@ -3,6 +3,7 @@ import { Upload, X, Image as ImageIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from './button';
 import { compressImages } from '@/lib/imageCompression';
+import ImageCompressionInfo from '@/components/ImageCompressionInfo';
 
 interface FileUploadProps {
   onFilesSelected: (files: File[]) => void;
@@ -33,6 +34,12 @@ export function FileUpload({
   compressionOptions = { maxSizeMB: 1, maxWidthOrHeight: 1920 }
 }: FileUploadProps) {
   const [isDragging, setIsDragging] = useState(false);
+  const [compressingFiles, setCompressingFiles] = useState<string[]>([]);
+  const [compressionData, setCompressionData] = useState<{[filename: string]: {
+    originalSize: number;
+    compressedSize: number;
+    compressionRatio: number;
+  }}>({});
   const fileInputRef = useRef<HTMLInputElement>(null);
   const dropAreaRef = useRef<HTMLDivElement>(null);
 
@@ -75,13 +82,57 @@ export function FileUpload({
       try {
         // Comprime le immagini se l'opzione è abilitata
         if (enableCompression) {
-          const compressedFiles = await compressImages(newFiles, compressionOptions);
+          // Imposta lo stato di compressione per mostrare il caricamento
+          const fileNames = newFiles.map(file => file.name);
+          setCompressingFiles([...compressingFiles, ...fileNames]);
+          
+          // Memorizza le dimensioni originali
+          const originalSizes: {[filename: string]: number} = {};
+          newFiles.forEach(file => {
+            originalSizes[file.name] = file.size;
+          });
+          
+          // Comprime le immagini
+          const compressedFiles = await Promise.all(newFiles.map(async (file) => {
+            // Per ogni file, se è un'immagine comprimi, altrimenti mantieni originale
+            if (file.type.startsWith('image/')) {
+              try {
+                // Usa il metodo di compressione singolo per avere più controllo
+                const compressedFile = await import('@/lib/imageCompression').then(
+                  module => module.compressImage(file, compressionOptions)
+                );
+                
+                // Memorizza le informazioni sulla compressione
+                setCompressionData(prev => ({
+                  ...prev,
+                  [file.name]: {
+                    originalSize: file.size,
+                    compressedSize: compressedFile.size,
+                    compressionRatio: file.size / compressedFile.size
+                  }
+                }));
+                
+                return compressedFile;
+              } catch (error) {
+                console.error(`Errore durante la compressione di ${file.name}:`, error);
+                return file;
+              }
+            } else {
+              return file;
+            }
+          }));
+          
+          // Rimuovi lo stato di compressione
+          setCompressingFiles(prev => prev.filter(name => !fileNames.includes(name)));
+          
           onFilesSelected(compressedFiles);
         } else {
           onFilesSelected(newFiles);
         }
       } catch (error) {
         console.error("Errore durante la compressione delle immagini:", error);
+        // Rimuovi lo stato di compressione in caso di errore
+        setCompressingFiles([]);
         // Fallback ai file originali in caso di errore
         onFilesSelected(newFiles);
       }
@@ -105,13 +156,57 @@ export function FileUpload({
       try {
         // Comprime le immagini se l'opzione è abilitata
         if (enableCompression) {
-          const compressedFiles = await compressImages(newFiles, compressionOptions);
+          // Imposta lo stato di compressione per mostrare il caricamento
+          const fileNames = newFiles.map(file => file.name);
+          setCompressingFiles([...compressingFiles, ...fileNames]);
+          
+          // Memorizza le dimensioni originali
+          const originalSizes: {[filename: string]: number} = {};
+          newFiles.forEach(file => {
+            originalSizes[file.name] = file.size;
+          });
+          
+          // Comprime le immagini
+          const compressedFiles = await Promise.all(newFiles.map(async (file) => {
+            // Per ogni file, se è un'immagine comprimi, altrimenti mantieni originale
+            if (file.type.startsWith('image/')) {
+              try {
+                // Usa il metodo di compressione singolo per avere più controllo
+                const compressedFile = await import('@/lib/imageCompression').then(
+                  module => module.compressImage(file, compressionOptions)
+                );
+                
+                // Memorizza le informazioni sulla compressione
+                setCompressionData(prev => ({
+                  ...prev,
+                  [file.name]: {
+                    originalSize: file.size,
+                    compressedSize: compressedFile.size,
+                    compressionRatio: file.size / compressedFile.size
+                  }
+                }));
+                
+                return compressedFile;
+              } catch (error) {
+                console.error(`Errore durante la compressione di ${file.name}:`, error);
+                return file;
+              }
+            } else {
+              return file;
+            }
+          }));
+          
+          // Rimuovi lo stato di compressione
+          setCompressingFiles(prev => prev.filter(name => !fileNames.includes(name)));
+          
           onFilesSelected(compressedFiles);
         } else {
           onFilesSelected(newFiles);
         }
       } catch (error) {
         console.error("Errore durante la compressione delle immagini:", error);
+        // Rimuovi lo stato di compressione in caso di errore
+        setCompressingFiles([]);
         // Fallback ai file originali in caso di errore
         onFilesSelected(newFiles);
       }
@@ -169,61 +264,113 @@ export function FileUpload({
         className="hidden"
       />
 
-      {/* Anteprima dei file selezionati */}
-      {(currentFiles.length > 0 || previews.length > 0) && (
-        <div className="mt-4 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
-          {currentFiles.map((file, index) => (
-            <div key={`file-${index}`} className="relative group">
-              <div className="relative aspect-square rounded-md overflow-hidden border bg-background">
-                <img
-                  src={URL.createObjectURL(file)}
-                  alt={`Preview ${index}`}
-                  className="object-cover w-full h-full"
-                />
-                {onRemoveFile && (
-                  <Button
-                    type="button"
-                    variant="destructive"
-                    size="icon"
-                    className="absolute top-1 right-1 h-6 w-6 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      onRemoveFile(index);
-                    }}
-                  >
-                    <X className="h-3 w-3" />
-                  </Button>
-                )}
-              </div>
-              <p className="text-xs mt-1 truncate">{file.name}</p>
-            </div>
-          ))}
-          {previews.map((preview, index) => (
-            <div key={`preview-${index}`} className="relative group">
-              <div className="relative aspect-square rounded-md overflow-hidden border bg-background">
-                <img
-                  src={preview}
-                  alt={`Existing preview ${index}`}
-                  className="object-cover w-full h-full"
-                />
-                {onRemoveFile && (
-                  <Button
-                    type="button"
-                    variant="destructive"
-                    size="icon"
-                    className="absolute top-1 right-1 h-6 w-6 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      onRemoveFile(index + currentFiles.length);
-                    }}
-                  >
-                    <X className="h-3 w-3" />
-                  </Button>
-                )}
+      {/* Informazioni sulla compressione e anteprima */}
+      {(currentFiles.length > 0 || previews.length > 0 || compressingFiles.length > 0) && (
+        <>
+          {/* Informazioni sulla compressione */}
+          {enableCompression && (currentFiles.length > 0 || compressingFiles.length > 0) && (
+            <div className="mt-4 mb-4">
+              <h4 className="text-sm font-medium mb-2 text-blue-gray">Informazioni compressione</h4>
+              <div className="space-y-2">
+                {/* File in fase di compressione */}
+                {compressingFiles.map(fileName => (
+                  <ImageCompressionInfo
+                    key={`compressing-${fileName}`}
+                    fileName={fileName}
+                    isCompressing={true}
+                    originalSize={undefined}
+                    compressedSize={undefined}
+                  />
+                ))}
+                
+                {/* File con compressione completata */}
+                {currentFiles.map((file, index) => {
+                  const compressionInfo = compressionData[file.name];
+                  return compressionInfo ? (
+                    <ImageCompressionInfo
+                      key={`compressed-${file.name}`}
+                      fileName={file.name}
+                      isCompressing={false}
+                      originalSize={compressionInfo.originalSize}
+                      compressedSize={compressionInfo.compressedSize}
+                      compressionRatio={compressionInfo.compressionRatio}
+                    />
+                  ) : file.type.startsWith('image/') ? (
+                    <ImageCompressionInfo
+                      key={`file-${file.name}`}
+                      fileName={file.name}
+                      isCompressing={false}
+                      originalSize={file.size}
+                      compressedSize={file.size}
+                      compressionRatio={1}
+                    />
+                  ) : null;
+                }).filter(Boolean)}
               </div>
             </div>
-          ))}
-        </div>
+          )}
+          
+          {/* Anteprima dei file selezionati */}
+          <div className="mt-4 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
+            {currentFiles.map((file, index) => (
+              <div key={`file-${index}`} className="relative group">
+                <div className="relative aspect-square rounded-md overflow-hidden border bg-background">
+                  <img
+                    src={URL.createObjectURL(file)}
+                    alt={`Preview ${index}`}
+                    className="object-cover w-full h-full"
+                  />
+                  {onRemoveFile && (
+                    <Button
+                      type="button"
+                      variant="destructive"
+                      size="icon"
+                      className="absolute top-1 right-1 h-6 w-6 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        // Rimuovi anche i dati di compressione
+                        setCompressionData(prev => {
+                          const newData = {...prev};
+                          delete newData[file.name];
+                          return newData;
+                        });
+                        onRemoveFile(index);
+                      }}
+                    >
+                      <X className="h-3 w-3" />
+                    </Button>
+                  )}
+                </div>
+                <p className="text-xs mt-1 truncate">{file.name}</p>
+              </div>
+            ))}
+            {previews.map((preview, index) => (
+              <div key={`preview-${index}`} className="relative group">
+                <div className="relative aspect-square rounded-md overflow-hidden border bg-background">
+                  <img
+                    src={preview}
+                    alt={`Existing preview ${index}`}
+                    className="object-cover w-full h-full"
+                  />
+                  {onRemoveFile && (
+                    <Button
+                      type="button"
+                      variant="destructive"
+                      size="icon"
+                      className="absolute top-1 right-1 h-6 w-6 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onRemoveFile(index + currentFiles.length);
+                      }}
+                    >
+                      <X className="h-3 w-3" />
+                    </Button>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+        </>
       )}
     </div>
   );
