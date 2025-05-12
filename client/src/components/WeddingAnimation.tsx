@@ -6,7 +6,11 @@ interface WeddingAnimationProps {
   skip?: boolean;
 }
 
+// Funzione di utilità per forzare l'animazione a comparire (per debug)
+console.log("WeddingAnimation componente caricato!");
+
 export default function WeddingAnimation({ onAnimationComplete, skip = false }: WeddingAnimationProps) {
+  console.log("WeddingAnimation renderizzato, skip:", skip);
   const [showAnimation, setShowAnimation] = useState(true);
   
   // Se skip è true, salta l'animazione immediatamente

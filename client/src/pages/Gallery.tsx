@@ -56,6 +56,7 @@ export default function Gallery() {
   const [loadingMorePhotos, setLoadingMorePhotos] = useState(false);
   const [photosPerPage, setPhotosPerPage] = useState(20); // Carica 20 foto alla volta
   const [showAnimation, setShowAnimation] = useState(true);
+  const [animationShown, setAnimationShown] = useState(false); // Per evitare di mostrare l'animazione più volte
   const { toast } = useToast();
   const { studioSettings } = useStudio();
 
@@ -69,6 +70,20 @@ export default function Gallery() {
       setActiveTab('all');
     }
   }, [chapters, activeTab]);
+
+  // Controlla se dobbiamo mostrare l'animazione
+  useEffect(() => {
+    if (!isLoading && gallery) {
+      // Quando la galleria è caricata completamente, controlliamo se mostrare l'animazione
+      console.log("Galleria caricata, isAdmin:", isAdmin, "animationShown:", animationShown);
+      // Se non è ancora stata mostrata e l'utente non è un admin, mostriamo l'animazione
+      if (!animationShown && !isAdmin) {
+        console.log("Mostro l'animazione!");
+        setAnimationShown(true);
+        setShowAnimation(true);
+      }
+    }
+  }, [isLoading, gallery, isAdmin, animationShown]);
 
   useEffect(() => {
     // Controlla se l'utente è un amministratore
@@ -441,13 +456,30 @@ export default function Gallery() {
   return (
     <div className="min-h-screen bg-off-white">
       {/* Animazione degli sposi all'apertura della galleria */}
-      {!isLoading && showAnimation && (
+      {showAnimation && animationShown && (
         <WeddingAnimation 
-          onAnimationComplete={() => setShowAnimation(false)}
-          skip={isAdmin} // Skip animation for admin users
+          onAnimationComplete={() => {
+            console.log("Animazione completata, nascondo");
+            setShowAnimation(false);
+          }}
+          skip={false} // Non saltiamo l'animazione se siamo arrivati qui
         />
       )}
       <Navigation galleryOwner={gallery.name.split(' - ')[0]} />
+      
+      {/* Bottone di test per forzare l'animazione (solo per sviluppo) */}
+      <div className="fixed bottom-4 right-4 z-50">
+        <button 
+          onClick={() => {
+            console.log("Forzo visualizzazione animazione");
+            setShowAnimation(true);
+            setAnimationShown(true);
+          }}
+          className="bg-purple-500 text-white px-3 py-1 rounded-md text-xs"
+        >
+          Test Animazione
+        </button>
+      </div>
 
       {/* Hero Section con decorazioni a tema matrimonio */}
       <div className="relative w-full overflow-hidden">
