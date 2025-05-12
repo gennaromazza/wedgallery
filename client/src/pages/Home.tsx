@@ -1,7 +1,7 @@
-import { Link } from "wouter";
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
 import GallerySearch from "@/components/GallerySearch";
+import HeroSlideshow from "@/components/HeroSlideshow";
 
 export default function Home() {
   return (
@@ -10,7 +10,7 @@ export default function Home() {
 
       {/* Hero Section */}
       <div className="relative bg-light-mint">
-        <div className="absolute inset-0 bg-gradient-to-r from-mint/70 to-sage/50 mix-blend-multiply" aria-hidden="true"></div>
+        <HeroSlideshow />
         <div className="relative max-w-7xl mx-auto py-24 px-4 sm:py-32 sm:px-6 lg:px-8">
           <h1 className="text-4xl font-bold tracking-tight text-blue-gray sm:text-5xl lg:text-6xl font-playfair animate-slide-up">
             Ricordi preziosi, <br />custoditi con cura
@@ -19,9 +19,9 @@ export default function Home() {
             Le tue gallerie fotografiche private, accessibili in modo sicuro e semplice su qualsiasi dispositivo.
           </p>
           <div className="mt-10 animate-slide-up" style={{ animationDelay: "200ms" }}>
-            <Link href="#access-gallery" className="px-8 py-3 bg-blue-gray text-off-white font-medium rounded-md shadow hover:bg-dark-sage transition inline-block">
+            <a href="#access-gallery" className="px-8 py-3 bg-blue-gray text-off-white font-medium rounded-md shadow hover:bg-dark-sage transition inline-block">
               Accedi alla tua galleria
-            </Link>
+            </a>
           </div>
         </div>
       </div>
@@ -60,9 +60,9 @@ export default function Home() {
                 <p className="text-sm text-gray-600 mb-4">
                   Non trovi la galleria o non hai la password?
                 </p>
-                <Link href="#request-password" className="inline-block px-4 py-2 rounded border border-sage text-sage hover:bg-sage hover:text-white transition duration-200">
+                <a href="#request-password" className="inline-block px-4 py-2 rounded border border-sage text-sage hover:bg-sage hover:text-white transition duration-200">
                   Richiedi la password
-                </Link>
+                </a>
               </div>
             </div>
           </div>
@@ -133,17 +133,18 @@ export default function Home() {
                 </div>
                 
                 <div className="sm:col-span-2">
-                  <label htmlFor="gallery-id" className="block text-sm font-medium text-blue-gray">
-                    Codice Galleria
+                  <label htmlFor="gallery-search" className="block text-sm font-medium text-blue-gray">
+                    Nome Galleria/Sposi
                   </label>
                   <div className="mt-1">
                     <input
                       type="text"
-                      id="gallery-id"
-                      name="gallery-id"
+                      id="gallery-search"
+                      name="gallery-search"
+                      placeholder="Es. Maria & Luca"
                       className="w-full border-beige rounded-md py-3 px-4 focus:ring-sage focus:border-sage"
                     />
-                    <p className="mt-1 text-xs text-gray-500">Esempio: maria-luca-2023</p>
+                    <p className="mt-1 text-xs text-gray-500">Inserisci il nome degli sposi o della galleria</p>
                   </div>
                 </div>
                 
