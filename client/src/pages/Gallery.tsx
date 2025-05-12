@@ -339,28 +339,28 @@ export default function Gallery() {
                 <>
                   {gallery.hasChapters && chapters.length > 0 ? (
                     <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full mb-8">
-                      <TabsList className="mb-6 flex overflow-x-auto">
-                        <TabsTrigger value="all">
+                      <TabsList className="mb-6 flex overflow-x-auto scrollbar-thin pb-2">
+                        <TabsTrigger value="all" className="flex-shrink-0">
                           Tutte le foto ({photos.length})
                         </TabsTrigger>
                         
-                        <TabsTrigger value="unassigned">
+                        <TabsTrigger value="unassigned" className="flex-shrink-0">
                           Non assegnate ({photos.filter(p => !p.chapterId).length})
                         </TabsTrigger>
                         
                         {chapters.map(chapter => (
-                          <TabsTrigger key={chapter.id} value={chapter.id}>
+                          <TabsTrigger key={chapter.id} value={chapter.id} className="flex-shrink-0">
                             {chapter.title} ({photos.filter(p => p.chapterId === chapter.id).length})
                           </TabsTrigger>
                         ))}
                       </TabsList>
                       
                       <TabsContent value="all" className="space-y-6">
-                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8">
+                        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2 sm:gap-4 lg:gap-6">
                           {photos.map((photo, index) => (
                             <div
                               key={photo.id}
-                              className="gallery-image"
+                              className="gallery-image h-40 sm:h-52 lg:h-64"
                               onClick={() => openLightbox(photos.findIndex(p => p.id === photo.id))}
                             >
                               <img
@@ -375,11 +375,11 @@ export default function Gallery() {
                       </TabsContent>
                       
                       <TabsContent value="unassigned" className="space-y-6">
-                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8">
+                        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2 sm:gap-4 lg:gap-6">
                           {photos.filter(p => !p.chapterId).map((photo, index) => (
                             <div
                               key={photo.id}
-                              className="gallery-image"
+                              className="gallery-image h-40 sm:h-52 lg:h-64"
                               onClick={() => openLightbox(photos.findIndex(p => p.id === photo.id))}
                             >
                               <img

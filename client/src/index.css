@@ -96,6 +96,11 @@
   .btn-primary {
     @apply bg-blue-gray hover:bg-dark-sage text-white font-medium rounded-md transition-all duration-300;
   }
+  
+  .btn-lightbox {
+    @apply py-2 px-4 rounded-md bg-white/15 text-white flex items-center justify-center 
+      backdrop-blur-sm hover:bg-white/25 transition-all;
+  }
 }
 
 /* Custom font and color utilities */

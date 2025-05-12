@@ -1,5 +1,7 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Photo } from "@shared/schema";
+import { ArrowLeft, ArrowRight, Download, X, ZoomIn, ZoomOut, Maximize } from "lucide-react";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface ImageLightboxProps {
   isOpen: boolean;
@@ -10,10 +12,18 @@ interface ImageLightboxProps {
 
 export default function ImageLightbox({ isOpen, onClose, photos, initialIndex }: ImageLightboxProps) {
   const [currentIndex, setCurrentIndex] = useState(initialIndex);
+  const [zoom, setZoom] = useState(1);
+  const [isFullscreen, setIsFullscreen] = useState(false);
+  const [touchStart, setTouchStart] = useState<number | null>(null);
+  const [touchEnd, setTouchEnd] = useState<number | null>(null);
+  const lightboxRef = useRef<HTMLDivElement>(null);
+  const imageRef = useRef<HTMLImageElement>(null);
+  const isMobile = useIsMobile();
   
   // Reset current index when the component receives a new initialIndex
   useEffect(() => {
     setCurrentIndex(initialIndex);
+    setZoom(1); // Reset zoom when changing photos
   }, [initialIndex]);
 
   // Handle keyboard navigation
@@ -49,78 +59,220 @@ export default function ImageLightbox({ isOpen, onClose, photos, initialIndex }:
     setCurrentIndex((prev) => (prev + 1) % photos.length);
   };
 
+  // Funzione per gestire lo zoom
+  const handleZoom = (zoomIn: boolean) => {
+    setZoom(prev => {
+      if (zoomIn) {
+        return Math.min(prev + 0.25, 3); // Max zoom 3x
+      } else {
+        return Math.max(prev - 0.25, 0.5); // Min zoom 0.5x
+      }
+    });
+  };
+
+  // Funzione per gestire il fullscreen
+  const toggleFullscreen = () => {
+    if (!document.fullscreenElement) {
+      lightboxRef.current?.requestFullscreen().catch(err => {
+        console.error(`Errore nel passare a fullscreen: ${err.message}`);
+      });
+      setIsFullscreen(true);
+    } else {
+      document.exitFullscreen();
+      setIsFullscreen(false);
+    }
+  };
+
+  // Gestione degli eventi touch per lo swipe su mobile
+  const handleTouchStart = (e: React.TouchEvent) => {
+    setTouchStart(e.targetTouches[0].clientX);
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    setTouchEnd(e.targetTouches[0].clientX);
+  };
+
+  const handleTouchEnd = () => {
+    if (!touchStart || !touchEnd) return;
+    
+    const distance = touchStart - touchEnd;
+    const isLeftSwipe = distance > 50;
+    const isRightSwipe = distance < -50;
+    
+    if (isLeftSwipe) {
+      navigateNext();
+    } else if (isRightSwipe) {
+      navigatePrevious();
+    }
+    
+    // Reset touch state
+    setTouchStart(null);
+    setTouchEnd(null);
+  };
+
+  // Funzione per il download diretto
   const handleDownload = () => {
+    // Crea un link temporaneo con attributo 'download' per forzare il download
     const link = document.createElement('a');
+    
+    // Usa l'URL dell'immagine corrente
     link.href = currentPhoto.url;
-    link.download = currentPhoto.name || 'photo.jpg';
+    
+    // Imposta l'attributo 'download' con il nome del file
+    link.download = currentPhoto.name || `photo_${currentIndex + 1}.jpg`;
+    
+    // Imposta un flag per indicare che l'URL è sicuro
+    link.setAttribute('target', '_blank');
+    link.setAttribute('rel', 'noopener noreferrer');
+    
+    // Aggiungi l'attributo di download forzato
+    link.setAttribute('download', '');
+    
+    // Aggiungi temporaneamente il link al documento
     document.body.appendChild(link);
+    
+    // Simula un click
     link.click();
+    
+    // Rimuovi il link dal documento
     document.body.removeChild(link);
   };
 
   return (
-    <div className="fixed inset-0 z-50 overflow-y-auto">
-      <div className="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
-        <div className="fixed inset-0 transition-opacity" aria-hidden="true">
-          <div className="absolute inset-0 bg-gray-900 opacity-90"></div>
+    <div 
+      ref={lightboxRef}
+      className="fixed inset-0 z-50 overflow-hidden bg-black/95" 
+      onTouchStart={handleTouchStart}
+      onTouchMove={handleTouchMove}
+      onTouchEnd={handleTouchEnd}
+    >
+      {/* Controllo di navigazione a sinistra (desktop) */}
+      {!isMobile && (
+        <button 
+          onClick={navigatePrevious}
+          className="absolute left-4 top-1/2 -translate-y-1/2 p-2 rounded-full bg-black/30 text-white hover:bg-black/50 transition-all"
+          aria-label="Foto precedente"
+        >
+          <ArrowLeft size={24} />
+        </button>
+      )}
+      
+      {/* Controllo di navigazione a destra (desktop) */}
+      {!isMobile && (
+        <button 
+          onClick={navigateNext}
+          className="absolute right-4 top-1/2 -translate-y-1/2 p-2 rounded-full bg-black/30 text-white hover:bg-black/50 transition-all"
+          aria-label="Foto successiva"
+        >
+          <ArrowRight size={24} />
+        </button>
+      )}
+      
+      {/* Barra superiore */}
+      <div className="absolute top-0 left-0 right-0 px-4 py-3 bg-gradient-to-b from-black/70 to-transparent flex justify-between items-center">
+        <h3 className="text-white font-medium truncate max-w-[60%]">
+          {currentPhoto.name || `Foto ${currentIndex + 1} di ${photos.length}`}
+        </h3>
+        <button
+          type="button"
+          onClick={onClose}
+          className="p-2 text-white hover:text-gray-300 focus:outline-none"
+          aria-label="Chiudi"
+        >
+          <X size={24} />
+        </button>
+      </div>
+      
+      {/* Contenitore principale dell'immagine */}
+      <div className="w-full h-full flex items-center justify-center p-4 sm:p-8 overflow-hidden">
+        <img 
+          ref={imageRef}
+          src={currentPhoto.url} 
+          alt={currentPhoto.name || `Foto ${currentIndex + 1}`} 
+          style={{ transform: `scale(${zoom})`, transition: 'transform 0.3s ease-in-out' }}
+          className="max-w-full max-h-full object-contain select-none"
+          draggable={false}
+        />
+      </div>
+      
+      {/* Barra inferiore con controlli */}
+      <div className="absolute bottom-0 left-0 right-0 px-4 py-3 bg-gradient-to-t from-black/70 to-transparent">
+        {/* Indicatore di posizione */}
+        <div className="text-center text-white mb-2">
+          {currentIndex + 1} / {photos.length}
         </div>
-
-        <span className="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
         
-        <div className="inline-block align-bottom rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-4xl sm:w-full">
-          <div className="bg-off-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
-            <div className="sm:flex sm:items-start">
-              <div className="mt-3 text-center sm:mt-0 sm:text-left w-full">
-                <div className="flex justify-between items-center mb-4">
-                  <h3 className="text-lg leading-6 font-medium text-blue-gray font-playfair">
-                    {currentPhoto.name || 'Fotografia'}
-                  </h3>
-                  <button
-                    type="button"
-                    onClick={onClose}
-                    className="rounded-md text-gray-400 hover:text-gray-500 focus:outline-none"
-                  >
-                    <span className="sr-only">Chiudi</span>
-                    <svg className="h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                    </svg>
-                  </button>
-                </div>
-                <div className="mt-2">
-                  <div className="overflow-hidden rounded-lg">
-                    <img 
-                      src={currentPhoto.url} 
-                      alt={currentPhoto.name || "Foto del matrimonio"} 
-                      className="w-full h-auto max-h-[70vh] object-contain"
-                    />
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-          <div className="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
-            <button 
-              type="button" 
-              onClick={handleDownload}
-              className="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-blue-gray text-base font-medium text-white hover:bg-dark-sage focus:outline-none sm:ml-3 sm:w-auto sm:text-sm btn-primary"
-            >
-              Scarica
-            </button>
-            <button 
-              type="button" 
-              onClick={navigatePrevious}
-              className="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm"
-            >
-              Precedente
-            </button>
-            <button 
-              type="button" 
-              onClick={navigateNext}
-              className="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm"
-            >
-              Successiva
-            </button>
-          </div>
+        {/* Controlli */}
+        <div className={`grid ${isMobile ? 'grid-cols-3' : 'grid-cols-5'} gap-2`}>
+          {isMobile ? (
+            <>
+              <button 
+                onClick={navigatePrevious}
+                className="btn-lightbox"
+                aria-label="Foto precedente"
+              >
+                <ArrowLeft size={20} />
+              </button>
+              
+              <button 
+                onClick={handleDownload}
+                className="btn-lightbox"
+                aria-label="Scarica foto"
+              >
+                <Download size={20} />
+              </button>
+              
+              <button 
+                onClick={navigateNext}
+                className="btn-lightbox"
+                aria-label="Foto successiva"
+              >
+                <ArrowRight size={20} />
+              </button>
+            </>
+          ) : (
+            <>
+              <button 
+                onClick={() => handleZoom(false)}
+                className="btn-lightbox"
+                aria-label="Riduci zoom"
+              >
+                <ZoomOut size={20} />
+              </button>
+              
+              <button 
+                onClick={() => handleZoom(true)}
+                className="btn-lightbox"
+                aria-label="Aumenta zoom"
+              >
+                <ZoomIn size={20} />
+              </button>
+              
+              <button 
+                onClick={handleDownload}
+                className="btn-lightbox"
+                aria-label="Scarica foto"
+              >
+                <Download size={20} />
+              </button>
+              
+              <button 
+                onClick={toggleFullscreen}
+                className="btn-lightbox"
+                aria-label="Schermo intero"
+              >
+                <Maximize size={20} />
+              </button>
+              
+              <button 
+                onClick={onClose}
+                className="btn-lightbox"
+                aria-label="Chiudi"
+              >
+                <X size={20} />
+              </button>
+            </>
+          )}
         </div>
       </div>
     </div>
