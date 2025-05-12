@@ -78,7 +78,7 @@ export default function AdminDashboard() {
     }
   }, [currentUser, navigate]);
 
-  // Fetch data (galleries and password requests)
+  // Fetch data (galleries, password requests and studio settings)
   useEffect(() => {
     async function fetchData() {
       setIsLoading(true);
@@ -123,6 +123,22 @@ export default function AdminDashboard() {
         } catch (error) {
           console.error("Error fetching password requests:", error);
         }
+        
+        // Carica impostazioni studio
+        try {
+          setIsSettingsLoading(true);
+          const settingsDoc = doc(db, "settings", "studio");
+          const settingsSnapshot = await getDoc(settingsDoc);
+          
+          if (settingsSnapshot.exists()) {
+            const settingsData = settingsSnapshot.data() as StudioSettings;
+            setStudioSettings(settingsData);
+          }
+        } catch (error) {
+          console.error("Error fetching studio settings:", error);
+        } finally {
+          setIsSettingsLoading(false);
+        }
       } catch (error) {
         console.error("Error fetching galleries:", error);
         toast({
@@ -139,6 +155,93 @@ export default function AdminDashboard() {
       fetchData();
     }
   }, [currentUser, toast]);
+  
+  // Funzione per gestire il cambio di valore nei campi delle impostazioni
+  const handleSettingsChange = (
+    field: string, 
+    value: string,
+    nestedField?: string
+  ) => {
+    if (nestedField) {
+      setStudioSettings(prev => ({
+        ...prev,
+        [field]: {
+          ...prev[field as keyof StudioSettings] as object,
+          [nestedField]: value
+        }
+      }));
+    } else {
+      setStudioSettings(prev => ({
+        ...prev,
+        [field]: value
+      }));
+    }
+  };
+  
+  // Funzione per gestire l'upload del logo
+  const handleLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!e.target.files || e.target.files.length === 0) return;
+    
+    const file = e.target.files[0];
+    // Accetta solo immagini
+    if (!file.type.startsWith('image/')) {
+      toast({
+        title: "Tipo di file non supportato",
+        description: "Seleziona un'immagine (PNG, JPG o SVG)",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    try {
+      // Riferimento allo storage per il logo
+      const logoRef = ref(storage, `settings/logo`);
+      
+      // Upload del file
+      await uploadBytes(logoRef, file);
+      
+      // Ottieni URL di download
+      const downloadUrl = await getDownloadURL(logoRef);
+      
+      // Aggiorna lo stato delle impostazioni
+      setStudioSettings(prev => ({
+        ...prev,
+        logo: downloadUrl
+      }));
+      
+      toast({
+        title: "Logo caricato",
+        description: "Il logo è stato caricato con successo."
+      });
+    } catch (error) {
+      console.error("Error uploading logo:", error);
+      toast({
+        title: "Errore",
+        description: "Si è verificato un errore durante il caricamento del logo.",
+        variant: "destructive"
+      });
+    }
+  };
+  
+  // Funzione per salvare le impostazioni dello studio
+  const saveStudioSettings = async () => {
+    try {
+      const settingsRef = doc(db, "settings", "studio");
+      await setDoc(settingsRef, studioSettings);
+      
+      toast({
+        title: "Impostazioni salvate",
+        description: "Le impostazioni dello studio sono state salvate con successo."
+      });
+    } catch (error) {
+      console.error("Error saving studio settings:", error);
+      toast({
+        title: "Errore",
+        description: "Si è verificato un errore nel salvataggio delle impostazioni.",
+        variant: "destructive"
+      });
+    }
+  };
 
   const openModal = () => {
     setIsModalOpen(true);
@@ -378,7 +481,7 @@ export default function AdminDashboard() {
         {activeTab === 'galleries' && (
           <div>
             <div className="px-4 sm:px-0">
-              <h3 className="text-lg font-medium text-blue-gray font-playfair">Le tue gallerie</h3>
+              <h3 className="text-xl font-medium text-blue-gray font-playfair">Le tue gallerie</h3>
               <p className="mt-1 text-sm text-gray-500">
                 Gestisci le tue gallerie fotografiche private
               </p>
@@ -561,6 +664,191 @@ export default function AdminDashboard() {
                     </li>
                   ))}
                 </ul>
+              )}
+            </div>
+          </div>
+        )}
+        
+        {/* Studio Settings Tab */}
+        {activeTab === 'settings' && (
+          <div>
+            <div className="px-4 sm:px-0 mb-6">
+              <h3 className="text-lg font-medium text-blue-gray font-playfair">Impostazioni Studio</h3>
+              <p className="mt-1 text-sm text-gray-500">
+                Personalizza le informazioni del tuo studio fotografico mostrate nel sito
+              </p>
+            </div>
+
+            <div className="space-y-6">
+              {isSettingsLoading ? (
+                <div className="p-6 flex justify-center">
+                  <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-sage"></div>
+                </div>
+              ) : (
+                <>
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>Informazioni di base</CardTitle>
+                      <CardDescription>Inserisci le informazioni principali del tuo studio fotografico</CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                          <Label htmlFor="studioName">Nome dello studio</Label>
+                          <Input 
+                            id="studioName" 
+                            value={studioSettings.name} 
+                            onChange={(e) => handleSettingsChange('name', e.target.value)}
+                            placeholder="Es. Studio Fotografico Rossi"
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="studioSlogan">Slogan / Tagline</Label>
+                          <Input 
+                            id="studioSlogan" 
+                            value={studioSettings.slogan} 
+                            onChange={(e) => handleSettingsChange('slogan', e.target.value)}
+                            placeholder="Es. Catturiamo i momenti più belli della vita"
+                          />
+                        </div>
+                      </div>
+                      
+                      <div className="space-y-2">
+                        <Label htmlFor="studioAbout">Chi siamo</Label>
+                        <Textarea 
+                          id="studioAbout" 
+                          value={studioSettings.about} 
+                          onChange={(e) => handleSettingsChange('about', e.target.value)}
+                          placeholder="Inserisci una breve descrizione del tuo studio"
+                          rows={4}
+                        />
+                      </div>
+                      
+                      <div className="space-y-2">
+                        <Label htmlFor="studioLogo">Logo dello studio</Label>
+                        <div className="flex items-start space-x-4">
+                          {studioSettings.logo && (
+                            <div className="w-24 h-24 border rounded overflow-hidden">
+                              <img 
+                                src={studioSettings.logo} 
+                                alt="Logo dello studio" 
+                                className="w-full h-full object-contain"
+                              />
+                            </div>
+                          )}
+                          <div className="flex-1">
+                            <Input 
+                              id="studioLogo" 
+                              type="file" 
+                              accept="image/*"
+                              onChange={handleLogoUpload}
+                            />
+                            <p className="text-xs text-gray-500 mt-1">
+                              Formato consigliato: PNG o SVG con sfondo trasparente, max 500KB
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                  
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>Contatti</CardTitle>
+                      <CardDescription>Informazioni di contatto mostrate sul sito</CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                          <Label htmlFor="studioAddress">Indirizzo</Label>
+                          <Input 
+                            id="studioAddress" 
+                            value={studioSettings.address} 
+                            onChange={(e) => handleSettingsChange('address', e.target.value)}
+                            placeholder="Es. Via Roma 123, Milano"
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="studioPhone">Telefono</Label>
+                          <Input 
+                            id="studioPhone" 
+                            value={studioSettings.phone} 
+                            onChange={(e) => handleSettingsChange('phone', e.target.value)}
+                            placeholder="Es. +39 123 456 7890"
+                          />
+                        </div>
+                      </div>
+                      
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                          <Label htmlFor="studioEmail">Email</Label>
+                          <Input 
+                            id="studioEmail" 
+                            type="email"
+                            value={studioSettings.email} 
+                            onChange={(e) => handleSettingsChange('email', e.target.value)}
+                            placeholder="Es. info@studiofotografico.it"
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="studioWebsite">Sito Web</Label>
+                          <Input 
+                            id="studioWebsite" 
+                            value={studioSettings.websiteUrl} 
+                            onChange={(e) => handleSettingsChange('websiteUrl', e.target.value)}
+                            placeholder="Es. https://www.studiofotografico.it"
+                          />
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                  
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>Social Media</CardTitle>
+                      <CardDescription>I tuoi profili social (lascia vuoto se non utilizzati)</CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div className="space-y-2">
+                          <Label htmlFor="studioFacebook">Facebook</Label>
+                          <Input 
+                            id="studioFacebook" 
+                            value={studioSettings.socialLinks.facebook || ''} 
+                            onChange={(e) => handleSettingsChange('socialLinks', e.target.value, 'facebook')}
+                            placeholder="Es. https://facebook.com/tuostudio"
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="studioInstagram">Instagram</Label>
+                          <Input 
+                            id="studioInstagram" 
+                            value={studioSettings.socialLinks.instagram || ''} 
+                            onChange={(e) => handleSettingsChange('socialLinks', e.target.value, 'instagram')}
+                            placeholder="Es. https://instagram.com/tuostudio"
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="studioTwitter">Twitter</Label>
+                          <Input 
+                            id="studioTwitter" 
+                            value={studioSettings.socialLinks.twitter || ''} 
+                            onChange={(e) => handleSettingsChange('socialLinks', e.target.value, 'twitter')}
+                            placeholder="Es. https://twitter.com/tuostudio"
+                          />
+                        </div>
+                      </div>
+                    </CardContent>
+                    <CardFooter>
+                      <Button
+                        onClick={saveStudioSettings}
+                        className="w-full md:w-auto"
+                      >
+                        Salva impostazioni
+                      </Button>
+                    </CardFooter>
+                  </Card>
+                </>
               )}
             </div>
           </div>
