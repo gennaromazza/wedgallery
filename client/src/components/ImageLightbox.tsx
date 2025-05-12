@@ -113,30 +113,20 @@ export default function ImageLightbox({ isOpen, onClose, photos, initialIndex }:
   };
 
   // Funzione per il download diretto
-  const handleDownload = async (e: React.MouseEvent) => {
+  const handleDownload = (e: React.MouseEvent) => {
     e.preventDefault();
     
-    try {
-      // Usa l'URL diretto per il download
-      const link = document.createElement('a');
-      link.href = currentPhoto.url;
-      link.setAttribute('target', '_blank');
-      link.setAttribute('rel', 'noopener noreferrer');
-      
-      // Determina l'estensione del file dall'URL o usa jpg come fallback
-      const extension = currentPhoto.url.split('.').pop()?.toLowerCase() || 'jpg';
-      const fileName = currentPhoto.name || `photo_${currentIndex + 1}.${extension}`;
-      link.download = fileName;
-      
-      // Esegui il download
-      document.body.appendChild(link);
-      link.click();
-      
-      // Pulizia
-      document.body.removeChild(link);
-      
-      // Feedback visivo
-      toast({
+    // Crea link diretto al download
+    const extension = currentPhoto.url.split('.').pop()?.toLowerCase() || 'jpg';
+    const fileName = currentPhoto.name || `photo_${currentIndex + 1}.${extension}`;
+    
+    const link = document.createElement('a');
+    link.href = currentPhoto.url;
+    link.download = fileName;
+    link.click();
+    
+    // Feedback visivo
+    toast({
         title: "Download avviato",
         description: `Scaricamento di ${fileName} in corso...`,
         duration: 3000,
