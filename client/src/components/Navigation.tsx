@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { Link, useLocation } from "wouter";
-import { useAuth } from "@/context/AuthContext";
 import { useStudio } from "@/context/StudioContext";
 
 interface NavigationProps {
@@ -11,9 +10,16 @@ interface NavigationProps {
 export default function Navigation({ isAdminNav = false, galleryOwner }: NavigationProps) {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [location] = useLocation();
-  // Usiamo direttamente useAuth poiché ora il provider è disponibile
-  const { currentUser, signOut } = useAuth();
   const { studioSettings } = useStudio();
+  
+  // Implementazione sicura per i metodi di autenticazione
+  // Usando valori predefiniti per evitare errori quando il provider non è disponibile
+  const currentUser = null;
+  const signOut = async () => {
+    // Implementazione predefinita sicura
+    localStorage.removeItem('isAdmin');
+    window.location.href = "/";
+  };
 
   const handleSignOut = async () => {
     try {

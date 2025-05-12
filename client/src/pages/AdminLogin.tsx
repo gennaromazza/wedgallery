@@ -1,6 +1,5 @@
 import { useState, useEffect } from "react";
 import { useLocation } from "wouter";
-import { useAuth } from "@/context/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
@@ -12,6 +11,8 @@ import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
 import { FloralCorner, FloralDivider, BackgroundDecoration } from '@/components/WeddingIllustrations';
 import { WeddingImage, DecorativeImage } from '@/components/WeddingImages';
+import { signInWithEmailAndPassword } from "firebase/auth";
+import { auth } from "@/lib/firebase";
 
 const loginSchema = z.object({
   email: z.string().email("Inserisci un'email valida"),
@@ -22,16 +23,15 @@ type LoginFormData = z.infer<typeof loginSchema>;
 
 export default function AdminLogin() {
   const [isLoading, setIsLoading] = useState(false);
-  const { signIn, currentUser } = useAuth();
   const [, navigate] = useLocation();
   const { toast } = useToast();
   
-  // Se l'utente è già autenticato o c'è un flag isAdmin nel localStorage, reindirizza alla dashboard
+  // Se c'è già un flag isAdmin nel localStorage, reindirizza alla dashboard
   useEffect(() => {
-    if (currentUser || localStorage.getItem('isAdmin')) {
+    if (localStorage.getItem('isAdmin')) {
       navigate('/admin/dashboard');
     }
-  }, [currentUser, navigate]);
+  }, [navigate]);
 
   const form = useForm<LoginFormData>({
     resolver: zodResolver(loginSchema),
@@ -44,7 +44,8 @@ export default function AdminLogin() {
   const onSubmit = async (data: LoginFormData) => {
     setIsLoading(true);
     try {
-      const userCredential = await signIn(data.email, data.password);
+      // Utilizziamo direttamente le API di Firebase anziché l'AuthContext
+      await signInWithEmailAndPassword(auth, data.email, data.password);
       // Salva informazione che l'utente è un amministratore
       localStorage.setItem('isAdmin', 'true');
       navigate("/admin/dashboard");
