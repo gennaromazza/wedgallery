@@ -117,21 +117,15 @@ export default function ImageLightbox({ isOpen, onClose, photos, initialIndex }:
     e.preventDefault();
     
     try {
-      // Fetch dell'immagine come blob
-      const response = await fetch(currentPhoto.url);
-      const blob = await response.blob();
-      
-      // Crea URL oggetto per il blob
-      const blobUrl = window.URL.createObjectURL(blob);
-      
-      // Crea link per il download
+      // Crea link per il download diretto
       const link = document.createElement('a');
-      link.href = blobUrl;
+      link.href = currentPhoto.url;
       
       // Determina l'estensione del file dall'URL o usa jpg come fallback
       const extension = currentPhoto.url.split('.').pop()?.toLowerCase() || 'jpg';
       const fileName = currentPhoto.name || `photo_${currentIndex + 1}.${extension}`;
       link.download = fileName;
+      link.target = '_blank'; // Apre in una nuova tab se il download diretto fallisce
       
       // Esegui il download
       document.body.appendChild(link);
@@ -139,7 +133,6 @@ export default function ImageLightbox({ isOpen, onClose, photos, initialIndex }:
       
       // Pulizia
       document.body.removeChild(link);
-      window.URL.revokeObjectURL(blobUrl);
       
       // Feedback visivo
       toast({
