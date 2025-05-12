@@ -113,14 +113,16 @@ export default function ImageLightbox({ isOpen, onClose, photos, initialIndex }:
   };
 
   // Funzione per il download diretto
-  const handleDownload = async (e: React.MouseEvent) => {
+  const handleDownload = (e: React.MouseEvent) => {
     e.preventDefault();
     
-    const extension = currentPhoto.url.split('.').pop()?.toLowerCase() || 'jpg';
-    const fileName = currentPhoto.name || `photo_${currentIndex + 1}.${extension}`;
-    
-    // Open in new tab to trigger browser download
-    window.open(currentPhoto.url, '_blank');
+    // Download diretto usando l'URL di Firebase Storage
+    const link = document.createElement('a');
+    link.href = currentPhoto.url;
+    link.setAttribute('download', currentPhoto.name || `photo_${currentIndex + 1}.jpg`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
     
     // Feedback visivo
     toast({
