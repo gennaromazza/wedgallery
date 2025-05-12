@@ -1,10 +1,10 @@
-import { useState, useEffect, useRef } from "react";
-import { collection, query, where, getDocs, orderBy, limit, startAt, endAt } from "firebase/firestore";
+import { useState, useEffect } from "react";
+import { collection, getDocs } from "firebase/firestore";
 import { useLocation } from "wouter";
 import { db } from "@/lib/firebase";
 import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { Search } from "lucide-react";
 
 interface GallerySearchResult {
   id: string;
@@ -16,115 +16,66 @@ interface GallerySearchResult {
 export default function GallerySearch() {
   const [searchTerm, setSearchTerm] = useState("");
   const [searchResults, setSearchResults] = useState<GallerySearchResult[]>([]);
+  const [allGalleries, setAllGalleries] = useState<GallerySearchResult[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [, navigate] = useLocation();
-  const searchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-  useEffect(() => {
-    // Clear the previous timeout if the search term changes
-    if (searchTimeoutRef.current) {
-      clearTimeout(searchTimeoutRef.current);
+  // Funzione che carica tutte le gallerie dal database
+  const loadAllGalleries = async () => {
+    setIsLoading(true);
+    try {
+      const galleriesCollection = collection(db, "galleries");
+      const snapshot = await getDocs(galleriesCollection);
+      
+      // Trasformiamo i dati in un formato più semplice da utilizzare
+      const galleries: GallerySearchResult[] = [];
+      snapshot.forEach((doc) => {
+        const data = doc.data();
+        galleries.push({
+          id: doc.id,
+          name: data.name || "",
+          code: data.code || "",
+          date: data.date || "",
+        });
+      });
+      
+      // Salviamo tutte le gallerie nello state
+      setAllGalleries(galleries);
+      console.log(`Caricate ${galleries.length} gallerie dal database`);
+      console.log("Elenco gallerie:", galleries.map(g => g.name).join(", "));
+    } catch (error) {
+      console.error("Errore nel caricamento delle gallerie:", error);
+    } finally {
+      setIsLoading(false);
     }
+  };
 
-    // Only search if there are at least 3 characters
-    if (searchTerm.length < 3) {
+  // Carica tutte le gallerie quando il componente viene montato
+  useEffect(() => {
+    loadAllGalleries();
+  }, []);
+
+  // Filtriamo i risultati in base al termine di ricerca
+  useEffect(() => {
+    if (searchTerm.length < 2) {
+      // Se il termine di ricerca è troppo corto, non mostrare risultati
       setSearchResults([]);
       return;
     }
 
-    // Debounce the search to avoid making too many requests
-    searchTimeoutRef.current = setTimeout(async () => {
-      setIsLoading(true);
-      try {
-        const galleriesRef = collection(db, "galleries");
-        
-        // Otteniamo tutte le gallerie (anche quelle non attive) per debug
-        // Questo approccio è più flessibile per una ricerca basata su testo
-        const allGalleriesQuery = query(
-          galleriesRef,
-          orderBy("name"),
-          limit(100) // Limitiamo a 100 gallerie per sicurezza
-        );
-
-        const allGalleriesSnapshot = await getDocs(allGalleriesQuery);
-        
-        // Debug: quante gallerie sono state trovate
-        console.log(`Trovate ${allGalleriesSnapshot.size} gallerie totali nel database.`);
-        
-        // Processiamo tutti i risultati e filtriamo quelli che contengono il termine di ricerca
-        const searchTermLower = searchTerm.toLowerCase();
-        const searchWords = searchTermLower.split(/\s+/); // Dividiamo in parole
-        
-        console.log(`Parole chiave ricercate: "${searchWords.join('", "')}"`);
-        
-        const matchedResults: GallerySearchResult[] = [];
-        
-        // Elenco delle gallerie per debug
-        console.log("Elenco di tutte le gallerie:");
-        allGalleriesSnapshot.forEach(doc => {
-          const data = doc.data();
-          console.log(`- Galleria: "${data.name}" (active: ${data.active})`);
-        });
-        
-        allGalleriesSnapshot.forEach(doc => {
-          const data = doc.data();
-          const galleryName = data.name.toLowerCase();
-          
-          console.log(`Controllo galleria: "${data.name}" (lowercase: "${galleryName}")`);
-          
-          // Verifichiamo se tutte le parole della ricerca sono contenute nel nome della galleria
-          const matchResults = searchWords.map(word => {
-            const includes = galleryName.includes(word);
-            console.log(`  - Parola "${word}" ${includes ? 'trovata' : 'NON trovata'} in "${galleryName}"`);
-            return includes;
-          });
-          
-          const allWordsMatch = matchResults.every(match => match === true);
-          
-          console.log(`  => Risultato finale: ${allWordsMatch ? 'MATCH' : 'NO MATCH'}`);
-          
-          if (allWordsMatch) {
-            matchedResults.push({
-              id: doc.id,
-              name: data.name,
-              code: data.code,
-              date: data.date
-            });
-          }
-        });
-        
-        // Ordiniamo i risultati per rilevanza (numero di corrispondenze esatte)
-        matchedResults.sort((a, b) => {
-          const nameA = a.name.toLowerCase();
-          const nameB = b.name.toLowerCase();
-          
-          // Se una galleria inizia con il termine di ricerca, mettiamola in cima
-          if (nameA.startsWith(searchTermLower) && !nameB.startsWith(searchTermLower)) {
-            return -1;
-          }
-          if (!nameA.startsWith(searchTermLower) && nameB.startsWith(searchTermLower)) {
-            return 1;
-          }
-          
-          return 0;
-        });
-        
-        // Limitiamo a 10 risultati per la visualizzazione
-        setSearchResults(matchedResults.slice(0, 10));
-      } catch (error) {
-        console.error("Error searching galleries:", error);
-      } finally {
-        setIsLoading(false);
-      }
-    }, 300);
-
-    // Cleanup function to clear the timeout when the component unmounts
-    return () => {
-      if (searchTimeoutRef.current) {
-        clearTimeout(searchTimeoutRef.current);
-      }
-    };
-  }, [searchTerm]);
+    // Dividiamo la ricerca in parole
+    const searchWords = searchTerm.toLowerCase().split(/\s+/).filter(word => word.length > 0);
+    
+    // Filtriamo le gallerie che contengono tutte le parole nel nome
+    const filteredGalleries = allGalleries.filter(gallery => {
+      const galleryName = gallery.name.toLowerCase();
+      
+      // Verifichiamo che ogni parola sia contenuta nel nome della galleria
+      return searchWords.every(word => galleryName.includes(word));
+    });
+    
+    setSearchResults(filteredGalleries.slice(0, 10));
+  }, [searchTerm, allGalleries]);
 
   const handleGallerySelect = (code: string) => {
     navigate(`/gallery/${code}`);
@@ -133,13 +84,18 @@ export default function GallerySearch() {
   return (
     <div className="w-full">
       <div className="relative">
-        <Input
-          type="text"
-          placeholder="Cerca per nome degli sposi (es. Maria & Luca)"
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          className="w-full px-4 py-2 border border-beige rounded-md focus:ring-sage focus:border-sage"
-        />
+        <div className="relative">
+          <div className="absolute inset-y-0 start-0 flex items-center ps-3 pointer-events-none">
+            <Search className="h-4 w-4 text-gray-500" />
+          </div>
+          <Input
+            type="text"
+            placeholder="Cerca per nome degli sposi (es. Maria & Luca)"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="w-full ps-10 px-4 py-2 border border-beige rounded-md focus:ring-sage focus:border-sage"
+          />
+        </div>
         {isLoading && (
           <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
             <svg className="animate-spin h-5 w-5 text-blue-gray" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
@@ -171,7 +127,7 @@ export default function GallerySearch() {
         </Card>
       )}
 
-      {searchTerm.length >= 3 && searchResults.length === 0 && !isLoading && (
+      {searchTerm.length >= 2 && searchResults.length === 0 && !isLoading && (
         <p className="mt-2 text-sm text-gray-500">
           Nessun risultato trovato. Prova con un altro nome.
         </p>
