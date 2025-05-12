@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useLocation } from "wouter";
 import { useAuth } from "@/context/AuthContext";
-import { collection, getDocs, doc, updateDoc, deleteDoc } from "firebase/firestore";
+import { collection, getDocs, doc, updateDoc, deleteDoc, query, orderBy } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import Navigation from "@/components/Navigation";
 import NewGalleryModal from "@/components/NewGalleryModal";
@@ -193,6 +193,12 @@ export default function AdminDashboard() {
             >
               Slideshow Homepage
             </button>
+            <button
+              className={`py-4 px-1 border-b-2 font-medium text-sm ${activeTab === 'requests' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'}`}
+              onClick={() => setActiveTab('requests')}
+            >
+              Richieste Password
+            </button>
           </div>
         </div>
         
@@ -305,6 +311,71 @@ export default function AdminDashboard() {
             </div>
             
             <SlideshowManager />
+          </div>
+        )}
+
+        {/* Password Requests Tab */}
+        {activeTab === 'requests' && (
+          <div>
+            <div className="px-4 sm:px-0 mb-6">
+              <h3 className="text-lg font-medium text-blue-gray font-playfair">Richieste Password</h3>
+              <p className="mt-1 text-sm text-gray-500">
+                Visualizza tutte le richieste di password effettuate dagli utenti
+              </p>
+            </div>
+            
+            <div className="bg-white shadow overflow-hidden sm:rounded-md">
+              {isLoading ? (
+                <div className="p-6 flex justify-center">
+                  <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-sage"></div>
+                </div>
+              ) : passwordRequests.length === 0 ? (
+                <div className="p-6 text-center text-gray-500">
+                  Nessuna richiesta di password trovata
+                </div>
+              ) : (
+                <ul className="divide-y divide-gray-200">
+                  {passwordRequests.map((request) => (
+                    <li key={request.id} className="px-4 py-4 sm:px-6">
+                      <div className="flex items-center justify-between">
+                        <div className="flex flex-col">
+                          <p className="text-sm font-medium text-blue-gray truncate">
+                            {request.firstName} {request.lastName}
+                          </p>
+                          <p className="text-sm text-gray-500">
+                            {request.email}
+                          </p>
+                        </div>
+                        <div className="flex flex-col items-end">
+                          <p className="text-sm font-medium text-blue-gray">
+                            {request.galleryName || "Galleria sconosciuta"}
+                          </p>
+                          <p className="text-sm text-gray-500">
+                            {request.timestamp?.toLocaleString() || "Data sconosciuta"}
+                          </p>
+                        </div>
+                      </div>
+                      <div className="mt-2">
+                        <div className="flex justify-between text-sm">
+                          <div>
+                            <span className="text-gray-500">Relazione: </span>
+                            <span className="font-medium">{request.relation}</span>
+                          </div>
+                          <div>
+                            <span className="text-gray-500">Stato: </span>
+                            <span className="font-medium">
+                              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                Completata
+                              </span>
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
           </div>
         )}
       </main>
