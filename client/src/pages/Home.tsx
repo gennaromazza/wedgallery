@@ -608,11 +608,11 @@ export default function Home() {
           <div className="max-w-lg mx-auto md:max-w-none md:grid md:grid-cols-2 md:gap-8">
             <div>
               <h2 className="text-2xl font-bold text-blue-gray font-playfair sm:text-3xl">
-                Contattaci
+                Scrivici
               </h2>
               <div className="mt-3">
                 <p className="text-lg text-gray-500">
-                  Hai domande o desideri maggiori informazioni sui nostri servizi? Contattaci, siamo qui per aiutarti.
+                  Hai domande o desideri maggiori informazioni sui nostri servizi fotografici per matrimoni? Siamo qui per aiutarti!
                 </p>
               </div>
               <div className="mt-9">
