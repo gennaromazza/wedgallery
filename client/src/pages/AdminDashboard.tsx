@@ -1,9 +1,10 @@
 import { useState, useEffect } from "react";
 import { useLocation } from "wouter";
 import { useAuth } from "@/context/AuthContext";
-import { collection, getDocs, doc, updateDoc, deleteDoc, query, orderBy } from "firebase/firestore";
-import { db } from "@/lib/firebase";
+import { collection, getDocs, doc, updateDoc, deleteDoc, query, orderBy, collectionGroup } from "firebase/firestore";
+import { db, storage } from "@/lib/firebase";
 import { formatPasswordRequestsForExcel, exportToExcel } from "@/lib/excelExport";
+import { ref, listAll, deleteObject } from "firebase/storage";
 import Navigation from "@/components/Navigation";
 import NewGalleryModal from "@/components/NewGalleryModal";
 import SlideshowManager from "@/components/SlideshowManager";
@@ -176,26 +177,67 @@ export default function AdminDashboard() {
   };
 
   const deleteGallery = async (gallery: GalleryItem) => {
-    if (!window.confirm(`Sei sicuro di voler eliminare la galleria "${gallery.name}"? Questa operazione non può essere annullata.`)) {
+    if (!window.confirm(`Sei sicuro di voler eliminare la galleria "${gallery.name}"? Questa operazione rimuoverà TUTTE le foto e non può essere annullata.`)) {
       return;
     }
     
     try {
-      // Delete the gallery document
+      // 1. Elimina le foto dallo Storage
+      try {
+        // Percorso nella cartella di Storage per questa galleria
+        const storageRef = ref(storage, `galleries/${gallery.id}`);
+        console.log("Eliminazione file dallo storage path:", `galleries/${gallery.id}`);
+        
+        // Elenca tutti i file nella cartella
+        const listResult = await listAll(storageRef);
+        
+        // Elimina tutti i file uno per uno
+        const deletePromises = listResult.items.map(async (itemRef) => {
+          console.log("Eliminazione file:", itemRef.fullPath);
+          return deleteObject(itemRef);
+        });
+        
+        // Attendi che tutte le eliminazioni siano completate
+        await Promise.all(deletePromises);
+        console.log(`Eliminati ${deletePromises.length} file dallo storage`);
+      } catch (storageError) {
+        console.error("Errore durante l'eliminazione dei file dallo storage:", storageError);
+        // Continuiamo comunque con l'eliminazione del documento
+      }
+      
+      // 2. Elimina eventuali sottocollezioni
+      try {
+        // Ottieni la sottocollezione 'photos'
+        const photosRef = collection(db, "galleries", gallery.id, "photos");
+        const photosSnapshot = await getDocs(photosRef);
+        
+        // Elimina tutti i documenti nella sottocollezione
+        const deletePhotoDocsPromises = photosSnapshot.docs.map(photoDoc => 
+          deleteDoc(doc(db, "galleries", gallery.id, "photos", photoDoc.id))
+        );
+        
+        await Promise.all(deletePhotoDocsPromises);
+        console.log(`Eliminati ${deletePhotoDocsPromises.length} documenti di foto`);
+      } catch (subCollectionError) {
+        console.error("Errore durante l'eliminazione delle sottocollezioni:", subCollectionError);
+        // Continuiamo comunque con l'eliminazione del documento principale
+      }
+      
+      // 3. Elimina il documento principale della galleria
       await deleteDoc(doc(db, "galleries", gallery.id));
       
-      // Update local state
+      // 4. Aggiorna lo stato locale
       setGalleries(prev => prev.filter(g => g.id !== gallery.id));
       
       toast({
         title: "Galleria eliminata",
-        description: `La galleria "${gallery.name}" è stata eliminata con successo.`
+        description: `La galleria "${gallery.name}" e tutte le sue foto sono state eliminate con successo.`
       });
     } catch (error) {
       console.error("Error deleting gallery:", error);
       toast({
         title: "Errore",
-        description: "Non è stato possibile eliminare la galleria.",
+        description: "Non è stato possibile eliminare completamente la galleria. Alcune risorse potrebbero essere rimaste.",
         variant: "destructive",
       });
     }
