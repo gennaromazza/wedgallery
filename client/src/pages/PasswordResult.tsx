@@ -121,8 +121,8 @@ export default function PasswordResult() {
         <Navigation />
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 relative z-10">
           <div className="text-center">
-            <div className="w-24 h-24 mx-auto mb-6 opacity-40">
-              <CoupleIllustration />
+            <div className="w-36 h-36 mx-auto mb-6">
+              <WeddingImage type="heart-balloon" className="w-full h-auto opacity-40" alt="Immagine decorativa di sposi" />
             </div>
             <h2 className="text-2xl font-semibold text-blue-gray font-playfair">Galleria non trovata</h2>
             <p className="mt-2 text-gray-600">La galleria richiesta non esiste o è stata rimossa.</p>
@@ -171,8 +171,8 @@ export default function PasswordResult() {
           </div>
           <div className="px-6 py-8 relative z-10">
             <div className="text-center mb-8">
-              <div className="w-32 h-32 mx-auto mb-6">
-                <HeartFrameWithRings />
+              <div className="w-40 h-40 mx-auto mb-6">
+                <WeddingImage type="flower-bouquet" className="w-full h-auto opacity-60" alt="Immagine decorativa con fiori" />
               </div>
               <h2 className="text-2xl font-semibold text-blue-gray font-playfair">Accesso alla Galleria</h2>
               <p className="mt-2 text-gray-600">Ecco le informazioni di accesso per la galleria richiesta</p>

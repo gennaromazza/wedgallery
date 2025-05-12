@@ -9,7 +9,8 @@ import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
 import GallerySearch from "@/components/GallerySearch";
 import HeroSlideshow from "@/components/HeroSlideshow";
-import { CoupleIllustration, FloralCorner, FloralDivider, BackgroundDecoration } from '@/components/WeddingIllustrations';
+import { FloralCorner, FloralDivider, BackgroundDecoration } from '@/components/WeddingIllustrations';
+import { WeddingImage, DecorativeImage } from '@/components/WeddingImages';
 
 export default function Home() {
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -407,9 +408,9 @@ export default function Home() {
 
       {/* About Section */}
       <section id="about" className="py-16 bg-white relative overflow-hidden">
-        {/* Illustrazione della coppia */}
-        <div className="absolute left-1/2 top-0 transform -translate-x-1/2 w-64 h-64 opacity-10 pointer-events-none">
-          <CoupleIllustration />
+        {/* Illustrazione degli sposi */}
+        <div className="absolute left-1/2 top-0 transform -translate-x-1/2 w-64 h-64 opacity-15 pointer-events-none">
+          <WeddingImage type="standing" className="w-full h-auto" alt="Illustrazione degli sposi" />
         </div>
         
         {/* Decorazioni floreali agli angoli */}
