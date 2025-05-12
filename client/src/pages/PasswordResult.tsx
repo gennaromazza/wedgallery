@@ -3,8 +3,10 @@ import { useLocation, useRoute, Link } from 'wouter';
 import { db } from '@/lib/firebase';
 import { collection, doc, getDoc, query, where, getDocs } from 'firebase/firestore';
 import { useToast } from '@/hooks/use-toast';
+import { Button } from "@/components/ui/button";
 import Navigation from '@/components/Navigation';
 import Footer from '@/components/Footer';
+import { CoupleIllustration, FloralCorner, FloralDivider, HeartFrameWithRings, BackgroundDecoration } from '@/components/WeddingIllustrations';
 
 export default function PasswordResult() {
   const [, params] = useRoute('/password-result/:code');
@@ -71,12 +73,26 @@ export default function PasswordResult() {
 
   if (loading) {
     return (
-      <div className="min-h-screen">
+      <div className="min-h-screen bg-off-white relative">
+        {/* Decorazioni */}
+        <div className="absolute top-0 left-0 w-40 h-40 opacity-10 pointer-events-none">
+          <FloralCorner position="top-left" />
+        </div>
+        <div className="absolute top-0 right-0 w-40 h-40 opacity-10 pointer-events-none">
+          <FloralCorner position="top-right" />
+        </div>
+        <div className="absolute bottom-0 left-0 w-40 h-40 opacity-10 pointer-events-none">
+          <FloralCorner position="bottom-left" />
+        </div>
+        <div className="absolute bottom-0 right-0 w-40 h-40 opacity-10 pointer-events-none">
+          <FloralCorner position="bottom-right" />
+        </div>
+        
         <Navigation />
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 relative z-10">
           <div className="text-center">
             <div className="w-16 h-16 mx-auto mb-6 border-4 border-sage border-t-transparent rounded-full animate-spin"></div>
-            <h2 className="text-2xl font-semibold text-blue-gray">Caricamento informazioni galleria...</h2>
+            <h2 className="text-2xl font-semibold text-blue-gray font-playfair">Caricamento informazioni galleria...</h2>
           </div>
         </div>
         <Footer />
@@ -86,20 +102,40 @@ export default function PasswordResult() {
 
   if (!gallery) {
     return (
-      <div className="min-h-screen">
+      <div className="min-h-screen bg-off-white relative">
+        {/* Decorazioni */}
+        <div className="absolute top-0 left-0 w-40 h-40 opacity-10 pointer-events-none">
+          <FloralCorner position="top-left" />
+        </div>
+        <div className="absolute top-0 right-0 w-40 h-40 opacity-10 pointer-events-none">
+          <FloralCorner position="top-right" />
+        </div>
+        <div className="absolute bottom-0 left-0 w-40 h-40 opacity-10 pointer-events-none">
+          <FloralCorner position="bottom-left" />
+        </div>
+        <div className="absolute bottom-0 right-0 w-40 h-40 opacity-10 pointer-events-none">
+          <FloralCorner position="bottom-right" />
+        </div>
+        
         <Navigation />
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 relative z-10">
           <div className="text-center">
-            <div className="w-20 h-20 mx-auto mb-6 flex items-center justify-center rounded-full bg-red-100">
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-10 w-10 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
-              </svg>
+            <div className="w-24 h-24 mx-auto mb-6 opacity-40">
+              <CoupleIllustration />
             </div>
-            <h2 className="text-2xl font-semibold text-blue-gray">Galleria non trovata</h2>
-            <p className="mt-2 text-gray-500">La galleria richiesta non esiste o è stata rimossa.</p>
+            <h2 className="text-2xl font-semibold text-blue-gray font-playfair">Galleria non trovata</h2>
+            <p className="mt-2 text-gray-600">La galleria richiesta non esiste o è stata rimossa.</p>
+            <div className="w-full max-w-xs mx-auto h-8 opacity-20 my-6">
+              <FloralDivider />
+            </div>
             <div className="mt-6">
-              <Link href="/" className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-sage hover:bg-dark-sage focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-sage">
-                Torna alla Home
+              <Link href="/">
+                <Button className="btn-primary relative group overflow-hidden">
+                  <span className="absolute inset-0 opacity-0 group-hover:opacity-10 transition-opacity">
+                    <BackgroundDecoration />
+                  </span>
+                  <span className="relative z-10">Torna alla Home</span>
+                </Button>
               </Link>
             </div>
           </div>
@@ -110,47 +146,70 @@ export default function PasswordResult() {
   }
 
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen bg-off-white relative">
+      {/* Decorazioni */}
+      <div className="absolute top-0 left-0 w-40 h-40 opacity-10 pointer-events-none">
+        <FloralCorner position="top-left" />
+      </div>
+      <div className="absolute top-0 right-0 w-40 h-40 opacity-10 pointer-events-none">
+        <FloralCorner position="top-right" />
+      </div>
+      <div className="absolute bottom-0 left-0 w-40 h-40 opacity-10 pointer-events-none">
+        <FloralCorner position="bottom-left" />
+      </div>
+      <div className="absolute bottom-0 right-0 w-40 h-40 opacity-10 pointer-events-none">
+        <FloralCorner position="bottom-right" />
+      </div>
+      
       <Navigation />
       
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
-        <div className="max-w-lg mx-auto bg-white shadow-lg rounded-lg overflow-hidden">
-          <div className="px-6 py-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 relative z-10">
+        <div className="max-w-lg mx-auto bg-white shadow-lg rounded-lg overflow-hidden border border-sage/20 relative">
+          <div className="absolute inset-0 opacity-5 pointer-events-none">
+            <BackgroundDecoration />
+          </div>
+          <div className="px-6 py-8 relative z-10">
             <div className="text-center mb-8">
-              <div className="w-20 h-20 mx-auto mb-6 flex items-center justify-center rounded-full bg-green-100">
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-10 w-10 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
+              <div className="w-32 h-32 mx-auto mb-6">
+                <HeartFrameWithRings />
               </div>
-              <h2 className="text-2xl font-semibold text-blue-gray">Accesso alla Galleria</h2>
-              <p className="mt-2 text-gray-500">Ecco le informazioni di accesso per la galleria richiesta</p>
+              <h2 className="text-2xl font-semibold text-blue-gray font-playfair">Accesso alla Galleria</h2>
+              <p className="mt-2 text-gray-600">Ecco le informazioni di accesso per la galleria richiesta</p>
+              <div className="w-full max-w-xs mx-auto h-8 opacity-20 my-6">
+                <FloralDivider />
+              </div>
             </div>
             
             <div className="space-y-6">
-              <div className="bg-gray-50 p-4 rounded-md">
-                <h3 className="text-lg font-medium text-blue-gray">Informazioni Galleria</h3>
-                <div className="mt-4 grid grid-cols-1 gap-4 divide-y divide-gray-200">
+              <div className="bg-cream/30 p-5 rounded-md border border-sage/10">
+                <h3 className="text-lg font-medium text-blue-gray font-playfair">Informazioni Galleria</h3>
+                <div className="mt-4 grid grid-cols-1 gap-4 divide-y divide-sage/10">
                   <div className="flex justify-between py-2">
-                    <span className="text-gray-500">Nome galleria:</span>
+                    <span className="text-gray-600">Nome galleria:</span>
                     <span className="font-medium text-blue-gray">{gallery.name}</span>
                   </div>
                   <div className="flex justify-between py-2">
-                    <span className="text-gray-500">Data evento:</span>
+                    <span className="text-gray-600">Data evento:</span>
                     <span className="font-medium text-blue-gray">{gallery.date}</span>
                   </div>
                   <div className="flex justify-between py-2">
-                    <span className="text-gray-500">Password:</span>
-                    <span className="font-mono bg-cream px-2 py-1 rounded font-medium text-blue-gray">{gallery.password}</span>
+                    <span className="text-gray-600">Password:</span>
+                    <span className="font-mono bg-white px-3 py-1 rounded-md font-medium text-blue-gray border border-sage/20">{gallery.password}</span>
                   </div>
                 </div>
               </div>
               
-              <div className="flex justify-center space-x-4">
-                <Link href={`/gallery/${gallery.code}`} className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-sage hover:bg-dark-sage focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-sage">
-                  Vai alla Galleria
+              <div className="flex flex-col sm:flex-row justify-center space-y-3 sm:space-y-0 sm:space-x-4 pt-4">
+                <Link href={`/gallery/${gallery.code}`}>
+                  <Button className="w-full sm:w-auto btn-primary relative group overflow-hidden">
+                    <span className="absolute inset-0 opacity-0 group-hover:opacity-10 transition-opacity">
+                      <BackgroundDecoration />
+                    </span>
+                    <span className="relative z-10">Vai alla Galleria</span>
+                  </Button>
                 </Link>
-                <Link href="/" className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-sage">
-                  Torna alla Home
+                <Link href="/">
+                  <Button variant="outline" className="w-full sm:w-auto">Torna alla Home</Button>
                 </Link>
               </div>
             </div>

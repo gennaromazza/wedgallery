@@ -18,6 +18,7 @@ import {
 } from "@/components/ui/select";
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
+import { CoupleIllustration, FloralCorner, FloralDivider, HeartFrameWithRings, BackgroundDecoration } from '@/components/WeddingIllustrations';
 
 const requestSchema = z.object({
   firstName: z.string().min(2, "Il nome deve contenere almeno 2 caratteri"),
@@ -127,15 +128,35 @@ export default function RequestPassword() {
   };
 
   return (
-    <div className="min-h-screen bg-off-white flex flex-col">
+    <div className="min-h-screen bg-off-white flex flex-col relative">
+      {/* Decorazioni */}
+      <div className="absolute top-0 left-0 w-40 h-40 opacity-10 pointer-events-none">
+        <FloralCorner position="top-left" />
+      </div>
+      <div className="absolute top-0 right-0 w-40 h-40 opacity-10 pointer-events-none">
+        <FloralCorner position="top-right" />
+      </div>
+      <div className="absolute bottom-0 left-0 w-40 h-40 opacity-10 pointer-events-none">
+        <FloralCorner position="bottom-left" />
+      </div>
+      <div className="absolute bottom-0 right-0 w-40 h-40 opacity-10 pointer-events-none">
+        <FloralCorner position="bottom-right" />
+      </div>
+      
       <Navigation />
       
       <div className="flex-grow flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-md w-full space-y-8">
+        <div className="max-w-md w-full space-y-8 relative z-10">
           {galleryExists === false ? (
-            <Card>
-              <CardContent className="pt-6">
+            <Card className="border-sage/20 shadow-md overflow-hidden">
+              <div className="absolute inset-0 opacity-5 pointer-events-none">
+                <BackgroundDecoration />
+              </div>
+              <CardContent className="pt-8 relative z-10">
                 <div className="text-center">
+                  <div className="w-24 h-24 mx-auto mb-4 opacity-15">
+                    <CoupleIllustration />
+                  </div>
                   <h2 className="text-2xl font-bold text-blue-gray font-playfair mb-4">
                     Galleria non trovata
                   </h2>
@@ -149,23 +170,15 @@ export default function RequestPassword() {
               </CardContent>
             </Card>
           ) : success ? (
-            <Card>
-              <CardContent className="pt-6">
+            <Card className="border-sage/20 shadow-md overflow-hidden">
+              <div className="absolute inset-0 opacity-5 pointer-events-none">
+                <BackgroundDecoration />
+              </div>
+              <CardContent className="pt-8 relative z-10">
                 <div className="text-center">
-                  <svg
-                    className="h-12 w-12 text-green-500 mx-auto mb-4"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                    xmlns="http://www.w3.org/2000/svg"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
-                    />
-                  </svg>
+                  <div className="w-32 h-32 mx-auto mb-6">
+                    <HeartFrameWithRings />
+                  </div>
                   <h2 className="text-2xl font-bold text-blue-gray font-playfair mb-2">
                     Richiesta inviata
                   </h2>
@@ -184,20 +197,29 @@ export default function RequestPassword() {
               </CardContent>
             </Card>
           ) : (
-            <Card>
-              <CardContent className="pt-6">
+            <Card className="border-sage/20 shadow-md overflow-hidden">
+              <div className="absolute inset-0 opacity-5 pointer-events-none">
+                <BackgroundDecoration />
+              </div>
+              <CardContent className="pt-8 relative z-10">
                 <div className="text-center mb-6">
+                  <div className="w-24 h-24 mx-auto mb-4 opacity-60">
+                    <HeartFrameWithRings />
+                  </div>
                   <h2 className="text-2xl font-bold text-blue-gray font-playfair">
                     Richiedi la Password
                   </h2>
                   {galleryName && (
                     <p className="mt-2 text-gray-600">
-                      Galleria: {galleryName}
+                      Galleria: <span className="font-medium">{galleryName}</span>
                     </p>
                   )}
                   <p className="mt-2 text-gray-600">
                     Compila il form per ricevere la password della galleria
                   </p>
+                  <div className="w-full max-w-xs mx-auto h-8 opacity-20 my-6">
+                    <FloralDivider />
+                  </div>
                 </div>
                 
                 <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
@@ -274,13 +296,20 @@ export default function RequestPassword() {
                     </div>
                   </div>
                   
-                  <Button
-                    type="submit"
-                    className="w-full btn-primary py-3"
-                    disabled={isLoading}
-                  >
-                    {isLoading ? "Invio in corso..." : "Richiedi Password"}
-                  </Button>
+                  <div className="pt-2">
+                    <Button
+                      type="submit"
+                      className="w-full btn-primary py-3 relative group overflow-hidden"
+                      disabled={isLoading}
+                    >
+                      <span className="absolute inset-0 opacity-0 group-hover:opacity-10 transition-opacity">
+                        <BackgroundDecoration />
+                      </span>
+                      <span className="relative z-10">
+                        {isLoading ? "Invio in corso..." : "Richiedi Password"}
+                      </span>
+                    </Button>
+                  </div>
                 </form>
               </CardContent>
             </Card>
