@@ -5,9 +5,11 @@ import { collection, getDocs, doc, updateDoc, deleteDoc } from "firebase/firesto
 import { db } from "@/lib/firebase";
 import Navigation from "@/components/Navigation";
 import NewGalleryModal from "@/components/NewGalleryModal";
+import SlideshowManager from "@/components/SlideshowManager";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useQueryClient } from "@tanstack/react-query";
 
 interface GalleryItem {
@@ -34,7 +36,7 @@ export default function AdminDashboard() {
     if (!currentUser) {
       navigate("/admin");
     }
-  }, [currentUser]);
+  }, [currentUser, navigate]);
 
   // Fetch galleries
   useEffect(() => {
@@ -72,7 +74,7 @@ export default function AdminDashboard() {
     if (currentUser) {
       fetchGalleries();
     }
-  }, [currentUser]);
+  }, [currentUser, toast]);
 
   const openModal = () => {
     setIsModalOpen(true);
@@ -166,91 +168,111 @@ export default function AdminDashboard() {
       </header>
 
       <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
-        <div className="px-4 sm:px-0">
-          <h3 className="text-lg font-medium text-blue-gray font-playfair">Le tue gallerie</h3>
-          <p className="mt-1 text-sm text-gray-500">
-            Gestisci le tue gallerie fotografiche private
-          </p>
-        </div>
+        <Tabs defaultValue="galleries" className="w-full">
+          <TabsList className="mb-6">
+            <TabsTrigger value="galleries">Gestione Gallerie</TabsTrigger>
+            <TabsTrigger value="slideshow">Slideshow Homepage</TabsTrigger>
+          </TabsList>
+          
+          <TabsContent value="galleries">
+            <div className="px-4 sm:px-0">
+              <h3 className="text-lg font-medium text-blue-gray font-playfair">Le tue gallerie</h3>
+              <p className="mt-1 text-sm text-gray-500">
+                Gestisci le tue gallerie fotografiche private
+              </p>
+            </div>
 
-        <div className="mt-5 bg-white shadow overflow-hidden sm:rounded-md">
-          {isLoading ? (
-            <div className="p-4 sm:p-6">
-              {[...Array(3)].map((_, i) => (
-                <div key={i} className="mb-4">
-                  <Skeleton className="h-10 w-full mb-2" />
-                  <Skeleton className="h-6 w-4/5" />
-                </div>
-              ))}
-            </div>
-          ) : galleries.length === 0 ? (
-            <div className="p-8 text-center">
-              <p className="text-gray-500">Non hai ancora creato gallerie.</p>
-              <Button 
-                onClick={openModal}
-                className="mt-4 btn-primary px-4 py-2"
-              >
-                Crea la tua prima galleria
-              </Button>
-            </div>
-          ) : (
-            <ul className="divide-y divide-gray-200">
-              {galleries.map(gallery => (
-                <li key={gallery.id}>
-                  <div className="block hover:bg-gray-50">
-                    <div className="px-4 py-4 sm:px-6">
-                      <div className="flex items-center justify-between">
-                        <p className="text-sm font-medium text-blue-gray truncate">
-                          {gallery.name}
-                        </p>
-                        <div className="ml-2 flex-shrink-0 flex items-center space-x-2">
-                          <p className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${gallery.active ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
-                            {gallery.active ? 'Attiva' : 'Disattivata'}
-                          </p>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => toggleGalleryStatus(gallery)}
-                          >
-                            {gallery.active ? 'Disattiva' : 'Attiva'}
-                          </Button>
-                          <Button
-                            variant="destructive"
-                            size="sm"
-                            onClick={() => deleteGallery(gallery)}
-                          >
-                            Elimina
-                          </Button>
-                        </div>
-                      </div>
-                      <div className="mt-2 sm:flex sm:justify-between">
-                        <div className="sm:flex">
-                          <p className="flex items-center text-sm text-gray-500">
-                            <svg className="flex-shrink-0 mr-1.5 h-5 w-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-                              <path fillRule="evenodd" d="M4 4a2 2 0 012-2h8a2 2 0 012 2v12a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm3 1h6v4H7V5zm6 6H7v2h6v-2z" clipRule="evenodd" />
-                            </svg>
-                            {gallery.photoCount} foto
-                          </p>
-                          <p className="mt-2 flex items-center text-sm text-gray-500 sm:mt-0 sm:ml-6">
-                            <svg className="flex-shrink-0 mr-1.5 h-5 w-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-                              <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clipRule="evenodd" />
-                            </svg>
-                            Creata il {gallery.createdAt?.toDate?.().toLocaleDateString() || "N/A"}
-                          </p>
-                        </div>
-                        <div className="mt-2 flex items-center text-sm text-gray-500 sm:mt-0">
-                          <p>
-                            Codice: {gallery.code}
-                          </p>
-                        </div>
-                      </div>
+            <div className="mt-5 bg-white shadow overflow-hidden sm:rounded-md">
+              {isLoading ? (
+                <div className="p-4 sm:p-6">
+                  {[...Array(3)].map((_, i) => (
+                    <div key={i} className="mb-4">
+                      <Skeleton className="h-10 w-full mb-2" />
+                      <Skeleton className="h-6 w-4/5" />
                     </div>
-                  </div>
-                </li>
-              ))}
-            </ul>
-          )}
-        </div>
+                  ))}
+                </div>
+              ) : galleries.length === 0 ? (
+                <div className="p-8 text-center">
+                  <p className="text-gray-500">Non hai ancora creato gallerie.</p>
+                  <Button 
+                    onClick={openModal}
+                    className="mt-4 btn-primary px-4 py-2"
+                  >
+                    Crea la tua prima galleria
+                  </Button>
+                </div>
+              ) : (
+                <ul className="divide-y divide-gray-200">
+                  {galleries.map(gallery => (
+                    <li key={gallery.id}>
+                      <div className="block hover:bg-gray-50">
+                        <div className="px-4 py-4 sm:px-6">
+                          <div className="flex items-center justify-between">
+                            <p className="text-sm font-medium text-blue-gray truncate">
+                              {gallery.name}
+                            </p>
+                            <div className="ml-2 flex-shrink-0 flex items-center space-x-2">
+                              <p className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${gallery.active ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
+                                {gallery.active ? 'Attiva' : 'Disattivata'}
+                              </p>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => toggleGalleryStatus(gallery)}
+                              >
+                                {gallery.active ? 'Disattiva' : 'Attiva'}
+                              </Button>
+                              <Button
+                                variant="destructive"
+                                size="sm"
+                                onClick={() => deleteGallery(gallery)}
+                              >
+                                Elimina
+                              </Button>
+                            </div>
+                          </div>
+                          <div className="mt-2 sm:flex sm:justify-between">
+                            <div className="sm:flex">
+                              <p className="flex items-center text-sm text-gray-500">
+                                <svg className="flex-shrink-0 mr-1.5 h-5 w-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                  <path fillRule="evenodd" d="M4 4a2 2 0 012-2h8a2 2 0 012 2v12a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm3 1h6v4H7V5zm6 6H7v2h6v-2z" clipRule="evenodd" />
+                                </svg>
+                                {gallery.photoCount} foto
+                              </p>
+                              <p className="mt-2 flex items-center text-sm text-gray-500 sm:mt-0 sm:ml-6">
+                                <svg className="flex-shrink-0 mr-1.5 h-5 w-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clipRule="evenodd" />
+                                </svg>
+                                Creata il {gallery.createdAt?.toDate?.().toLocaleDateString() || "N/A"}
+                              </p>
+                            </div>
+                            <div className="mt-2 flex items-center text-sm text-gray-500 sm:mt-0">
+                              <p>
+                                Codice: {gallery.code}
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+          </TabsContent>
+          
+          <TabsContent value="slideshow">
+            <div className="px-4 sm:px-0 mb-6">
+              <h3 className="text-lg font-medium text-blue-gray font-playfair">Slideshow Homepage</h3>
+              <p className="mt-1 text-sm text-gray-500">
+                Gestisci le immagini che verranno mostrate nella slideshow della homepage
+              </p>
+            </div>
+            
+            <SlideshowManager />
+          </TabsContent>
+        </Tabs>
       </main>
 
       <NewGalleryModal isOpen={isModalOpen} onClose={closeModal} />
