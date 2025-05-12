@@ -621,6 +621,77 @@ export default function AdminDashboard() {
                               >
                                 Modifica
                               </Button>
+                              <Popover>
+                                <PopoverTrigger asChild>
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    className="mb-1 md:mb-0"
+                                  >
+                                    Password
+                                  </Button>
+                                </PopoverTrigger>
+                                <PopoverContent className="w-80">
+                                  <div className="space-y-4">
+                                    <h4 className="font-medium">Modifica password</h4>
+                                    <p className="text-sm text-muted-foreground">
+                                      Genera una nuova password o imposta una password personalizzata per questa galleria.
+                                    </p>
+                                    <div className="space-y-2">
+                                      <Label htmlFor={`password-${gallery.id}`}>Password personalizzata</Label>
+                                      <div className="flex gap-2">
+                                        <Input 
+                                          id={`password-${gallery.id}`} 
+                                          placeholder="Inserisci password" 
+                                          defaultValue=""
+                                          onChange={(e) => {
+                                            // Salva il valore nel DOM per recuperarlo al clic
+                                            e.currentTarget.dataset.value = e.currentTarget.value;
+                                          }}
+                                        />
+                                        <Button
+                                          size="sm"
+                                          onClick={() => {
+                                            // Recupera il valore dal campo
+                                            const input = document.getElementById(`password-${gallery.id}`) as HTMLInputElement;
+                                            const value = input.value || input.dataset.value;
+                                            if (value) {
+                                              changeGalleryPassword(gallery.id, value);
+                                            } else {
+                                              toast({
+                                                title: "Errore",
+                                                description: "Inserisci una password valida.",
+                                                variant: "destructive"
+                                              });
+                                            }
+                                          }}
+                                        >
+                                          Salva
+                                        </Button>
+                                      </div>
+                                    </div>
+                                    <div className="flex gap-2">
+                                      <Button
+                                        size="sm"
+                                        variant="outline"
+                                        onClick={() => {
+                                          const newPassword = generateRandomPassword();
+                                          changeGalleryPassword(gallery.id, newPassword);
+                                          // Copia negli appunti
+                                          navigator.clipboard.writeText(newPassword);
+                                          toast({
+                                            title: "Password copiata",
+                                            description: "La nuova password è stata copiata negli appunti."
+                                          });
+                                        }}
+                                        className="w-full"
+                                      >
+                                        Genera e salva automaticamente
+                                      </Button>
+                                    </div>
+                                  </div>
+                                </PopoverContent>
+                              </Popover>
                               <Button
                                 variant="destructive"
                                 size="sm"
