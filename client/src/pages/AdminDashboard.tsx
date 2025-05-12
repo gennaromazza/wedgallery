@@ -3,6 +3,7 @@ import { useLocation } from "wouter";
 import { useAuth } from "@/context/AuthContext";
 import { collection, getDocs, doc, updateDoc, deleteDoc, query, orderBy } from "firebase/firestore";
 import { db } from "@/lib/firebase";
+import { formatPasswordRequestsForExcel, exportToExcel } from "@/lib/excelExport";
 import Navigation from "@/components/Navigation";
 import NewGalleryModal from "@/components/NewGalleryModal";
 import SlideshowManager from "@/components/SlideshowManager";
@@ -109,6 +110,43 @@ export default function AdminDashboard() {
     setIsModalOpen(false);
     // Refresh the gallery list
     queryClient.invalidateQueries({ queryKey: ["/api/galleries"] });
+  };
+  
+  // Esporta le richieste di password in un file Excel
+  const exportPasswordRequests = () => {
+    try {
+      if (passwordRequests.length === 0) {
+        toast({
+          title: "Nessun dato da esportare",
+          description: "Non ci sono richieste di password da esportare.",
+          variant: "destructive"
+        });
+        return;
+      }
+      
+      // Formatta i dati per l'export
+      const formattedData = formatPasswordRequestsForExcel(passwordRequests);
+      
+      // Genera nome file con data corrente
+      const today = new Date();
+      const dateStr = today.toISOString().split('T')[0]; // formato YYYY-MM-DD
+      const fileName = `richieste_password_${dateStr}.xlsx`;
+      
+      // Esporta in Excel
+      exportToExcel(formattedData, fileName, "Richieste Password");
+      
+      toast({
+        title: "Esportazione completata",
+        description: `Le richieste sono state esportate in ${fileName}`,
+      });
+    } catch (error) {
+      console.error("Errore durante l'esportazione:", error);
+      toast({
+        title: "Errore",
+        description: "Si è verificato un errore durante l'esportazione delle richieste.",
+        variant: "destructive"
+      });
+    }
   };
 
   const toggleGalleryStatus = async (gallery: GalleryItem) => {
@@ -342,10 +380,25 @@ export default function AdminDashboard() {
         {activeTab === 'requests' && (
           <div>
             <div className="px-4 sm:px-0 mb-6">
-              <h3 className="text-lg font-medium text-blue-gray font-playfair">Richieste Password</h3>
-              <p className="mt-1 text-sm text-gray-500">
-                Visualizza tutte le richieste di password effettuate dagli utenti
-              </p>
+              <div className="flex justify-between items-center">
+                <div>
+                  <h3 className="text-lg font-medium text-blue-gray font-playfair">Richieste Password</h3>
+                  <p className="mt-1 text-sm text-gray-500">
+                    Visualizza tutte le richieste di password effettuate dagli utenti
+                  </p>
+                </div>
+                <Button 
+                  onClick={exportPasswordRequests}
+                  variant="outline"
+                  className="flex items-center space-x-1"
+                  disabled={passwordRequests.length === 0 || isLoading}
+                >
+                  <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" xmlns="http://www.w3.org/2000/svg">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                  </svg>
+                  <span>Esporta Excel</span>
+                </Button>
+              </div>
             </div>
             
             <div className="bg-white shadow overflow-hidden sm:rounded-md">
