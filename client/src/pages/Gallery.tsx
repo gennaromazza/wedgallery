@@ -504,21 +504,34 @@ export default function Gallery() {
                 <>
                   {gallery.hasChapters && chapters.length > 0 ? (
                     <Tabs defaultValue="all" value={activeTab} onValueChange={setActiveTab} className="w-full mb-8">
-                      <TabsList className="mb-6 flex overflow-x-auto scrollbar-thin pb-2">
-                        <TabsTrigger value="all" className="flex-shrink-0">
-                          Tutte le foto ({photos.length})
-                        </TabsTrigger>
-                        
-                        <TabsTrigger value="unassigned" className="flex-shrink-0">
-                          Non assegnate ({photos.filter(p => !p.chapterId).length})
-                        </TabsTrigger>
-                        
-                        {chapters.map(chapter => (
-                          <TabsTrigger key={chapter.id} value={chapter.id} className="flex-shrink-0">
-                            {chapter.title} ({photos.filter(p => p.chapterId === chapter.id).length})
+                      <div className="mb-8 border-b border-sage/20">
+                        <TabsList className="relative mb-0 flex overflow-x-auto pb-0 bg-transparent gap-2 scrollbar-thin scrollbar-thumb-sage/20 scrollbar-track-transparent">
+                          <TabsTrigger 
+                            value="all" 
+                            className="flex-shrink-0 text-blue-gray/70 bg-sage/5 data-[state=active]:bg-sage/10 data-[state=active]:text-sage-700 hover:text-sage-700 rounded-t-lg border-b-2 border-transparent data-[state=active]:border-sage-500 transition-all px-6 py-2.5 font-medium"
+                          >
+                            Tutte le foto ({photos.length})
                           </TabsTrigger>
-                        ))}
-                      </TabsList>
+                          
+                          <TabsTrigger 
+                            value="unassigned" 
+                            className="flex-shrink-0 text-blue-gray/70 bg-sage/5 data-[state=active]:bg-sage/10 data-[state=active]:text-sage-700 hover:text-sage-700 rounded-t-lg border-b-2 border-transparent data-[state=active]:border-sage-500 transition-all px-6 py-2.5 font-medium"
+                          >
+                            Non assegnate ({photos.filter(p => !p.chapterId).length})
+                          </TabsTrigger>
+                          
+                          {chapters.map(chapter => (
+                            <TabsTrigger 
+                              key={chapter.id} 
+                              value={chapter.id} 
+                              className="flex-shrink-0 text-blue-gray/70 bg-sage/5 data-[state=active]:bg-sage/10 data-[state=active]:text-sage-700 hover:text-sage-700 rounded-t-lg border-b-2 border-transparent data-[state=active]:border-sage-500 transition-all px-6 py-2.5 font-medium"
+                            >
+                              {chapter.title} ({photos.filter(p => p.chapterId === chapter.id).length})
+                            </TabsTrigger>
+                          ))}
+                        </TabsList>
+                        <div className="h-0.5 w-full bg-gradient-to-r from-sage/30 via-sage/50 to-sage/30"></div>
+                      </div>
                       
                       <TabsContent value="all" className="space-y-6">
                         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2 sm:gap-4 lg:gap-6">
