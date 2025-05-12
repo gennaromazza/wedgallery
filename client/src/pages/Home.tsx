@@ -417,14 +417,9 @@ export default function Home() {
             <h2 className="text-base text-terracotta font-semibold tracking-wide uppercase">
               La Fotografia Che Crea Ricordi
             </h2>
-            <div className="relative">
-              <div className="absolute left-1/2 -top-10 transform -translate-x-1/2 w-40 h-10 flex justify-center opacity-30">
-                <DecorativeImage type="flower-bouquet" className="w-full h-auto transform rotate-180" alt="Decorazione floreale" />
-              </div>
-              <p className="mt-2 text-3xl leading-8 font-bold tracking-tight text-blue-gray sm:text-4xl font-playfair">
+            <p className="mt-2 text-3xl leading-8 font-bold tracking-tight text-blue-gray sm:text-4xl font-playfair">
                 {studioSettings.name}
               </p>
-            </div>
             <p className="mt-2 text-xl text-terracotta lg:mx-auto font-medium">
               {studioSettings.slogan}
             </p>
