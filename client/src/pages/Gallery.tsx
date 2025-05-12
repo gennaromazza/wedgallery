@@ -10,6 +10,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Photo } from "@shared/schema";
+import { CoupleIllustration, FloralCorner, FloralDivider, BackgroundDecoration } from '@/components/WeddingIllustrations';
 
 interface GalleryData {
   id: string;
@@ -439,9 +440,13 @@ export default function Gallery() {
     <div className="min-h-screen bg-off-white">
       <Navigation galleryOwner={gallery.name.split(' - ')[0]} />
 
-      {/* Hero Section con immagine di copertina */}
-      {gallery.coverImageUrl && (
-        <div className="relative w-full">
+      {/* Hero Section con decorazioni a tema matrimonio */}
+      <div className="relative w-full overflow-hidden">
+        {/* Elementi decorativi agli angoli */}
+        <FloralCorner position="top-left" className="absolute top-0 left-0 w-36 h-36 opacity-10 pointer-events-none z-10" />
+        <FloralCorner position="top-right" className="absolute top-0 right-0 w-36 h-36 opacity-10 pointer-events-none z-10" />
+        
+        {gallery.coverImageUrl ? (
           <div className="w-full h-64 md:h-96 overflow-hidden">
             <img 
               src={gallery.coverImageUrl} 
@@ -450,34 +455,30 @@ export default function Gallery() {
             />
             <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
           </div>
-          
-          <div className="absolute bottom-0 left-0 right-0 p-6 text-white">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-              <h1 className="text-3xl md:text-4xl font-bold leading-tight font-playfair drop-shadow-md">
-                {gallery.name}
-              </h1>
-              <p className="mt-2 text-gray-200 drop-shadow">
-                {gallery.date} • {gallery.location}
-              </p>
+        ) : (
+          <div className="w-full h-64 md:h-80 bg-gradient-to-b from-sage/20 to-sage/5 flex items-center justify-center relative">
+            <div className="absolute inset-0 overflow-hidden opacity-10">
+              <BackgroundDecoration />
+            </div>
+            <div className="w-48 h-48 md:w-60 md:h-60 opacity-25">
+              <CoupleIllustration />
             </div>
           </div>
-        </div>
-      )}
-
-      <div className={`py-10 ${gallery.coverImageUrl ? 'pt-6' : ''}`}>
-        {/* Mostra l'header solo se non c'è immagine di copertina */}
-        {!gallery.coverImageUrl && (
-          <header>
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-              <h1 className="text-3xl font-bold leading-tight text-blue-gray font-playfair">
-                {gallery.name}
-              </h1>
-              <p className="mt-2 text-gray-500">
-                {gallery.date} • {gallery.location}
-              </p>
-            </div>
-          </header>
         )}
+        
+        <div className={`absolute bottom-0 left-0 right-0 p-6 ${gallery.coverImageUrl ? 'text-white' : ''}`}>
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <h1 className={`text-3xl md:text-4xl font-bold leading-tight font-playfair ${gallery.coverImageUrl ? 'drop-shadow-md text-white' : 'text-blue-gray'}`}>
+              {gallery.name}
+            </h1>
+            <p className={`mt-2 ${gallery.coverImageUrl ? 'text-gray-200 drop-shadow' : 'text-gray-500'}`}>
+              {gallery.date} • {gallery.location}
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <div className="py-10 pt-6">
         
         {/* Descrizione della galleria se presente */}
         {gallery.description && (
