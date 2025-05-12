@@ -148,17 +148,20 @@ export default function Home() {
       {/* Hero Section */}
       <div className="relative bg-light-mint">
         <HeroSlideshow />
+        <div className="absolute inset-0 bg-gradient-to-r from-blue-gray/30 to-transparent"></div>
         <div className="relative max-w-7xl mx-auto py-24 px-4 sm:py-32 sm:px-6 lg:px-8">
-          <h1 className="text-4xl font-bold tracking-tight text-blue-gray sm:text-5xl lg:text-6xl font-playfair animate-slide-up">
-            Ricordi preziosi, <br />custoditi con cura
-          </h1>
-          <p className="mt-6 text-xl text-blue-gray max-w-2xl font-sans animate-slide-up" style={{ animationDelay: "100ms" }}>
-            Le tue gallerie fotografiche private, accessibili in modo sicuro e semplice su qualsiasi dispositivo.
-          </p>
-          <div className="mt-10 animate-slide-up" style={{ animationDelay: "200ms" }}>
-            <a href="#access-gallery" className="px-8 py-3 bg-blue-gray text-off-white font-medium rounded-md shadow hover:bg-dark-sage transition inline-block">
-              Accedi alla tua galleria
-            </a>
+          <div className="relative z-10 backdrop-blur-sm bg-white/5 p-6 sm:p-8 rounded-lg shadow-lg inline-block">
+            <h1 className="text-4xl font-bold tracking-tight text-white sm:text-5xl lg:text-6xl font-playfair animate-slide-up drop-shadow-md">
+              Ricordi preziosi, <br />custoditi con cura
+            </h1>
+            <p className="mt-6 text-xl text-white max-w-2xl font-sans animate-slide-up drop-shadow" style={{ animationDelay: "100ms" }}>
+              Le tue gallerie fotografiche private, accessibili in modo sicuro e semplice su qualsiasi dispositivo.
+            </p>
+            <div className="mt-10 animate-slide-up" style={{ animationDelay: "200ms" }}>
+              <a href="#access-gallery" className="px-8 py-3 bg-sage text-white font-medium rounded-md shadow-md hover:bg-dark-sage transition-all hover:shadow-lg inline-block">
+                Accedi alla tua galleria
+              </a>
+            </div>
           </div>
         </div>
       </div>
