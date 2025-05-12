@@ -497,12 +497,17 @@ export default function Gallery() {
             <div className="px-4 py-4">
               {photos.length === 0 ? (
                 <div className="text-center py-12">
-                  <h3 className="text-xl font-playfair text-blue-gray mb-2">
-                    Nessuna foto disponibile
-                  </h3>
-                  <p className="text-gray-500">
-                    Non ci sono ancora foto in questa galleria.
-                  </p>
+                  <div className="flex flex-col items-center">
+                    <div className="w-48 h-48 mb-6">
+                      <WeddingImage type="heart-balloon" alt="Immagine decorativa di sposi" className="w-full h-auto opacity-40" />
+                    </div>
+                    <h3 className="text-xl font-playfair text-blue-gray mb-2">
+                      Nessuna foto disponibile
+                    </h3>
+                    <p className="text-gray-500">
+                      Non ci sono ancora foto in questa galleria.
+                    </p>
+                  </div>
                 </div>
               ) : (
                 <>
@@ -714,11 +719,16 @@ export default function Gallery() {
           </div>
           
           <div className="flex flex-col md:flex-row items-center justify-between gap-6">
-            <div className="text-center md:text-left">
-              <h3 className="text-xl font-playfair text-blue-gray font-medium mb-2">Ti sono piaciute queste foto?</h3>
-              <p className="text-gray-600 max-w-lg">
-                Segui il nostro profilo Instagram per vedere altri momenti speciali come quelli del matrimonio e restare aggiornato sui nostri servizi fotografici.
-              </p>
+            <div className="text-center md:text-left flex md:flex-row flex-col items-center gap-6">
+              <div className="md:w-32 w-24 h-auto flex-shrink-0 order-1 md:order-none mb-4 md:mb-0">
+                <WeddingImage type="flower-bouquet" className="w-full h-auto opacity-70" />
+              </div>
+              <div>
+                <h3 className="text-xl font-playfair text-blue-gray font-medium mb-2">Ti sono piaciute queste foto?</h3>
+                <p className="text-gray-600 max-w-lg">
+                  Segui il nostro profilo Instagram per vedere altri momenti speciali come quelli del matrimonio e restare aggiornato sui nostri servizi fotografici.
+                </p>
+              </div>
             </div>
             
             <div className="flex items-center space-x-2">
