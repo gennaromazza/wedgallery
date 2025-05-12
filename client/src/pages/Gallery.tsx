@@ -2,6 +2,8 @@ import { useState, useEffect } from "react";
 import { useParams, useLocation } from "wouter";
 import { collection, query, where, getDocs, doc, getDoc, addDoc, serverTimestamp, orderBy } from "firebase/firestore";
 import { db } from "@/lib/firebase";
+import { useStudio } from "@/context/StudioContext";
+import { trackGalleryView } from "@/lib/analytics";
 import Navigation from "@/components/Navigation";
 import ImageLightbox from "@/components/ImageLightbox";
 import { useToast } from "@/hooks/use-toast";
@@ -47,6 +49,7 @@ export default function Gallery() {
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [currentPhotoIndex, setCurrentPhotoIndex] = useState(0);
   const { toast } = useToast();
+  const { studioSettings } = useStudio();
 
   // Check authentication and fetch gallery data
   // Check if current user is admin
@@ -469,7 +472,7 @@ export default function Gallery() {
             
             <div className="flex items-center space-x-2">
               <a 
-                href="https://instagram.com/fotografiamazzacanephotographer" 
+                href={studioSettings.socialLinks.instagram ? `https://instagram.com/${studioSettings.socialLinks.instagram}` : '#'} 
                 target="_blank" 
                 rel="noopener noreferrer" 
                 className="flex items-center bg-gradient-to-r from-purple-500 to-pink-500 text-white px-6 py-3 rounded-full transition-transform hover:scale-105"
@@ -483,9 +486,9 @@ export default function Gallery() {
           </div>
           
           <div className="mt-10 pt-6 border-t border-gray-200 text-center text-gray-500 text-sm">
-            <p>© {new Date().getFullYear()} Fotografia Mazzacane. Tutti i diritti riservati.</p>
+            <p>© {new Date().getFullYear()} {studioSettings.name}. Tutti i diritti riservati.</p>
             <p className="mt-2">
-              <span>Via Lepanto 15, Termoli (CB) | Tel: +39 333 123 4567 | Email: info@fotografiamazzacane.it</span>
+              <span>{studioSettings.address} | Tel: {studioSettings.phone} | Email: {studioSettings.email}</span>
             </p>
           </div>
         </div>
