@@ -38,31 +38,50 @@ export default function GallerySearch() {
       try {
         const galleriesRef = collection(db, "galleries");
         
-        // Otteniamo tutte le gallerie attive e facciamo il filtro lato client
+        // Otteniamo tutte le gallerie (anche quelle non attive) per debug
         // Questo approccio è più flessibile per una ricerca basata su testo
         const allGalleriesQuery = query(
           galleriesRef,
-          where("active", "==", true),
           orderBy("name"),
           limit(100) // Limitiamo a 100 gallerie per sicurezza
         );
 
         const allGalleriesSnapshot = await getDocs(allGalleriesQuery);
         
+        // Debug: quante gallerie sono state trovate
+        console.log(`Trovate ${allGalleriesSnapshot.size} gallerie totali nel database.`);
+        
         // Processiamo tutti i risultati e filtriamo quelli che contengono il termine di ricerca
         const searchTermLower = searchTerm.toLowerCase();
         const searchWords = searchTermLower.split(/\s+/); // Dividiamo in parole
         
+        console.log(`Parole chiave ricercate: "${searchWords.join('", "')}"`);
+        
         const matchedResults: GallerySearchResult[] = [];
+        
+        // Elenco delle gallerie per debug
+        console.log("Elenco di tutte le gallerie:");
+        allGalleriesSnapshot.forEach(doc => {
+          const data = doc.data();
+          console.log(`- Galleria: "${data.name}" (active: ${data.active})`);
+        });
         
         allGalleriesSnapshot.forEach(doc => {
           const data = doc.data();
           const galleryName = data.name.toLowerCase();
           
+          console.log(`Controllo galleria: "${data.name}" (lowercase: "${galleryName}")`);
+          
           // Verifichiamo se tutte le parole della ricerca sono contenute nel nome della galleria
-          const allWordsMatch = searchWords.every(word => 
-            galleryName.includes(word)
-          );
+          const matchResults = searchWords.map(word => {
+            const includes = galleryName.includes(word);
+            console.log(`  - Parola "${word}" ${includes ? 'trovata' : 'NON trovata'} in "${galleryName}"`);
+            return includes;
+          });
+          
+          const allWordsMatch = matchResults.every(match => match === true);
+          
+          console.log(`  => Risultato finale: ${allWordsMatch ? 'MATCH' : 'NO MATCH'}`);
           
           if (allWordsMatch) {
             matchedResults.push({
