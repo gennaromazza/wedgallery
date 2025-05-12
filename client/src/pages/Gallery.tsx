@@ -472,7 +472,11 @@ export default function Gallery() {
             
             <div className="flex items-center space-x-2">
               <a 
-                href={studioSettings.socialLinks.instagram ? `https://instagram.com/${studioSettings.socialLinks.instagram}` : '#'} 
+                href={studioSettings.socialLinks.instagram ? 
+                  (studioSettings.socialLinks.instagram.startsWith('http') ? 
+                    studioSettings.socialLinks.instagram : 
+                    `https://instagram.com/${studioSettings.socialLinks.instagram}`) 
+                  : '#'} 
                 target="_blank" 
                 rel="noopener noreferrer" 
                 className="flex items-center bg-gradient-to-r from-purple-500 to-pink-500 text-white px-6 py-3 rounded-full transition-transform hover:scale-105"
