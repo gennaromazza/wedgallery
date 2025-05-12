@@ -1,6 +1,7 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef, ChangeEvent } from "react";
 import { doc, updateDoc, collection, getDocs } from "firebase/firestore";
-import { db } from "@/lib/firebase";
+import { ref, uploadBytesResumable, getDownloadURL } from "firebase/storage";
+import { db, storage } from "@/lib/firebase";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -21,6 +22,7 @@ interface EditGalleryModalProps {
     location?: string;
     description?: string;
     password?: string;
+    coverImageUrl?: string;
   } | null;
 }
 
@@ -30,11 +32,15 @@ export default function EditGalleryModal({ isOpen, onClose, gallery }: EditGalle
   const [location, setLocation] = useState("");
   const [description, setDescription] = useState("");
   const [password, setPassword] = useState("");
+  const [coverImageUrl, setCoverImageUrl] = useState("");
+  const [coverImage, setCoverImage] = useState<File | null>(null);
+  const [coverPreview, setCoverPreview] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [activeTab, setActiveTab] = useState<string>("details");
   const [photos, setPhotos] = useState<PhotoWithChapter[]>([]);
   const [chapters, setChapters] = useState<Chapter[]>([]);
   const [isChaptersLoading, setIsChaptersLoading] = useState(false);
+  const coverInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
 
   // Carica i dati della galleria quando cambia
@@ -45,11 +51,45 @@ export default function EditGalleryModal({ isOpen, onClose, gallery }: EditGalle
       setLocation(gallery.location || "");
       setDescription(gallery.description || "");
       setPassword(gallery.password || "");
+      setCoverImageUrl(gallery.coverImageUrl || "");
+      
+      // Se c'è un'immagine di copertina esistente, impostiamo l'anteprima
+      if (gallery.coverImageUrl) {
+        setCoverPreview(gallery.coverImageUrl);
+      } else {
+        setCoverPreview(null);
+      }
       
       // Carica capitoli e foto
       loadChaptersAndPhotos();
     }
   }, [gallery]);
+  
+  // Gestisce il caricamento dell'immagine di copertina
+  const handleCoverImageChange = (e: ChangeEvent<HTMLInputElement>) => {
+    if (!e.target.files || e.target.files.length === 0) {
+      return;
+    }
+    
+    const file = e.target.files[0];
+    if (!file.type.startsWith('image/')) {
+      toast({
+        title: "Tipo di file non supportato",
+        description: "L'immagine di copertina deve essere un'immagine (JPEG, PNG, ecc.)",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    setCoverImage(file);
+    
+    // Crea URL anteprima
+    const objectUrl = URL.createObjectURL(file);
+    setCoverPreview(objectUrl);
+    
+    // Cleanup URL quando il componente viene smontato
+    return () => URL.revokeObjectURL(objectUrl);
+  };
   
   // Carica i capitoli e le foto dalla galleria
   const loadChaptersAndPhotos = async () => {
@@ -109,13 +149,28 @@ export default function EditGalleryModal({ isOpen, onClose, gallery }: EditGalle
     
     setIsLoading(true);
     try {
+      // Se c'è una nuova immagine di copertina, la carichiamo prima
+      let newCoverImageUrl = coverImageUrl;
+      if (coverImage) {
+        try {
+          const storageRef = ref(storage, `galleries/covers/${gallery.code}_cover`);
+          await uploadBytesResumable(storageRef, coverImage);
+          newCoverImageUrl = await getDownloadURL(storageRef);
+          console.log("Nuova immagine di copertina caricata:", newCoverImageUrl);
+        } catch (error) {
+          console.error("Errore nell'upload della copertina:", error);
+          // Continuiamo comunque con l'aggiornamento della galleria
+        }
+      }
+      
       const galleryRef = doc(db, "galleries", gallery.id);
       await updateDoc(galleryRef, {
         name,
         date,
         location,
         description,
-        password
+        password,
+        coverImageUrl: newCoverImageUrl
       });
       
       toast({

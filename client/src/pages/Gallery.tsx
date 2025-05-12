@@ -323,21 +323,58 @@ export default function Gallery() {
     <div className="min-h-screen bg-off-white">
       <Navigation galleryOwner={gallery.name.split(' - ')[0]} />
 
-      <div className="py-10">
-        <header>
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <h1 className="text-3xl font-bold leading-tight text-blue-gray font-playfair">
-              {gallery.name}
-            </h1>
-            <p className="mt-2 text-gray-500">
-              {gallery.date} • {gallery.location}
-            </p>
+      {/* Hero Section con immagine di copertina */}
+      {gallery.coverImageUrl && (
+        <div className="relative w-full">
+          <div className="w-full h-64 md:h-96 overflow-hidden">
+            <img 
+              src={gallery.coverImageUrl} 
+              alt={`Copertina per ${gallery.name}`}
+              className="w-full h-full object-cover"
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
           </div>
-        </header>
+          
+          <div className="absolute bottom-0 left-0 right-0 p-6 text-white">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+              <h1 className="text-3xl md:text-4xl font-bold leading-tight font-playfair drop-shadow-md">
+                {gallery.name}
+              </h1>
+              <p className="mt-2 text-gray-200 drop-shadow">
+                {gallery.date} • {gallery.location}
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      <div className={`py-10 ${gallery.coverImageUrl ? 'pt-6' : ''}`}>
+        {/* Mostra l'header solo se non c'è immagine di copertina */}
+        {!gallery.coverImageUrl && (
+          <header>
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+              <h1 className="text-3xl font-bold leading-tight text-blue-gray font-playfair">
+                {gallery.name}
+              </h1>
+              <p className="mt-2 text-gray-500">
+                {gallery.date} • {gallery.location}
+              </p>
+            </div>
+          </header>
+        )}
+        
+        {/* Descrizione della galleria se presente */}
+        {gallery.description && (
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-8">
+            <div className="bg-white p-6 rounded-lg shadow-sm">
+              <p className="text-gray-700 italic">{gallery.description}</p>
+            </div>
+          </div>
+        )}
         
         <main>
           <div className="max-w-7xl mx-auto sm:px-6 lg:px-8">
-            <div className="px-4 py-8">
+            <div className="px-4 py-4">
               {photos.length === 0 ? (
                 <div className="text-center py-12">
                   <h3 className="text-xl font-playfair text-blue-gray mb-2">
