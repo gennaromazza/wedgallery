@@ -9,7 +9,6 @@ import SlideshowManager from "@/components/SlideshowManager";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useQueryClient } from "@tanstack/react-query";
 
 interface GalleryItem {
@@ -26,6 +25,7 @@ export default function AdminDashboard() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [galleries, setGalleries] = useState<GalleryItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [activeTab, setActiveTab] = useState<'galleries' | 'slideshow'>('galleries');
   const { currentUser } = useAuth();
   const [, navigate] = useLocation();
   const { toast } = useToast();
@@ -152,29 +152,45 @@ export default function AdminDashboard() {
           <div className="md:flex md:items-center md:justify-between">
             <div className="flex-1 min-w-0">
               <h2 className="text-2xl font-bold leading-7 text-blue-gray font-playfair sm:text-3xl sm:truncate">
-                Gestione Gallerie
+                Pannello Amministrazione
               </h2>
             </div>
             <div className="mt-4 flex md:mt-0 md:ml-4">
-              <Button 
-                onClick={openModal}
-                className="btn-primary px-4 py-2"
-              >
-                Nuova Galleria
-              </Button>
+              {activeTab === 'galleries' && (
+                <Button 
+                  onClick={openModal}
+                  className="btn-primary px-4 py-2"
+                >
+                  Nuova Galleria
+                </Button>
+              )}
             </div>
           </div>
         </div>
       </header>
 
       <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
-        <Tabs defaultValue="galleries" className="w-full">
-          <TabsList className="mb-6">
-            <TabsTrigger value="galleries">Gestione Gallerie</TabsTrigger>
-            <TabsTrigger value="slideshow">Slideshow Homepage</TabsTrigger>
-          </TabsList>
-          
-          <TabsContent value="galleries">
+        {/* Tab Navigation */}
+        <div className="mb-6 border-b border-gray-200">
+          <div className="flex space-x-8">
+            <button
+              className={`py-4 px-1 border-b-2 font-medium text-sm ${activeTab === 'galleries' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'}`}
+              onClick={() => setActiveTab('galleries')}
+            >
+              Gestione Gallerie
+            </button>
+            <button
+              className={`py-4 px-1 border-b-2 font-medium text-sm ${activeTab === 'slideshow' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'}`}
+              onClick={() => setActiveTab('slideshow')}
+            >
+              Slideshow Homepage
+            </button>
+          </div>
+        </div>
+        
+        {/* Galleries Tab */}
+        {activeTab === 'galleries' && (
+          <div>
             <div className="px-4 sm:px-0">
               <h3 className="text-lg font-medium text-blue-gray font-playfair">Le tue gallerie</h3>
               <p className="mt-1 text-sm text-gray-500">
@@ -260,9 +276,12 @@ export default function AdminDashboard() {
                 </ul>
               )}
             </div>
-          </TabsContent>
-          
-          <TabsContent value="slideshow">
+          </div>
+        )}
+        
+        {/* Slideshow Tab */}
+        {activeTab === 'slideshow' && (
+          <div>
             <div className="px-4 sm:px-0 mb-6">
               <h3 className="text-lg font-medium text-blue-gray font-playfair">Slideshow Homepage</h3>
               <p className="mt-1 text-sm text-gray-500">
@@ -271,8 +290,8 @@ export default function AdminDashboard() {
             </div>
             
             <SlideshowManager />
-          </TabsContent>
-        </Tabs>
+          </div>
+        )}
       </main>
 
       <NewGalleryModal isOpen={isModalOpen} onClose={closeModal} />
