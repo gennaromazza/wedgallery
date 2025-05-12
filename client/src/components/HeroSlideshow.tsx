@@ -17,22 +17,41 @@ export default function HeroSlideshow() {
   useEffect(() => {
     async function fetchSlideshowImages() {
       try {
+        // Semplifica la query iniziale e aggiungi gestione errori
         const slideshowCollection = collection(db, 'slideshow');
-        const slideshowQuery = query(slideshowCollection, where('active', '==', true), orderBy('position'));
-        const querySnapshot = await getDocs(slideshowQuery);
         
-        const fetchedImages: SlideshowImage[] = [];
-        querySnapshot.forEach((doc) => {
-          const data = doc.data();
-          fetchedImages.push({
-            id: doc.id,
-            url: data.url,
-            alt: data.alt || 'Slideshow image',
-            position: data.position || 0
-          });
-        });
+        try {
+          // Prova a recuperare tutti i documenti nella collezione
+          const baseQuery = query(slideshowCollection);
+          const querySnapshot = await getDocs(baseQuery);
+          
+          // Se abbiamo documenti possiamo fare la query più complessa
+          if (!querySnapshot.empty) {
+            const slideshowQuery = query(
+              slideshowCollection, 
+              where('active', '==', true), 
+              orderBy('position')
+            );
+            const filteredSnapshot = await getDocs(slideshowQuery);
+            
+            const fetchedImages: SlideshowImage[] = [];
+            filteredSnapshot.forEach((doc) => {
+              const data = doc.data();
+              fetchedImages.push({
+                id: doc.id,
+                url: data.url,
+                alt: data.alt || 'Slideshow image',
+                position: data.position || 0
+              });
+            });
+            
+            setImages(fetchedImages);
+          }
+        } catch (innerError) {
+          console.log("Errore nella query complessa:", innerError);
+          // In caso di errore, non facciamo nulla e lasciamo l'array vuoto
+        }
         
-        setImages(fetchedImages);
         setLoading(false);
       } catch (error) {
         console.error('Error fetching slideshow images:', error);

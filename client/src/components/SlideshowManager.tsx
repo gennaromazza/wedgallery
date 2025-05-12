@@ -35,21 +35,36 @@ export default function SlideshowManager() {
   async function fetchSlideshowImages() {
     try {
       setIsLoading(true);
-      const slideshowCollection = collection(db, 'slideshow');
-      const slideshowQuery = query(slideshowCollection, orderBy('position'));
-      const querySnapshot = await getDocs(slideshowQuery);
       
-      const fetchedImages: SlideshowImage[] = [];
-      querySnapshot.forEach((doc) => {
-        const data = doc.data();
-        fetchedImages.push({
-          id: doc.id,
-          url: data.url,
-          alt: data.alt || '',
-          active: data.active || false,
-          position: data.position || 0
-        });
-      });
+      // Controlla se la collezione esiste
+      let fetchedImages: SlideshowImage[] = [];
+      const slideshowCollection = collection(db, 'slideshow');
+      
+      try {
+        // Prima prova a ottenere qualsiasi documento dalla collezione
+        const initialSnapshot = await getDocs(slideshowCollection);
+        
+        if (!initialSnapshot.empty) {
+          // Se ci sono documenti, esegui la query con orderBy
+          const slideshowQuery = query(slideshowCollection, orderBy('position'));
+          const querySnapshot = await getDocs(slideshowQuery);
+          
+          querySnapshot.forEach((doc) => {
+            const data = doc.data();
+            fetchedImages.push({
+              id: doc.id,
+              url: data.url,
+              alt: data.alt || '',
+              active: data.active || false,
+              position: data.position || 0
+            });
+          });
+        } else {
+          console.log("La collezione slideshow è vuota o non esiste");
+        }
+      } catch (queryError) {
+        console.error("Errore nella query:", queryError);
+      }
       
       setImages(fetchedImages);
     } catch (error) {
