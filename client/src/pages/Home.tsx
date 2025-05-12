@@ -170,28 +170,20 @@ export default function Home() {
 
       {/* Access Gallery Form */}
       <section id="access-gallery" className="py-16 bg-off-white relative">
-        {/* Decorazioni a tema matrimonio */}
-        <div className="absolute left-0 top-0 w-32 h-32 opacity-20 pointer-events-none">
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" className="w-full h-full text-sage">
-            <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" strokeWidth="1"></path>
-          </svg>
+        {/* Decorazioni a tema matrimonio con le immagini fornite */}
+        <div className="absolute left-0 top-0 w-40 h-40 opacity-20 pointer-events-none">
+          <WeddingImage type="heart-balloon" className="w-full h-auto" alt="Decorazione palloncino a cuore" />
         </div>
-        <div className="absolute right-0 bottom-0 w-32 h-32 opacity-20 pointer-events-none">
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" className="w-full h-full text-sage">
-            <path d="M12 17.75l-6.172 3.245l1.179 -6.873l-5 -4.867l6.9 -1l3.086 -6.253l3.086 6.253l6.9 1l-5 4.867l1.179 6.873z" strokeWidth="1"></path>
-          </svg>
+        <div className="absolute right-0 bottom-0 w-40 h-40 opacity-20 pointer-events-none">
+          <WeddingImage type="wedding-cake" className="w-full h-auto" alt="Decorazione torta nuziale" />
         </div>
         
         <div className="max-w-md mx-auto animate-fade-in relative z-10">
           <div className="bg-white shadow-lg rounded-lg overflow-hidden border border-sage/10">
             {/* Header decorativo con anelli matrimoniali */}
             <div className="relative h-12 bg-gradient-to-r from-sage/30 via-sage/40 to-sage/30 flex items-center justify-center">
-              <div className="absolute -bottom-6 left-1/2 transform -translate-x-1/2 flex items-center justify-center h-12 w-12 rounded-full bg-sage text-white shadow-md">
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-7 w-7" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                  <circle cx="9" cy="12" r="3" strokeWidth="1.5"/>
-                  <circle cx="15" cy="12" r="3" strokeWidth="1.5"/>
-                  <path d="M6 12h12" strokeWidth="0"/>
-                </svg>
+              <div className="absolute -bottom-10 left-1/2 transform -translate-x-1/2 h-20 w-20">
+                <DecorativeImage type="standing" className="w-full h-auto" alt="Decorazione sposi" />
               </div>
             </div>
             
@@ -250,12 +242,11 @@ export default function Home() {
               Gli sposi ti invieranno la password per accedere ai ricordi del loro giorno speciale
             </p>
             
-            {/* Elemento decorativo */}
-            <div className="absolute w-full flex justify-center -top-8 opacity-20 pointer-events-none">
-              <svg className="w-32 h-16" viewBox="0 0 100 50" xmlns="http://www.w3.org/2000/svg">
-                <path d="M 10,25 C 30,5 70,5 90,25" fill="none" stroke="currentColor" className="text-blue-gray" strokeWidth="2"></path>
-                <path d="M 10,25 C 30,45 70,45 90,25" fill="none" stroke="currentColor" className="text-blue-gray" strokeWidth="2"></path>
-              </svg>
+            {/* Elemento decorativo con immagine */}
+            <div className="absolute w-full flex justify-center -top-16 opacity-20 pointer-events-none">
+              <div className="w-40 h-40">
+                <WeddingImage type="flower-bouquet" className="w-full h-auto" alt="Decorazione floreale" />
+              </div>
             </div>
           </div>
           
