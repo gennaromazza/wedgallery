@@ -19,10 +19,8 @@ export default function Home() {
             Le tue gallerie fotografiche private, accessibili in modo sicuro e semplice su qualsiasi dispositivo.
           </p>
           <div className="mt-10 animate-slide-up" style={{ animationDelay: "200ms" }}>
-            <Link href="#access-gallery">
-              <a className="px-8 py-3 bg-blue-gray text-off-white font-medium rounded-md shadow hover:bg-dark-sage transition inline-block">
-                Accedi alla tua galleria
-              </a>
+            <Link href="#access-gallery" className="px-8 py-3 bg-blue-gray text-off-white font-medium rounded-md shadow hover:bg-dark-sage transition inline-block">
+              Accedi alla tua galleria
             </Link>
           </div>
         </div>
@@ -81,94 +79,104 @@ export default function Home() {
             Compila il form per ricevere la password della galleria via email
           </p>
           
-          <form className="bg-white shadow-lg rounded-lg p-8 space-y-6" onSubmit={(e) => e.preventDefault()}>
-            <div className="grid grid-cols-1 gap-y-6 sm:grid-cols-2 sm:gap-x-8">
-              <div>
-                <label htmlFor="first-name" className="block text-sm font-medium text-blue-gray">
-                  Nome
-                </label>
-                <div className="mt-1">
-                  <input
-                    type="text"
-                    id="first-name"
-                    name="first-name"
-                    className="w-full border-beige rounded-md py-3 px-4 focus:ring-sage focus:border-sage"
-                  />
-                </div>
-              </div>
-              
-              <div>
-                <label htmlFor="last-name" className="block text-sm font-medium text-blue-gray">
-                  Cognome
-                </label>
-                <div className="mt-1">
-                  <input
-                    type="text"
-                    id="last-name"
-                    name="last-name"
-                    className="w-full border-beige rounded-md py-3 px-4 focus:ring-sage focus:border-sage"
-                  />
-                </div>
-              </div>
-              
-              <div className="sm:col-span-2">
-                <label htmlFor="email" className="block text-sm font-medium text-blue-gray">
-                  Email
-                </label>
-                <div className="mt-1">
-                  <input
-                    type="email"
-                    id="email"
-                    name="email"
-                    className="w-full border-beige rounded-md py-3 px-4 focus:ring-sage focus:border-sage"
-                  />
-                </div>
-              </div>
-              
-              <div className="sm:col-span-2">
-                <label htmlFor="gallery-id" className="block text-sm font-medium text-blue-gray">
-                  Codice Galleria
-                </label>
-                <div className="mt-1">
-                  <input
-                    type="text"
-                    id="gallery-id"
-                    name="gallery-id"
-                    className="w-full border-beige rounded-md py-3 px-4 focus:ring-sage focus:border-sage"
-                  />
-                  <p className="mt-1 text-xs text-gray-500">Esempio: maria-luca-2023</p>
-                </div>
-              </div>
-              
-              <div className="sm:col-span-2">
-                <label htmlFor="relation" className="block text-sm font-medium text-blue-gray">
-                  Relazione con gli sposi
-                </label>
-                <div className="mt-1">
-                  <select
-                    id="relation"
-                    name="relation"
-                    className="w-full border-beige rounded-md py-3 px-4 focus:ring-sage focus:border-sage"
-                  >
-                    <option value="">Seleziona...</option>
-                    <option value="family">Famiglia</option>
-                    <option value="friend">Amico/a</option>
-                    <option value="colleague">Collega</option>
-                    <option value="other">Altro</option>
-                  </select>
-                </div>
-              </div>
-              
-              <div className="sm:col-span-2">
-                <button
-                  type="submit"
-                  className="w-full inline-flex items-center justify-center px-6 py-3 border border-transparent rounded-md shadow-sm text-base font-medium text-white bg-blue-gray hover:bg-dark-sage focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-sage btn-primary"
-                >
-                  Richiedi Password
-                </button>
+          <div className="bg-white shadow-lg rounded-lg p-8 space-y-6">
+            <div className="flex items-center justify-center mb-4">
+              <div className="flex items-center justify-center h-12 w-12 rounded-full bg-sage text-white">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                </svg>
               </div>
             </div>
-          </form>
+            
+            <form className="space-y-6" onSubmit={(e) => e.preventDefault()}>
+              <div className="grid grid-cols-1 gap-y-6 sm:grid-cols-2 sm:gap-x-8">
+                <div>
+                  <label htmlFor="first-name" className="block text-sm font-medium text-blue-gray">
+                    Nome
+                  </label>
+                  <div className="mt-1">
+                    <input
+                      type="text"
+                      id="first-name"
+                      name="first-name"
+                      className="w-full border-beige rounded-md py-3 px-4 focus:ring-sage focus:border-sage"
+                    />
+                  </div>
+                </div>
+                
+                <div>
+                  <label htmlFor="last-name" className="block text-sm font-medium text-blue-gray">
+                    Cognome
+                  </label>
+                  <div className="mt-1">
+                    <input
+                      type="text"
+                      id="last-name"
+                      name="last-name"
+                      className="w-full border-beige rounded-md py-3 px-4 focus:ring-sage focus:border-sage"
+                    />
+                  </div>
+                </div>
+                
+                <div className="sm:col-span-2">
+                  <label htmlFor="email" className="block text-sm font-medium text-blue-gray">
+                    Email
+                  </label>
+                  <div className="mt-1">
+                    <input
+                      type="email"
+                      id="email"
+                      name="email"
+                      className="w-full border-beige rounded-md py-3 px-4 focus:ring-sage focus:border-sage"
+                    />
+                  </div>
+                </div>
+                
+                <div className="sm:col-span-2">
+                  <label htmlFor="gallery-id" className="block text-sm font-medium text-blue-gray">
+                    Codice Galleria
+                  </label>
+                  <div className="mt-1">
+                    <input
+                      type="text"
+                      id="gallery-id"
+                      name="gallery-id"
+                      className="w-full border-beige rounded-md py-3 px-4 focus:ring-sage focus:border-sage"
+                    />
+                    <p className="mt-1 text-xs text-gray-500">Esempio: maria-luca-2023</p>
+                  </div>
+                </div>
+                
+                <div className="sm:col-span-2">
+                  <label htmlFor="relation" className="block text-sm font-medium text-blue-gray">
+                    Relazione con gli sposi
+                  </label>
+                  <div className="mt-1">
+                    <select
+                      id="relation"
+                      name="relation"
+                      className="w-full border-beige rounded-md py-3 px-4 focus:ring-sage focus:border-sage"
+                    >
+                      <option value="">Seleziona...</option>
+                      <option value="family">Famiglia</option>
+                      <option value="friend">Amico/a</option>
+                      <option value="colleague">Collega</option>
+                      <option value="other">Altro</option>
+                    </select>
+                  </div>
+                </div>
+                
+                <div className="sm:col-span-2">
+                  <button
+                    type="submit"
+                    className="w-full inline-flex items-center justify-center px-6 py-3 border border-transparent rounded-md shadow-sm text-base font-medium text-white bg-blue-gray hover:bg-dark-sage focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-sage btn-primary"
+                  >
+                    Richiedi Password
+                  </button>
+                </div>
+              </div>
+            </form>
+          </div>
         </div>
       </section>
 
