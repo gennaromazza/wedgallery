@@ -1,4 +1,4 @@
-import { Switch, Route, useLocation } from "wouter";
+import { Switch, Route, useLocation, Router as WouterRouter } from "wouter";
 import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
@@ -8,6 +8,7 @@ import { StudioProvider } from "./context/StudioContext";
 import { ThemeProvider } from "next-themes";
 import { trackPageView } from "./lib/analytics";
 import { useEffect } from "react";
+import { getBasePath } from "./lib/basePath";
 
 import Home from "@/pages/Home";
 import GalleryAccess from "@/pages/GalleryAccess";
@@ -30,9 +31,13 @@ function useAnalytics() {
   return null;
 }
 
+// Router personalizzato con basePath
 function Router() {
   // Utilizza il hook per tracciare le navigazioni
   useAnalytics();
+  
+  // Ottiene il base path configurato
+  const basePath = getBasePath();
   
   return (
     <Switch>
@@ -49,13 +54,18 @@ function Router() {
 }
 
 function App() {
+  // Configura il base path per il router
+  const basePath = getBasePath();
+  
   return (
     <QueryClientProvider client={queryClient}>
       <ThemeProvider attribute="class" defaultTheme="light">
         <TooltipProvider>
           <StudioProvider>
             <Toaster />
-            <Router />
+            <WouterRouter base={basePath}>
+              <Router />
+            </WouterRouter>
           </StudioProvider>
         </TooltipProvider>
       </ThemeProvider>
