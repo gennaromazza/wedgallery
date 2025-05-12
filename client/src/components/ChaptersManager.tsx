@@ -42,6 +42,8 @@ export default function ChaptersManager({
   const [editingChapterId, setEditingChapterId] = useState<string | null>(null);
   const [newChapterTitle, setNewChapterTitle] = useState('');
   const [newChapterDescription, setNewChapterDescription] = useState('');
+  const [selectedPhotos, setSelectedPhotos] = useState<string[]>([]);
+  const [bulkActionChapter, setBulkActionChapter] = useState<string | null>(null);
   
   // Quando cambiano i capitoli, aggiorna il tab attivo se necessario
   useEffect(() => {
@@ -162,6 +164,37 @@ export default function ChaptersManager({
     );
     
     onPhotosUpdate(updatedPhotos);
+  };
+  
+  // Assegna più foto a un capitolo
+  const assignMultiplePhotosToChapter = (photoIds: string[], chapterId: string | undefined) => {
+    const updatedPhotos = photos.map(photo => 
+      photoIds.includes(photo.id)
+        ? { ...photo, chapterId } 
+        : photo
+    );
+    
+    onPhotosUpdate(updatedPhotos);
+    setSelectedPhotos([]); // Reset della selezione dopo l'assegnazione
+  };
+  
+  // Gestisce la selezione/deselezione di una foto
+  const togglePhotoSelection = (photoId: string) => {
+    setSelectedPhotos(prev => 
+      prev.includes(photoId)
+        ? prev.filter(id => id !== photoId)
+        : [...prev, photoId]
+    );
+  };
+  
+  // Seleziona tutte le foto visibili
+  const selectAllVisiblePhotos = () => {
+    setSelectedPhotos(filteredPhotos.map(photo => photo.id));
+  };
+  
+  // Deseleziona tutte le foto
+  const deselectAllPhotos = () => {
+    setSelectedPhotos([]);
   };
   
   // Filtra le foto in base al capitolo attivo
@@ -293,11 +326,90 @@ export default function ChaptersManager({
           </div>
         )}
         
+        {/* Barra degli strumenti di selezione multipla */}
+        {selectedPhotos.length > 0 && (
+          <div className="bg-blue-gray/10 p-3 rounded-lg mb-4 flex justify-between items-center">
+            <div>
+              <span className="font-medium">{selectedPhotos.length} foto selezionate</span>
+            </div>
+            <div className="flex space-x-2">
+              <Button size="sm" variant="outline" onClick={deselectAllPhotos}>
+                Deseleziona
+              </Button>
+              
+              {chapters.length > 0 && (
+                <div className="flex space-x-2">
+                  <select 
+                    value={bulkActionChapter || ''}
+                    onChange={(e) => setBulkActionChapter(e.target.value === '' ? null : e.target.value)}
+                    className="px-3 py-1 rounded border"
+                  >
+                    <option value="">Scegli capitolo...</option>
+                    {chapters.map(chapter => (
+                      <option key={chapter.id} value={chapter.id}>
+                        {chapter.title}
+                      </option>
+                    ))}
+                    <option value="unassign">-- Rimuovi da capitoli --</option>
+                  </select>
+                  
+                  <Button 
+                    size="sm" 
+                    onClick={() => {
+                      if (bulkActionChapter === 'unassign') {
+                        assignMultiplePhotosToChapter(selectedPhotos, undefined);
+                      } else if (bulkActionChapter) {
+                        assignMultiplePhotosToChapter(selectedPhotos, bulkActionChapter);
+                      }
+                    }}
+                    disabled={!bulkActionChapter}
+                  >
+                    Assegna
+                  </Button>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+        
+        {/* Toolbar seleziona tutto */}
+        <div className="flex justify-between items-center mb-4">
+          <div>
+            <span className="text-sm text-muted-foreground">
+              {filteredPhotos.length} foto visualizzate
+            </span>
+          </div>
+          <div>
+            <Button 
+              size="sm" 
+              variant="outline" 
+              onClick={filteredPhotos.length > 0 ? selectAllVisiblePhotos : undefined}
+              disabled={filteredPhotos.length === 0}
+            >
+              Seleziona tutte
+            </Button>
+          </div>
+        </div>
+        
         {/* Mostra le foto */}
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
           {filteredPhotos.map(photo => (
-            <Card key={photo.id} className="overflow-hidden">
+            <Card 
+              key={photo.id} 
+              className={cn(
+                "overflow-hidden border-2", 
+                selectedPhotos.includes(photo.id) 
+                  ? "border-blue-gray" 
+                  : "border-transparent hover:border-gray-200"
+              )}
+              onClick={() => togglePhotoSelection(photo.id)}
+            >
               <div className="aspect-square relative">
+                {selectedPhotos.includes(photo.id) && (
+                  <div className="absolute top-2 right-2 z-10 bg-blue-gray text-white rounded-full h-6 w-6 flex items-center justify-center">
+                    <Check className="h-4 w-4" />
+                  </div>
+                )}
                 <img 
                   src={photo.url} 
                   alt={photo.name} 

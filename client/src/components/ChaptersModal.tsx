@@ -52,13 +52,20 @@ export default function ChaptersModal({
           />
         </div>
         
-        <div className="flex justify-end space-x-2 mt-6">
-          <Button variant="outline" onClick={onClose}>
-            Annulla
-          </Button>
-          <Button onClick={handleSave}>
-            Salva galleria
-          </Button>
+        <div className="sticky bottom-0 pt-4 pb-2 bg-white border-t mt-6">
+          <div className="flex justify-between items-center">
+            <p className="text-sm text-muted-foreground">
+              Completa l'organizzazione delle foto e salva la galleria
+            </p>
+            <div className="flex space-x-2">
+              <Button variant="outline" onClick={onClose}>
+                Annulla
+              </Button>
+              <Button size="lg" onClick={handleSave} className="bg-blue-gray hover:bg-blue-gray/90">
+                <span className="mr-2">✓</span> Crea galleria
+              </Button>
+            </div>
+          </div>
         </div>
       </DialogContent>
     </Dialog>
