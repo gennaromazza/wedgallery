@@ -446,8 +446,12 @@ export default function Gallery() {
       {/* Hero Section con decorazioni a tema matrimonio */}
       <div className="relative w-full overflow-hidden">
         {/* Elementi decorativi agli angoli */}
-        <FloralCorner position="top-left" className="absolute top-0 left-0 w-36 h-36 opacity-10 pointer-events-none z-10" />
-        <FloralCorner position="top-right" className="absolute top-0 right-0 w-36 h-36 opacity-10 pointer-events-none z-10" />
+        <div className="absolute top-0 left-0 w-36 h-36 opacity-20 pointer-events-none z-10 transform -translate-x-1/4">
+          <WeddingImage type="flower-bouquet" className="w-full h-auto" alt="Decorazione con fiori" />
+        </div>
+        <div className="absolute top-0 right-0 w-36 h-36 opacity-20 pointer-events-none z-10 transform translate-x-1/4">
+          <WeddingImage type="flower-bouquet" className="w-full h-auto transform scale-x-[-1]" alt="Decorazione con fiori" />
+        </div>
         
         {gallery.coverImageUrl ? (
           <div className="w-full h-64 md:h-96 overflow-hidden">

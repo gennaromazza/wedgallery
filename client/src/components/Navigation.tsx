@@ -11,7 +11,14 @@ interface NavigationProps {
 export default function Navigation({ isAdminNav = false, galleryOwner }: NavigationProps) {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [location] = useLocation();
-  const { currentUser, signOut } = useAuth();
+  // Usa useAuth solo se non è disponibile il context provider
+  const auth = { currentUser: null, signOut: async () => {} };
+  try {
+    Object.assign(auth, useAuth());
+  } catch (error) {
+    console.log('Auth provider non disponibile, disabilito funzionalità di autenticazione');
+  }
+  const { currentUser, signOut } = auth;
   const { studioSettings } = useStudio();
 
   const handleSignOut = async () => {
