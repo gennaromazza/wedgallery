@@ -9,12 +9,15 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card";
+import { Lock } from "lucide-react";
 
 export default function AdminSetupPage() {
   const { toast } = useToast();
   const { studioSettings } = useStudio();
   const [settings, setSettings] = useState({...studioSettings});
   const [isLoading, setIsLoading] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [password, setPassword] = useState("");
 
   const handleSettingsChange = (
     field: string, 
@@ -106,12 +109,86 @@ export default function AdminSetupPage() {
     }
   };
 
+  // Verifica della password - utilizza una password "fotografo123" per questa demo
+  const verifyPassword = () => {
+    // In un'applicazione reale, questa password dovrebbe essere criptata e memorizzata in modo sicuro
+    // Questa è solo una protezione minima temporanea
+    if (password === "fotografo123") {
+      setIsAuthenticated(true);
+      localStorage.setItem('tempAdminAccess', 'true');
+      toast({
+        title: "Accesso consentito",
+        description: "Ora puoi modificare le impostazioni dello studio."
+      });
+    } else {
+      toast({
+        title: "Password errata",
+        description: "La password inserita non è corretta.",
+        variant: "destructive"
+      });
+    }
+  };
+
+  // Controlla se c'è già un accesso temporaneo nel localStorage
+  useEffect(() => {
+    if (localStorage.getItem('tempAdminAccess') === 'true') {
+      setIsAuthenticated(true);
+    }
+  }, []);
+
+  // Se non autenticato, mostra la pagina di login semplice
+  if (!isAuthenticated) {
+    return (
+      <div className="container flex items-center justify-center h-screen">
+        <Card className="w-full max-w-md">
+          <CardHeader className="text-center">
+            <Lock className="w-12 h-12 mx-auto text-blue-gray mb-4" />
+            <CardTitle>Accesso Configurazione</CardTitle>
+            <CardDescription>
+              Questa pagina è riservata agli amministratori. Inserisci la password per accedere.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="password">Password</Label>
+                <Input 
+                  id="password" 
+                  type="password" 
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="Inserisci la password di accesso"
+                />
+              </div>
+            </div>
+          </CardContent>
+          <CardFooter>
+            <Button onClick={verifyPassword} className="w-full">
+              Accedi
+            </Button>
+          </CardFooter>
+        </Card>
+      </div>
+    );
+  }
+
   return (
     <div className="container py-8">
       <h1 className="text-3xl font-bold mb-6 text-center">Impostazioni Studio</h1>
       <p className="text-center text-gray-500 mb-8">
         Configura le informazioni del tuo studio fotografico che verranno visualizzate sul sito.
       </p>
+      <div className="flex justify-center mb-6">
+        <Button 
+          variant="outline" 
+          onClick={() => {
+            localStorage.removeItem('tempAdminAccess');
+            setIsAuthenticated(false);
+          }}
+        >
+          Esci
+        </Button>
+      </div>
 
       <div className="space-y-6 max-w-4xl mx-auto">
         <Card>
