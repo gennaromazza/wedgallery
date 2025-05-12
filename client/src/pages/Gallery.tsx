@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { useParams, useLocation } from "wouter";
-import { collection, query, where, getDocs, doc, getDoc, addDoc, serverTimestamp, orderBy, limit } from "firebase/firestore";
+import { collection, query, where, getDocs, doc, getDoc, addDoc, serverTimestamp, orderBy, limit, startAfter } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { useStudio } from "@/context/StudioContext";
 import { trackGalleryView } from "@/lib/analytics";
@@ -136,22 +136,33 @@ export default function Gallery() {
           }
         }
         
-        // Fetch photos for the gallery
+        // Fetch photos for the gallery with pagination
         const photosRef = collection(db, "galleries", galleryDoc.id, "photos");
-        let photosSnapshot;
+        let photosQuery;
         
-        // Create query based on hasChapters
+        // Create query based on hasChapters with pagination
         if (galleryData.hasChapters) {
-          const q = query(photosRef, orderBy("chapterPosition", "asc"));
-          photosSnapshot = await getDocs(q);
+          photosQuery = query(
+            photosRef, 
+            orderBy("chapterPosition", "asc"),
+            limit(photosPerPage)
+          );
         } else {
-          photosSnapshot = await getDocs(photosRef);
+          photosQuery = query(
+            photosRef,
+            limit(photosPerPage)
+          );
         }
+        
+        const photosSnapshot = await getDocs(photosQuery);
         
         let photosData = photosSnapshot.docs.map(doc => ({
           id: doc.id,
           ...doc.data(),
         })) as PhotoData[];
+        
+        // Controlla se ci sono altre foto da caricare
+        setHasMorePhotos(photosData.length >= photosPerPage);
         
         // Se non ci sono foto nella sottocollezione "photos" ma è indicato che ci sono foto (photoCount > 0),
         // potrebbe essere che le foto siano state caricate nello Storage ma i metadati non siano stati salvati
@@ -281,7 +292,107 @@ export default function Gallery() {
     localStorage.removeItem(`gallery_auth_${id}`);
     navigate("/");
   };
+  
+  // Funzione per caricare più foto quando l'utente scorre verso il basso
+  const loadMorePhotos = useCallback(async () => {
+    if (!gallery || !hasMorePhotos || loadingMorePhotos) return;
+    
+    setLoadingMorePhotos(true);
+    try {
+      const photosRef = collection(db, "galleries", gallery.id, "photos");
+      let photosQuery;
+      
+      // Create query based on hasChapters with pagination and startAfter
+      if (gallery.hasChapters) {
+        // Se ci sono capitoli, ordinare per posizione nel capitolo
+        // Usa startAfter per caricare dalla foto successiva all'ultima caricata
+        if (photos.length > 0) {
+          const lastPhoto = photos[photos.length - 1];
+          const lastPhotoRef = doc(db, "galleries", gallery.id, "photos", lastPhoto.id);
+          const lastPhotoDoc = await getDoc(lastPhotoRef);
+          
+          photosQuery = query(
+            photosRef, 
+            orderBy("chapterPosition", "asc"),
+            startAfter(lastPhotoDoc),
+            limit(photosPerPage)
+          );
+        } else {
+          photosQuery = query(
+            photosRef, 
+            orderBy("chapterPosition", "asc"),
+            limit(photosPerPage)
+          );
+        }
+      } else {
+        // Se non ci sono capitoli, usa l'ID come ordinamento predefinito o un altro campo adeguato
+        if (photos.length > 0) {
+          const lastPhoto = photos[photos.length - 1];
+          const lastPhotoRef = doc(db, "galleries", gallery.id, "photos", lastPhoto.id);
+          const lastPhotoDoc = await getDoc(lastPhotoRef);
+          
+          photosQuery = query(
+            photosRef,
+            startAfter(lastPhotoDoc),
+            limit(photosPerPage)
+          );
+        } else {
+          photosQuery = query(
+            photosRef,
+            limit(photosPerPage)
+          );
+        }
+      }
+      
+      const photosSnapshot = await getDocs(photosQuery);
+      
+      if (!photosSnapshot.empty) {
+        const newPhotosData = photosSnapshot.docs.map(doc => ({
+          id: doc.id,
+          ...doc.data(),
+        })) as PhotoData[];
+        
+        // Aggiungi le nuove foto all'array esistente
+        setPhotos(prevPhotos => [...prevPhotos, ...newPhotosData]);
+        
+        // Verifica se ci sono ancora altre foto da caricare
+        setHasMorePhotos(newPhotosData.length >= photosPerPage);
+      } else {
+        setHasMorePhotos(false);
+      }
+    } catch (error) {
+      console.error("Errore nel caricamento di altre foto:", error);
+      toast({
+        title: "Errore",
+        description: "Si è verificato un errore nel caricamento di altre foto.",
+        variant: "destructive",
+      });
+    } finally {
+      setLoadingMorePhotos(false);
+    }
+  }, [gallery, hasMorePhotos, loadingMorePhotos, photos, photosPerPage, toast]);
 
+  // Effetto per caricare più foto quando l'utente scorre vicino alla fine della pagina
+  useEffect(() => {
+    const handleScroll = () => {
+      // Calcola se l'utente ha scrollato fino a un certo punto vicino al fondo (es. 300px dal fondo)
+      if (
+        window.innerHeight + window.scrollY >= document.body.offsetHeight - 300 &&
+        hasMorePhotos && 
+        !loadingMorePhotos &&
+        !isLoading
+      ) {
+        loadMorePhotos();
+      }
+    };
+    
+    window.addEventListener('scroll', handleScroll);
+    
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+    };
+  }, [hasMorePhotos, loadingMorePhotos, isLoading, loadMorePhotos]);
+  
   // Display loading state
   if (isLoading) {
     return (
@@ -526,6 +637,29 @@ export default function Gallery() {
                           />
                         </div>
                       ))}
+                    </div>
+                  )}
+                  
+                  {/* Pulsante "Carica altre foto" */}
+                  {hasMorePhotos && (
+                    <div className="w-full flex justify-center mt-8 mb-4">
+                      <button
+                        onClick={loadMorePhotos}
+                        disabled={loadingMorePhotos}
+                        className="px-4 py-2 bg-sage text-white rounded-md shadow-sm hover:bg-sage-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        {loadingMorePhotos ? (
+                          <span className="flex items-center">
+                            <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                            </svg>
+                            Caricamento...
+                          </span>
+                        ) : (
+                          'Carica altre foto'
+                        )}
+                      </button>
                     </div>
                   )}
                 </>
