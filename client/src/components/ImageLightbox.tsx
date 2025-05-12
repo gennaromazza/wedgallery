@@ -126,39 +126,57 @@ export default function ImageLightbox({ isOpen, onClose, photos, initialIndex }:
         duration: 3000,
       });
       
-      // Otteniamo l'immagine come blob
-      const response = await fetch(currentPhoto.url, {
-        headers: {
-          // Aggiungiamo un header Origin per evitare problemi CORS
-          'Origin': window.location.origin
-        },
-        mode: 'cors', // Assicuriamo che la richiesta sia cors
-        cache: 'no-cache' // Evitiamo cache per avere sempre l'ultima versione
-      });
+      // Metodo 1: Usa l'elemento immagine già caricato
+      const imgElement = imageRef.current;
+      if (imgElement && imgElement.complete) {
+        // Crea un canvas e disegna l'immagine su di esso
+        const canvas = document.createElement('canvas');
+        canvas.width = imgElement.naturalWidth;
+        canvas.height = imgElement.naturalHeight;
+        
+        const ctx = canvas.getContext('2d');
+        ctx?.drawImage(imgElement, 0, 0);
+        
+        // Converti il canvas in un'immagine scaricabile
+        canvas.toBlob((blob) => {
+          if (blob) {
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.style.display = 'none';
+            link.href = url;
+            link.download = fileName;
+            document.body.appendChild(link);
+            link.click();
+            
+            setTimeout(() => {
+              document.body.removeChild(link);
+              URL.revokeObjectURL(url);
+            }, 100);
+            
+            // Mostra un toast di successo
+            toast({
+              title: "Download completato",
+              description: `${fileName} è stato scaricato con successo.`,
+              duration: 3000,
+            });
+          }
+        }, 'image/jpeg', 0.95);
+        return;
+      }
       
-      if (!response.ok) throw new Error('Network response was not ok');
-      
-      // Creiamo un URL oggetto per il blob
-      const blob = await response.blob();
-      
-      // Creiamo un oggetto URL per scaricare direttamente da browser
-      const blobUrl = window.URL.createObjectURL(blob);
-      
-      // Creiamo un link invisibile per avviare il download
+      // Metodo 2: Fallback - carica direttamente l'URL
+      // Aggiungiamo parametri all'URL per evitare la cache e forzare il download
+      const downloadUrl = `${currentPhoto.url}?alt=media&downloadToken=${Date.now()}`;
       const link = document.createElement('a');
-      link.style.display = 'none'; // Lo rendiamo invisibile
-      link.href = blobUrl;
+      link.style.display = 'none';
+      link.href = downloadUrl;
       link.setAttribute('download', fileName);
-      link.setAttribute('target', '_blank'); // Forza un nuovo contesto
-      
-      // Aggiungiamo il link al documento, lo clicchiamo, e lo rimuoviamo
+      link.setAttribute('target', '_self'); // Mantiene nello stesso contesto
       document.body.appendChild(link);
       link.click();
       
-      // Rimuoviamo il link dopo un breve ritardo
       setTimeout(() => {
         document.body.removeChild(link);
-        window.URL.revokeObjectURL(blobUrl); // Rilasciamo la memoria
       }, 100);
       
       // Mostra un toast di successo
