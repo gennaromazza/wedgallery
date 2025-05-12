@@ -55,6 +55,7 @@ export default function Gallery() {
   const [hasMorePhotos, setHasMorePhotos] = useState(true);
   const [loadingMorePhotos, setLoadingMorePhotos] = useState(false);
   const [photosPerPage, setPhotosPerPage] = useState(20); // Carica 20 foto alla volta
+  const [showAnimation, setShowAnimation] = useState(true);
   const { toast } = useToast();
   const { studioSettings } = useStudio();
 
@@ -439,6 +440,13 @@ export default function Gallery() {
 
   return (
     <div className="min-h-screen bg-off-white">
+      {/* Animazione degli sposi all'apertura della galleria */}
+      {!isLoading && showAnimation && (
+        <WeddingAnimation 
+          onAnimationComplete={() => setShowAnimation(false)}
+          skip={isAdmin} // Skip animation for admin users
+        />
+      )}
       <Navigation galleryOwner={gallery.name.split(' - ')[0]} />
 
       {/* Hero Section con decorazioni a tema matrimonio */}
