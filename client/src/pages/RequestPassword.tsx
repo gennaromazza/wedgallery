@@ -18,7 +18,8 @@ import {
 } from "@/components/ui/select";
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
-import { CoupleIllustration, FloralCorner, FloralDivider, HeartFrameWithRings, BackgroundDecoration } from '@/components/WeddingIllustrations';
+import { FloralCorner, FloralDivider, HeartFrameWithRings, BackgroundDecoration } from '@/components/WeddingIllustrations';
+import { WeddingImage, DecorativeImage } from '@/components/WeddingImages';
 
 const requestSchema = z.object({
   firstName: z.string().min(2, "Il nome deve contenere almeno 2 caratteri"),
@@ -154,8 +155,8 @@ export default function RequestPassword() {
               </div>
               <CardContent className="pt-8 relative z-10">
                 <div className="text-center">
-                  <div className="w-24 h-24 mx-auto mb-4 opacity-15">
-                    <CoupleIllustration />
+                  <div className="w-32 h-32 mx-auto mb-4">
+                    <WeddingImage type="heart-balloon" className="w-full h-auto opacity-30" alt="Decorazione a tema matrimonio" />
                   </div>
                   <h2 className="text-2xl font-bold text-blue-gray font-playfair mb-4">
                     Galleria non trovata
@@ -176,8 +177,8 @@ export default function RequestPassword() {
               </div>
               <CardContent className="pt-8 relative z-10">
                 <div className="text-center">
-                  <div className="w-32 h-32 mx-auto mb-6">
-                    <HeartFrameWithRings />
+                  <div className="w-40 h-40 mx-auto mb-6">
+                    <WeddingImage type="wedding-cake" className="w-full h-auto opacity-60" alt="Torta nuziale" />
                   </div>
                   <h2 className="text-2xl font-bold text-blue-gray font-playfair mb-2">
                     Richiesta inviata
@@ -203,8 +204,8 @@ export default function RequestPassword() {
               </div>
               <CardContent className="pt-8 relative z-10">
                 <div className="text-center mb-6">
-                  <div className="w-24 h-24 mx-auto mb-4 opacity-60">
-                    <HeartFrameWithRings />
+                  <div className="w-32 h-32 mx-auto mb-4">
+                    <WeddingImage type="standing" className="w-full h-auto opacity-60" alt="Coppia di sposi" />
                   </div>
                   <h2 className="text-2xl font-bold text-blue-gray font-playfair">
                     Richiedi la Password

@@ -6,7 +6,8 @@ import { useToast } from '@/hooks/use-toast';
 import { Button } from "@/components/ui/button";
 import Navigation from '@/components/Navigation';
 import Footer from '@/components/Footer';
-import { CoupleIllustration, FloralCorner, FloralDivider, HeartFrameWithRings, BackgroundDecoration } from '@/components/WeddingIllustrations';
+import { FloralCorner, FloralDivider, HeartFrameWithRings, BackgroundDecoration } from '@/components/WeddingIllustrations';
+import { WeddingImage, DecorativeImage } from '@/components/WeddingImages';
 
 export default function PasswordResult() {
   const [, params] = useRoute('/password-result/:code');
