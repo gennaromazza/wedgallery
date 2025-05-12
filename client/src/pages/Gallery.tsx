@@ -107,6 +107,8 @@ export default function Gallery() {
           name: galleryData.name,
           date: galleryData.date,
           location: galleryData.location,
+          description: galleryData.description || "",
+          coverImageUrl: galleryData.coverImageUrl || "",
           hasChapters: galleryData.hasChapters || false
         });
         
