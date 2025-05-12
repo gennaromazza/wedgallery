@@ -5,6 +5,7 @@ import { ref, uploadBytesResumable, getDownloadURL } from "firebase/storage";
 import { collection, addDoc, serverTimestamp, writeBatch, doc } from "firebase/firestore";
 import { db, storage, auth } from "@/lib/firebase";
 import { insertGallerySchema } from "@shared/schema";
+import { z } from "zod";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -91,13 +92,16 @@ export default function NewGalleryModal({ isOpen, onClose }: NewGalleryModalProp
   }, [selectedFiles, previews]);
 
   const form = useForm({
-    resolver: zodResolver(insertGallerySchema),
+    resolver: zodResolver(insertGallerySchema.extend({
+      description: z.string().optional(),
+    })),
     defaultValues: {
       name: "",
       code: "",
       password: "",
       date: "",
       location: "",
+      description: "",
     },
   });
 

@@ -294,6 +294,47 @@ export default function EditGalleryModal({ isOpen, onClose, gallery }: EditGalle
             </div>
             
             <div className="space-y-2">
+              <Label htmlFor="coverImage">Immagine di copertina</Label>
+              <div className="mt-1">
+                <Input
+                  id="coverImage"
+                  type="file"
+                  accept="image/*"
+                  ref={coverInputRef}
+                  onChange={handleCoverImageChange}
+                />
+                <p className="mt-1 text-xs text-gray-500">
+                  Scegli un'immagine di copertina per la tua galleria. Dimensione consigliata: 1920x600px.
+                </p>
+                
+                {coverPreview && (
+                  <div className="mt-2 border rounded-md overflow-hidden">
+                    <div className="relative">
+                      <img 
+                        src={coverPreview} 
+                        alt="Anteprima copertina" 
+                        className="w-full h-48 object-cover"
+                      />
+                      <Button
+                        type="button"
+                        variant="destructive"
+                        size="sm"
+                        className="absolute top-2 right-2"
+                        onClick={() => {
+                          setCoverImage(null);
+                          setCoverPreview(null);
+                          setCoverImageUrl("");
+                        }}
+                      >
+                        Rimuovi
+                      </Button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+            
+            <div className="space-y-2">
               <div className="flex justify-between items-center">
                 <Label htmlFor="password">Password galleria</Label>
                 <Button 
