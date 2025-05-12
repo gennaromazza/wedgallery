@@ -38,63 +38,60 @@ export default function GallerySearch() {
       try {
         const galleriesRef = collection(db, "galleries");
         
-        // Create a query to search for galleries with names that start with the search term
-        // This is case sensitive, which may not be ideal, but it's a starting point
-        const searchTermUpper = searchTerm.toUpperCase();
-        const searchTermLower = searchTerm.toLowerCase();
-
-        // Search by name (both uppercase and lowercase)
-        const nameQueryUpper = query(
+        // Otteniamo tutte le gallerie attive e facciamo il filtro lato client
+        // Questo approccio è più flessibile per una ricerca basata su testo
+        const allGalleriesQuery = query(
           galleriesRef,
           where("active", "==", true),
           orderBy("name"),
-          startAt(searchTermUpper),
-          endAt(searchTermUpper + '\uf8ff'),
-          limit(5)
+          limit(100) // Limitiamo a 100 gallerie per sicurezza
         );
 
-        const nameQueryLower = query(
-          galleriesRef,
-          where("active", "==", true),
-          orderBy("name"),
-          startAt(searchTermLower),
-          endAt(searchTermLower + '\uf8ff'),
-          limit(5)
-        );
-
-        // Execute the queries
-        const [upperResults, lowerResults] = await Promise.all([
-          getDocs(nameQueryUpper),
-          getDocs(nameQueryLower)
-        ]);
-
-        // Combine and deduplicate results
-        const uniqueResults = new Map();
+        const allGalleriesSnapshot = await getDocs(allGalleriesQuery);
         
-        // Process results from the uppercase query
-        upperResults.docs.forEach(doc => {
+        // Processiamo tutti i risultati e filtriamo quelli che contengono il termine di ricerca
+        const searchTermLower = searchTerm.toLowerCase();
+        const searchWords = searchTermLower.split(/\s+/); // Dividiamo in parole
+        
+        const matchedResults: GallerySearchResult[] = [];
+        
+        allGalleriesSnapshot.forEach(doc => {
           const data = doc.data();
-          uniqueResults.set(doc.id, {
-            id: doc.id,
-            name: data.name,
-            code: data.code,
-            date: data.date
-          });
+          const galleryName = data.name.toLowerCase();
+          
+          // Verifichiamo se tutte le parole della ricerca sono contenute nel nome della galleria
+          const allWordsMatch = searchWords.every(word => 
+            galleryName.includes(word)
+          );
+          
+          if (allWordsMatch) {
+            matchedResults.push({
+              id: doc.id,
+              name: data.name,
+              code: data.code,
+              date: data.date
+            });
+          }
         });
-
-        // Process results from the lowercase query
-        lowerResults.docs.forEach(doc => {
-          const data = doc.data();
-          uniqueResults.set(doc.id, {
-            id: doc.id,
-            name: data.name,
-            code: data.code,
-            date: data.date
-          });
+        
+        // Ordiniamo i risultati per rilevanza (numero di corrispondenze esatte)
+        matchedResults.sort((a, b) => {
+          const nameA = a.name.toLowerCase();
+          const nameB = b.name.toLowerCase();
+          
+          // Se una galleria inizia con il termine di ricerca, mettiamola in cima
+          if (nameA.startsWith(searchTermLower) && !nameB.startsWith(searchTermLower)) {
+            return -1;
+          }
+          if (!nameA.startsWith(searchTermLower) && nameB.startsWith(searchTermLower)) {
+            return 1;
+          }
+          
+          return 0;
         });
-
-        // Convert the Map values to an array
-        setSearchResults(Array.from(uniqueResults.values()));
+        
+        // Limitiamo a 10 risultati per la visualizzazione
+        setSearchResults(matchedResults.slice(0, 10));
       } catch (error) {
         console.error("Error searching galleries:", error);
       } finally {
