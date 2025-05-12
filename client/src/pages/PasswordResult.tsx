@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useLocation, useRoute, Link } from 'wouter';
 import { db } from '@/lib/firebase';
-import { collection, doc, getDoc } from 'firebase/firestore';
+import { collection, doc, getDoc, query, where, getDocs } from 'firebase/firestore';
 import { useToast } from '@/hooks/use-toast';
 import Navigation from '@/components/Navigation';
 import Footer from '@/components/Footer';
