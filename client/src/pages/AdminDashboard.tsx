@@ -201,6 +201,25 @@ export default function AdminDashboard() {
     }
   };
   
+  // Funzione per effettuare il logout
+  const handleLogout = async () => {
+    try {
+      // Esegui logout da Firebase
+      await signOut(auth);
+      // Rimuovi il flag di amministratore
+      localStorage.removeItem('isAdmin');
+      // Reindirizza alla pagina di login
+      navigate('/admin');
+    } catch (error) {
+      console.error("Errore durante il logout:", error);
+      toast({
+        title: "Errore",
+        description: "Si è verificato un errore durante il logout.",
+        variant: "destructive"
+      });
+    }
+  };
+  
   // Funzione per salvare le impostazioni dello studio
   const saveStudioSettings = async () => {
     try {
@@ -450,7 +469,7 @@ export default function AdminDashboard() {
   };
 
   // Verifica se l'utente è autenticato
-  if (!currentUser && !localStorage.getItem('isAdmin')) {
+  if (!localStorage.getItem('isAdmin')) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-off-white">
         <div className="text-center">
@@ -489,6 +508,13 @@ export default function AdminDashboard() {
                   Nuova Galleria
                 </Button>
               )}
+              <Button 
+                onClick={handleLogout}
+                variant="destructive"
+                className="px-4 py-2"
+              >
+                Logout
+              </Button>
             </div>
           </div>
         </div>
