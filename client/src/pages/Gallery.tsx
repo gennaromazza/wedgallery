@@ -16,6 +16,8 @@ interface GalleryData {
   name: string;
   date: string;
   location: string;
+  description?: string;
+  coverImageUrl?: string;
   hasChapters?: boolean;
 }
 

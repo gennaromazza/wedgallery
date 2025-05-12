@@ -23,7 +23,10 @@ export default function NewGalleryModal({ isOpen, onClose }: NewGalleryModalProp
   const [uploading, setUploading] = useState(false);
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const [previews, setPreviews] = useState<string[]>([]);
+  const [coverImage, setCoverImage] = useState<File | null>(null);
+  const [coverPreview, setCoverPreview] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const coverInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
   const queryClient = useQueryClient();
   
@@ -37,11 +40,41 @@ export default function NewGalleryModal({ isOpen, onClose }: NewGalleryModalProp
     if (!isOpen) {
       setSelectedFiles([]);
       setPreviews([]);
+      setCoverImage(null);
+      setCoverPreview(null);
       setPhotosWithChapters([]);
       setChapters([]);
       setShowChaptersModal(false);
     }
   }, [isOpen]);
+  
+  // Gestisce il caricamento dell'immagine di copertina
+  const handleCoverImageChange = (e: ChangeEvent<HTMLInputElement>) => {
+    if (!e.target.files || e.target.files.length === 0) {
+      setCoverImage(null);
+      setCoverPreview(null);
+      return;
+    }
+    
+    const file = e.target.files[0];
+    if (!file.type.startsWith('image/')) {
+      toast({
+        title: "Tipo di file non supportato",
+        description: "L'immagine di copertina deve essere un'immagine (JPEG, PNG, ecc.)",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    setCoverImage(file);
+    
+    // Crea URL anteprima
+    const objectUrl = URL.createObjectURL(file);
+    setCoverPreview(objectUrl);
+    
+    // Cleanup URL quando il componente viene smontato
+    return () => URL.revokeObjectURL(objectUrl);
+  };
   
   // Converte i file in PhotoWithChapter quando i file cambiano
   useEffect(() => {
@@ -173,6 +206,20 @@ export default function NewGalleryModal({ isOpen, onClose }: NewGalleryModalProp
         return;
       }
       
+      // Se abbiamo selezionato un'immagine di copertina, la carichiamo prima
+      let coverImageUrl = "";
+      if (coverImage) {
+        try {
+          const storageRef = ref(storage, `galleries/covers/${data.code}_cover`);
+          await uploadBytesResumable(storageRef, coverImage);
+          coverImageUrl = await getDownloadURL(storageRef);
+          console.log("Immagine di copertina caricata:", coverImageUrl);
+        } catch (error) {
+          console.error("Errore nell'upload della copertina:", error);
+          // Continuiamo comunque con la creazione della galleria
+        }
+      }
+      
       // Create gallery document first
       const galleryData = {
         name: data.name,
@@ -180,6 +227,8 @@ export default function NewGalleryModal({ isOpen, onClose }: NewGalleryModalProp
         password: data.password,
         date: data.date,
         location: data.location,
+        description: data.description || "",
+        coverImageUrl,
         createdAt: serverTimestamp(),
         photoCount: selectedFiles.length,
         hasChapters: chapters.length > 0,
