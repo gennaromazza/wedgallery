@@ -96,7 +96,7 @@ export default function GalleryAccess() {
       const galleryDoc = querySnapshot.docs[0];
       localStorage.setItem(`gallery_auth_${id}`, "true");
       localStorage.setItem(`gallery_id_${id}`, galleryDoc.id);
-      navigate(`/view/${id}`);
+      window.location.href = `/wedgallery/view/${id}`;
     } catch (error) {
       console.error("Error accessing gallery:", error);
       toast({
