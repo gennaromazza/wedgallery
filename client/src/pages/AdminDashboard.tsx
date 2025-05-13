@@ -20,7 +20,122 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useQueryClient } from "@tanstack/react-query";
-import { Search, Plus, Edit, Trash, Eye, EyeOff, RefreshCw, Download, Key } from "lucide-react";
+import { Search, Plus, Edit, Trash, Eye, EyeOff, RefreshCw, Download, Key, ChevronLeft, ChevronRight } from "lucide-react";
+
+// Componente di paginazione riutilizzabile
+interface PaginationControlsProps {
+  currentPage: number;
+  totalPages: number;
+  onPageChange: (page: number) => void;
+  onPrevious: () => void;
+  onNext: () => void;
+}
+
+function PaginationControls({ currentPage, totalPages, onPageChange, onPrevious, onNext }: PaginationControlsProps) {
+  // Non mostrare controlli se c'è solo una pagina
+  if (totalPages <= 1) return null;
+  
+  return (
+    <div className="flex justify-center items-center mt-6 space-x-1">
+      <Button 
+        variant="outline" 
+        size="sm"
+        onClick={onPrevious} 
+        disabled={currentPage === 1}
+      >
+        <ChevronLeft className="h-4 w-4 mr-1" /> Prec
+      </Button>
+      
+      {totalPages <= 5 ? (
+        // Se ci sono 5 o meno pagine, mostra tutti i numeri
+        Array.from({ length: totalPages }, (_, i) => (
+          <Button
+            key={i}
+            variant={currentPage === i + 1 ? "default" : "outline"}
+            size="sm"
+            className="w-8"
+            onClick={() => onPageChange(i + 1)}
+          >
+            {i + 1}
+          </Button>
+        ))
+      ) : (
+        // Se ci sono più di 5 pagine, mostra un sottoinsieme con "..."
+        <>
+          {/* Prima pagina */}
+          <Button
+            variant={currentPage === 1 ? "default" : "outline"}
+            size="sm"
+            className="w-8"
+            onClick={() => onPageChange(1)}
+          >
+            1
+          </Button>
+          
+          {/* Ellipsis o pagine vicine all'attuale */}
+          {currentPage > 3 && <span className="mx-1">...</span>}
+          
+          {/* Pagine adiacenti */}
+          {currentPage > 2 && (
+            <Button
+              variant="outline"
+              size="sm"
+              className="w-8"
+              onClick={() => onPageChange(currentPage - 1)}
+            >
+              {currentPage - 1}
+            </Button>
+          )}
+          
+          {/* Pagina corrente (se non è la prima o l'ultima) */}
+          {currentPage !== 1 && currentPage !== totalPages && (
+            <Button
+              variant="default"
+              size="sm"
+              className="w-8"
+            >
+              {currentPage}
+            </Button>
+          )}
+          
+          {/* Pagina successiva */}
+          {currentPage < totalPages - 1 && (
+            <Button
+              variant="outline"
+              size="sm"
+              className="w-8"
+              onClick={() => onPageChange(currentPage + 1)}
+            >
+              {currentPage + 1}
+            </Button>
+          )}
+          
+          {/* Ellipsis finale */}
+          {currentPage < totalPages - 2 && <span className="mx-1">...</span>}
+          
+          {/* Ultima pagina */}
+          <Button
+            variant={currentPage === totalPages ? "default" : "outline"}
+            size="sm"
+            className="w-8"
+            onClick={() => onPageChange(totalPages)}
+          >
+            {totalPages}
+          </Button>
+        </>
+      )}
+      
+      <Button 
+        variant="outline" 
+        size="sm"
+        onClick={onNext} 
+        disabled={currentPage === totalPages}
+      >
+        Succ <ChevronRight className="h-4 w-4 ml-1" />
+      </Button>
+    </div>
+  );
+}
 
 interface GalleryItem {
   id: string;
