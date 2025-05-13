@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { collection, getDocs } from "firebase/firestore";
 import { useLocation } from "wouter";
 import { db } from "@/lib/firebase";
-import { createUrl } from "@/lib/basePathFixed";
+import { createUrl, createAbsoluteUrl } from "@/lib/basePathFixed";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import { Search } from "lucide-react";
@@ -79,13 +79,22 @@ export default function GallerySearch() {
   }, [searchTerm, allGalleries]);
 
   const handleGallerySelect = (code: string) => {
-    // Crea l'URL completo con il percorso base
-    const url = createUrl(`/gallery/${code}`);
-    console.log("Navigazione a:", url);
+    // Crea l'URL completo con il percorso base, usando createAbsoluteUrl per 
+    // ottenere un URL assoluto che funziona indipendentemente dal contesto
+    const url = createAbsoluteUrl(`/gallery/${code}`);
+    console.log("[GallerySearch] Navigazione a galleria:", url);
     
     // Utilizziamo un metodo di navigazione diretto per tutti i dispositivi
     // per garantire la massima compatibilità
-    window.location.href = url;
+    try {
+      // Verifico se l'URL è valido prima di tentare la navigazione
+      new URL(url); // Lancia un'eccezione se l'URL non è valido
+      window.location.href = url;
+    } catch (error) {
+      console.error("[GallerySearch] Errore nell'URL della galleria:", error);
+      // Fallback in caso di errore: tenta di usare un URL relativo
+      window.location.href = createUrl(`/gallery/${code}`);
+    }
   };
 
   return (
