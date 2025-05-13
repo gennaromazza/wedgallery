@@ -757,6 +757,9 @@ export default function AdminDashboard() {
                           <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                             Galleria
                           </th>
+                          <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Azioni
+                          </th>
                         </tr>
                       </thead>
                       <tbody className="bg-white divide-y divide-gray-200">
@@ -779,6 +782,17 @@ export default function AdminDashboard() {
                               <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800">
                                 {request.galleryCode}
                               </span>
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                              <Button 
+                                variant="ghost" 
+                                size="sm"
+                                onClick={() => deletePasswordRequest(request.id)}
+                                className="text-red-600 hover:text-red-900"
+                              >
+                                <Trash className="h-4 w-4 mr-1" />
+                                <span>Elimina</span>
+                              </Button>
                             </td>
                           </tr>
                         ))}
