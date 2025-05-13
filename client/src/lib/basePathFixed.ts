@@ -1,5 +1,5 @@
-// VERSIONE FINALE SPA in SUBDIRECTORY
-// Gestisce correttamente il caso di una SPA montata in una sottocartella
+// VERSIONE STABILE E SICURA PER ROUTING IN SUBDIRECTORY
+// Gestisce correttamente il routing in produzione e sviluppo
 
 /**
  * Ottiene il path base dell'applicazione in base all'ambiente
@@ -19,62 +19,73 @@ export function getBasePath(): string {
   return '';
 }
 
+// Questo è importante per capire se l'app è già montata
+// nella sottodirectory o se è in un percorso semplice
+export function isInSubdirectory(): boolean {
+  const basePath = getBasePath();
+  // Verifica esplicita dei tipi per evitare problemi di inferenza
+  const hasBasePath = basePath !== '';
+  const isInPath = hasBasePath ? window.location.pathname.startsWith(basePath) : false;
+  const isProd = import.meta.env.PROD === true;
+  
+  return hasBasePath && isInPath && isProd;
+}
+
 /**
- * Crea un URL con il path base corretto, verificando se siamo già in una sottodirectory
+ * Crea un URL assoluto (con origine e tutti i percorsi completi)
+ * Utile per redirect e navigazione esterna
+ */
+export function createAbsoluteUrl(path: string): string {
+  const relativeUrl = createUrl(path);
+  return `${window.location.origin}${relativeUrl}`;
+}
+
+/**
+ * Crea un URL con il path base corretto
  * @param path Il percorso relativo (può iniziare con o senza /)
- * @returns L'URL completo con il path base, gestendo correttamente i già presenti in sottodirectory
+ * @returns L'URL completo con il path base
  */
 export function createUrl(path: string): string {
   try {
     const basePath = getBasePath();
     
-    // CONTROLLO CRITICO: Se l'URL attuale del browser contiene già il basePath
-    // non dobbiamo aggiungerlo nuovamente
-    const alreadyInSubdirectory = basePath && 
-                                window.location.pathname.startsWith(basePath) && 
-                                import.meta.env.PROD;
-    
-    // Se siamo già nella sottodirectory, non aggiungiamo il basePath
-    if (alreadyInSubdirectory) {
-      // Caso speciale: pagina home
-      if (path === '' || path === '/') {
-        return '/';
-      }
-      
-      // Normalizza il path con slash iniziale
-      const normalizedPath = path.startsWith('/') ? path : `/${path}`;
-      console.log(`[createUrl] In subdirectory - path: "${path}" → "${normalizedPath}"`);
-      return normalizedPath;
-    }
-    
-    // CASO NORMALE: non siamo già nella subdirectory
-    
-    // Caso speciale: pagina home
+    // CASO SPECIALE - HOME PAGE
     if (path === '' || path === '/') {
+      // Per la home page, sempre ritorna il basePath con slash
       const home = basePath ? `${basePath}/` : '/';
       console.log(`[createUrl] HOME path: "${path}" → "${home}"`);
       return home;
     }
     
-    // Rimuovi gli slash iniziali e finali
-    const cleanBasePath = basePath.replace(/^\/|\/$/g, '');
+    // STRATEGIA SICURA PER TUTTI GLI ALTRI PERCORSI
+    
+    // 1. Normalizza il path rimuovendo slash iniziali e finali
+    // (verranno aggiunti in modo consistente)
     const cleanPath = path.replace(/^\/|\/$/g, '');
     
-    // Costruisci l'URL con gli slash corretti
-    let url = '';
+    // 2. Determina se è necessario includere il basePath
+    // Non facciamo affidamento sulla posizione attuale dell'URL
+    // ma garantiamo sempre un percorso completo e corretto
     
-    if (cleanBasePath) {
-      url = `/${cleanBasePath}/${cleanPath}`;
-    } else {
-      url = `/${cleanPath}`;
+    // Per un'app in produzione, aggiungiamo sempre il basePath
+    if (basePath && import.meta.env.PROD) {
+      // Rimuovi eventuali slash iniziali e finali dal basePath
+      const cleanBasePath = basePath.replace(/^\/|\/$/g, '');
+      // Costruisci l'URL garantendo uno slash tra basePath e path
+      const url = `/${cleanBasePath}/${cleanPath}`;
+      console.log(`[createUrl] PROD path: "${path}" → "${url}"`);
+      return url;
+    } 
+    // In sviluppo, usa solo il percorso semplice
+    else {
+      const url = `/${cleanPath}`;
+      console.log(`[createUrl] DEV path: "${path}" → "${url}"`);
+      return url;
     }
-    
-    console.log(`[createUrl] path: "${path}" → "${url}"`);
-    return url;
   } catch (error) {
     console.error(`[createUrl] Errore nel creare l'URL per "${path}":`, error);
-    // In caso di errore, ritorna il path originale
-    return path;
+    // In caso di errore, ritorna un percorso valido
+    return path.startsWith('/') ? path : `/${path}`;
   }
 }
 

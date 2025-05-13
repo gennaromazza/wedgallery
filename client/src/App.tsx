@@ -66,12 +66,15 @@ function App() {
       console.log('[App] Pathname:', window.location.pathname);
       console.log('[App] Base Path:', basePath);
       
-      // Controlla se l'URL corrente contiene il percorso duplicato /wedgallery/wedgallery
-      if (window.location.pathname.includes('/wedgallery/wedgallery')) {
-        console.error('[App] CORREZIONE: URL contiene percorso duplicato /wedgallery/wedgallery');
+      // Pattern problematico: URL che contiene /wedgallery/ ripetuto più volte
+      const duplicatePattern = /\/wedgallery(\/+wedgallery)+/;
+      
+      if (duplicatePattern.test(window.location.pathname)) {
+        console.error('[App] CORREZIONE: URL contiene percorso /wedgallery duplicato');
         
-        // Estrai il percorso corretto eliminando la duplicazione
-        const correctedPath = window.location.pathname.replace('/wedgallery/wedgallery', '/wedgallery');
+        // Sostituisci tutte le occorrenze multiple con una singola
+        // \1 è il gruppo catturato (\/wedgallery)
+        const correctedPath = window.location.pathname.replace(duplicatePattern, '/wedgallery');
         const correctedUrl = `${window.location.origin}${correctedPath}${window.location.search}`;
         
         console.log('[App] Correggo URL da:', window.location.href);
