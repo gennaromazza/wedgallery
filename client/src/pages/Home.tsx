@@ -852,6 +852,3 @@ export default function Home() {
     </div>
   );
 }
-```
-
-The code is modified to fix gallery search links.Okay, I will continue generating the code, applying the requested change.
