@@ -58,15 +58,23 @@ function App() {
   const basePath = getBasePath();
   console.log(`[App] Using base path: "${basePath}"`);
   
-  // Aggiungiamo gestione esplicita per l'ambiente di produzione
+  // Gestione avanzata dell'ambiente con logging dettagliato
   useEffect(() => {
     if (import.meta.env.PROD) {
       console.log('[App] Running in production mode');
-      // Possiamo aggiungere qui ulteriori configurazioni specifiche per la produzione
+      console.log('[App] Base URL:', window.location.origin);
+      console.log('[App] Pathname:', window.location.pathname);
+      console.log('[App] Base Path:', basePath);
+      
+      // Controlla se l'URL corrente contiene già /wedgallery/wedgallery
+      if (window.location.pathname.includes('/wedgallery/wedgallery')) {
+        console.error('[App] ATTENZIONE: URL contiene percorso duplicato /wedgallery/wedgallery');
+        console.log('[App] URL corrente:', window.location.href);
+      }
     } else {
       console.log('[App] Running in development mode');
     }
-  }, []);
+  }, [basePath]);
   
   return (
     <QueryClientProvider client={queryClient}>
@@ -75,7 +83,7 @@ function App() {
           <AuthProvider>
             <StudioProvider>
               <Toaster />
-              <WouterRouter base={basePath}>
+              <WouterRouter base={basePath.endsWith('/') ? basePath.slice(0, -1) : basePath}>
                 <Router />
               </WouterRouter>
             </StudioProvider>
