@@ -4,7 +4,7 @@ import { collection, query, where, getDocs, doc, getDoc, addDoc, serverTimestamp
 import { db } from "@/lib/firebase";
 import { useStudio } from "@/context/StudioContext";
 import { trackGalleryView } from "@/lib/analytics";
-import { createUrl } from "@/lib/basePathFixed";
+import { createUrl, createAbsoluteUrl } from "@/lib/basePathFixed";
 import Navigation from "@/components/Navigation";
 import ImageLightbox from "@/components/ImageLightbox";
 import { useToast } from "@/hooks/use-toast";

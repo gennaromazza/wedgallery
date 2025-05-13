@@ -1,5 +1,6 @@
 // VERSIONE STABILE E SICURA PER ROUTING IN SUBDIRECTORY
 // Gestisce correttamente il routing in produzione e sviluppo
+import { useState, useEffect } from 'react';
 
 /**
  * Ottiene il path base dell'applicazione in base all'ambiente
@@ -92,11 +93,56 @@ export function createUrl(path: string): string {
 /**
  * Hook personalizzato che sostituisce useLocation di wouter
  * per gestire correttamente il path base nelle navigazioni
+ * 
+ * Questo metodo estrae l'URL relativo dalla locazione corrente,
+ * rimuovendo il basePath se presente.
  */
-export function useBaseLocation() {
+export function useBaseLocation(): [string, (to: string) => void] {
+  const [location, setLocation] = useState<string>("");
+  const [navigate, setNavigate] = useState<(to: string) => void>(() => (path: string) => {
+    console.warn("[useBaseLocation] Navigate function not yet initialized");
+  });
+  
   const basePath = getBasePath();
-  console.log(`[useBaseLocation] basePath: "${basePath}"`);
-  return basePath;
+  
+  // Inizializza e aggiorna la location corrente
+  useEffect(() => {
+    // Funzione che estrae il percorso relativo dalla URL corrente
+    const getCurrentLocation = (): string => {
+      const { pathname } = window.location;
+      
+      // Se siamo in produzione e abbiamo un basePath, rimuovilo dal pathname
+      if (isProduction() && basePath && pathname.startsWith(basePath)) {
+        const relativePath = pathname.slice(basePath.length) || "/";
+        console.log(`[useBaseLocation] Extracted path: "${relativePath}" from "${pathname}"`);
+        return relativePath;
+      }
+      
+      // Altrimenti ritorna il pathname semplice
+      return pathname;
+    };
+    
+    // Imposta la location corrente
+    setLocation(getCurrentLocation());
+    
+    // Crea funzione di navigazione
+    setNavigate(() => (to: string) => {
+      const fullPath = createUrl(to);
+      console.log(`[useBaseLocation] Navigating to: "${fullPath}" (from "${to}")`);
+      window.history.pushState(null, '', fullPath);
+      setLocation(to);
+    });
+    
+    // Listener per aggiornare la location quando cambia l'URL
+    const handlePopState = () => {
+      setLocation(getCurrentLocation());
+    };
+    
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, [basePath]);
+  
+  return [location, navigate];
 }
 
 /**
