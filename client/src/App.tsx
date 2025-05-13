@@ -8,7 +8,7 @@ import { StudioProvider } from "./context/StudioContext";
 import { ThemeProvider } from "next-themes";
 import { trackPageView } from "./lib/analytics";
 import { useEffect } from "react";
-import { getBasePath } from "./lib/basePath";
+import { getBasePath } from "./lib/basePathFixed"; // Uso del nuovo modulo
 
 import Home from "@/pages/Home";
 import GalleryAccess from "@/pages/GalleryAccess";
@@ -26,6 +26,7 @@ function useAnalytics() {
   useEffect(() => {
     // Traccia il cambio di pagina
     trackPageView(location);
+    console.log(`[useAnalytics] tracking page view: ${location}`);
   }, [location]);
   
   return null;
@@ -36,8 +37,7 @@ function Router() {
   // Utilizza il hook per tracciare le navigazioni
   useAnalytics();
   
-  // Ottiene il base path configurato
-  const basePath = getBasePath();
+  console.log("[Router] Initializing router with all routes");
   
   return (
     <Switch>
@@ -56,6 +56,17 @@ function Router() {
 function App() {
   // Configura il base path per il router
   const basePath = getBasePath();
+  console.log(`[App] Using base path: "${basePath}"`);
+  
+  // Aggiungiamo gestione esplicita per l'ambiente di produzione
+  useEffect(() => {
+    if (import.meta.env.PROD) {
+      console.log('[App] Running in production mode');
+      // Possiamo aggiungere qui ulteriori configurazioni specifiche per la produzione
+    } else {
+      console.log('[App] Running in development mode');
+    }
+  }, []);
   
   return (
     <QueryClientProvider client={queryClient}>
