@@ -98,10 +98,10 @@ export default function GalleryAccess() {
       localStorage.setItem(`gallery_auth_${id}`, "true");
       localStorage.setItem(`gallery_id_${id}`, galleryDoc.id);
       
-      // Usa createUrl per generare un URL corretto in base all'ambiente
-      const viewUrl = createUrl(`/view/${id}`);
-      console.log(`[GalleryAccess] Navigating to: ${viewUrl}`);
-      window.location.href = viewUrl;
+      // Naviga alla visualizzazione della galleria usando il router wouter
+      // che gestirà correttamente il basePath
+      console.log(`[GalleryAccess] Navigating to gallery view: /view/${id}`);
+      navigate(`/view/${id}`);
     } catch (error) {
       console.error("Error accessing gallery:", error);
       toast({

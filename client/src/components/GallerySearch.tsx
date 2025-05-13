@@ -79,22 +79,14 @@ export default function GallerySearch() {
   }, [searchTerm, allGalleries]);
 
   const handleGallerySelect = (code: string) => {
-    // Crea l'URL completo con il percorso base, usando createAbsoluteUrl per 
-    // ottenere un URL assoluto che funziona indipendentemente dal contesto
-    const url = createAbsoluteUrl(`/gallery/${code}`);
-    console.log("[GallerySearch] Navigazione a galleria:", url);
+    console.log("[GallerySearch] Navigazione a galleria con code:", code);
     
-    // Utilizziamo un metodo di navigazione diretto per tutti i dispositivi
-    // per garantire la massima compatibilità
-    try {
-      // Verifico se l'URL è valido prima di tentare la navigazione
-      new URL(url); // Lancia un'eccezione se l'URL non è valido
-      window.location.href = url;
-    } catch (error) {
-      console.error("[GallerySearch] Errore nell'URL della galleria:", error);
-      // Fallback in caso di errore: tenta di usare un URL relativo
-      window.location.href = createUrl(`/gallery/${code}`);
-    }
+    // Utilizziamo il router di wouter per la navigazione
+    const galleryPath = `/gallery/${code}`;
+    console.log("[GallerySearch] Path relativo:", galleryPath);
+    
+    // Utilizziamo navigate di wouter che gestirà correttamente il basePath
+    navigate(galleryPath);
   };
 
   return (
@@ -132,7 +124,7 @@ export default function GallerySearch() {
                   className="p-0 hover:bg-gray-50 cursor-pointer"
                 >
                   <a 
-                    href={createAbsoluteUrl(`/gallery/${gallery.code}`)}
+                    href={createUrl(`/gallery/${gallery.code}`)}
                     className="block p-3 w-full h-full no-underline"
                     aria-label={`Visualizza la galleria ${gallery.name}`}
                     onClick={(e) => {
