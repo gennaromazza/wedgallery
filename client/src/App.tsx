@@ -61,12 +61,14 @@ function App() {
     <QueryClientProvider client={queryClient}>
       <ThemeProvider attribute="class" defaultTheme="light">
         <TooltipProvider>
-          <StudioProvider>
-            <Toaster />
-            <WouterRouter base={basePath}>
-              <Router />
-            </WouterRouter>
-          </StudioProvider>
+          <AuthProvider>
+            <StudioProvider>
+              <Toaster />
+              <WouterRouter base="/wedgallery">
+                <Router />
+              </WouterRouter>
+            </StudioProvider>
+          </AuthProvider>
         </TooltipProvider>
       </ThemeProvider>
     </QueryClientProvider>
