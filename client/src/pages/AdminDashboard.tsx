@@ -352,8 +352,8 @@ export default function AdminDashboard() {
       await signOut(auth);
       // Rimuovi il flag di amministratore
       localStorage.removeItem('isAdmin');
-      // Reindirizza alla pagina di login
-      navigate('/admin');
+      // Reindirizza alla pagina di login usando il percorso assoluto
+      window.location.href = "/wedgallery/admin";
     } catch (error) {
       console.error("Errore durante il logout:", error);
       toast({

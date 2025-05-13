@@ -64,7 +64,7 @@ function App() {
           <AuthProvider>
             <StudioProvider>
               <Toaster />
-              <WouterRouter base="/wedgallery">
+              <WouterRouter base={basePath}>
                 <Router />
               </WouterRouter>
             </StudioProvider>

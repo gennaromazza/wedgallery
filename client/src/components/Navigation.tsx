@@ -19,7 +19,7 @@ export default function Navigation({ isAdminNav = false, galleryOwner }: Navigat
   const signOut = async () => {
     // Implementazione predefinita sicura
     localStorage.removeItem('isAdmin');
-    window.location.href = createUrl("/admin");
+    window.location.href = "/wedgallery/admin";
   };
 
   const handleSignOut = async () => {
