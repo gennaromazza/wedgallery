@@ -53,7 +53,7 @@ export default function AdminLogin() {
       await signInWithEmailAndPassword(auth, data.email, data.password);
       // Salva informazione che l'utente è un amministratore
       localStorage.setItem("isAdmin", "true");
-      window.location.href = "/admin/dashboard";
+      window.location.href = createUrl("/admin/dashboard");
     } catch (error: any) {
       console.error("Login error:", error);
       let errorMessage = "Si è verificato un errore durante l'accesso.";
