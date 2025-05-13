@@ -33,6 +33,7 @@ export default function EditGalleryModal({ isOpen, onClose, gallery }: EditGalle
   const [location, setLocation] = useState("");
   const [description, setDescription] = useState("");
   const [password, setPassword] = useState("");
+  const [youtubeUrl, setYoutubeUrl] = useState("");
   const [coverImageUrl, setCoverImageUrl] = useState("");
   const [coverImage, setCoverImage] = useState<File | null>(null);
   const [coverPreview, setCoverPreview] = useState<string | null>(null);
@@ -52,6 +53,7 @@ export default function EditGalleryModal({ isOpen, onClose, gallery }: EditGalle
       setLocation(gallery.location || "");
       setDescription(gallery.description || "");
       setPassword(gallery.password || "");
+      setYoutubeUrl(gallery.youtubeUrl || "");
       setCoverImageUrl(gallery.coverImageUrl || "");
       
       // Se c'è un'immagine di copertina esistente, impostiamo l'anteprima
@@ -171,7 +173,8 @@ export default function EditGalleryModal({ isOpen, onClose, gallery }: EditGalle
         location,
         description,
         password,
-        coverImageUrl: newCoverImageUrl
+        coverImageUrl: newCoverImageUrl,
+        youtubeUrl
       });
       
       toast({
@@ -292,6 +295,19 @@ export default function EditGalleryModal({ isOpen, onClose, gallery }: EditGalle
                 placeholder="Descrizione opzionale dell'evento"
                 rows={3}
               />
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="youtubeUrl">URL video YouTube</Label>
+              <Input
+                id="youtubeUrl"
+                value={youtubeUrl}
+                onChange={(e) => setYoutubeUrl(e.target.value)}
+                placeholder="https://www.youtube.com/watch?v=..."
+              />
+              <p className="mt-1 text-xs text-gray-500">
+                Inserisci l'URL completo di un video YouTube da incorporare nella galleria (opzionale).
+              </p>
             </div>
             
             <div className="space-y-2">
