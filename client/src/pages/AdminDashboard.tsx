@@ -856,7 +856,7 @@ export default function AdminDashboard() {
                         </tr>
                       </thead>
                       <tbody className="bg-white divide-y divide-gray-200">
-                        {passwordRequests.map((request) => (
+                        {currentRequests.map((request) => (
                           <tr key={request.id}>
                             <td className="px-6 py-4 whitespace-nowrap">
                               <div className="text-sm text-gray-500">
