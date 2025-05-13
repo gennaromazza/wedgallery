@@ -1,18 +1,14 @@
-# Configurazione base per il routing in sottodirectory
+# Configurazione base per il routing a livello root
 <IfModule mod_rewrite.c>
   RewriteEngine On
-  RewriteBase /wedgallery/
+  RewriteBase /
   
-  # Regola 1: Corregge percorsi duplicati /wedgallery/wedgallery/
-  RewriteCond %{REQUEST_URI} ^/wedgallery/wedgallery/
-  RewriteRule ^wedgallery/wedgallery/(.*)$ /wedgallery/$1 [R=301,L]
-  
-  # Regola 2: Non riscrivere file o directory esistenti
+  # Non riscrivere file o directory esistenti
   RewriteCond %{REQUEST_FILENAME} -f [OR]
   RewriteCond %{REQUEST_FILENAME} -d
   RewriteRule ^ - [L]
   
-  # Regola 3: Tutte le altre richieste vanno a index.html (per SPA)
+  # Tutte le altre richieste vanno a index.html (per SPA)
   RewriteRule ^ index.html [QSA,L]
 </IfModule>
 

@@ -58,7 +58,7 @@ function App() {
   const basePath = getBasePath();
   console.log(`[App] Using base path: "${basePath}"`);
   
-  // Sistema di correzione avanzato per gestire i percorsi duplicati e rotte non valide
+  // Logging di base per il debug
   useEffect(() => {
     // Otteniamo informazioni sull'ambiente e sull'URL corrente
     const isProduction = import.meta.env.PROD;
@@ -69,41 +69,16 @@ function App() {
     console.log('[App] Pathname:', pathname);
     console.log('[App] Base Path:', basePath);
     
-    // FASE 1: Gestione dei percorsi duplicati in ambiente di produzione
-    if (isProduction) {
-      // CASO 1: URL che contiene /wedgallery/ ripetuto più volte
-      // Esempi: /wedgallery/wedgallery/admin o /wedgallery/wedgallery/wedgallery/gallery/abc
-      const duplicatePattern = /\/wedgallery(\/+wedgallery)+/;
+    // Controllo generico per slash multipli (es: //admin invece di /admin)
+    if (isProduction && /\/\/+/.test(pathname)) {
+      // Normalizza qualsiasi sequenza di slash multipli in un singolo slash
+      const correctedPath = pathname.replace(/\/\/+/g, '/');
+      const correctedUrl = `${origin}${correctedPath}${search}`;
       
-      if (duplicatePattern.test(pathname)) {
-        console.error('[App] CORREZIONE: URL contiene percorso /wedgallery duplicato');
-        
-        // Sostituisci tutte le occorrenze multiple con una singola
-        const correctedPath = pathname.replace(duplicatePattern, '/wedgallery');
-        const correctedUrl = `${origin}${correctedPath}${search}`;
-        
-        console.log('[App] Correzione URL da:', href);
-        console.log('[App] A:', correctedUrl);
-        
-        // Reindirizza l'utente all'URL corretto, senza aggiungere una nuova voce nella history
-        window.history.replaceState(null, '', correctedUrl);
-        return; // Termina qui per non continuare con altri controlli
-      }
+      console.log('[App] Correzione slash multipli da:', href);
+      console.log('[App] A:', correctedUrl);
       
-      // CASO 2: URL con percorso duplicato in formato diverso
-      // Esempio: /wedgallery//admin o /wedgallery///gallery/abc
-      const multiSlashPattern = /\/wedgallery\/+/;
-      
-      if (multiSlashPattern.test(pathname)) {
-        const correctedPath = pathname.replace(multiSlashPattern, '/wedgallery/');
-        const correctedUrl = `${origin}${correctedPath}${search}`;
-        
-        console.log('[App] Correzione slash multipli da:', href);
-        console.log('[App] A:', correctedUrl);
-        
-        window.history.replaceState(null, '', correctedUrl);
-        return;
-      }
+      window.history.replaceState(null, '', correctedUrl);
     }
   }, [basePath]);
   
@@ -114,7 +89,7 @@ function App() {
           <AuthProvider>
             <StudioProvider>
               <Toaster />
-              <WouterRouter base={basePath.endsWith('/') ? basePath.slice(0, -1) : basePath}>
+              <WouterRouter base="">
                 <Router />
               </WouterRouter>
             </StudioProvider>

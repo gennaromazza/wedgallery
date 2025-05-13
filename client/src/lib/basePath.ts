@@ -1,47 +1,29 @@
 
 // Utility per gestire il percorso base dell'applicazione
-// Utile quando l'app è ospitata in una sottocartella
+// Configurato per un'installazione a livello root
 
 /**
  * Restituisce il percorso base dell'applicazione
- * In ambiente di produzione sarà '/wedgallery/', in sviluppo sarà '/'
+ * Sempre '/' poiché l'app è installata a livello root
  */
 export const getBasePath = (): string => {
-  // Per produzione (hosting in sottocartella)
-  if (import.meta.env.PROD) {
-    return '/wedgallery/';
-  }
-  
-  // Per sviluppo locale (usare la root)
+  // Sempre a livello root
   return '/';
 };
 
 /**
- * Crea un URL includendo il percorso base dell'applicazione
- * Per uso nei link e nella navigazione
+ * Crea un URL per i link interni all'applicazione
  * @param path Percorso relativo (con o senza slash iniziale)
- * @returns URL completo per l'ambiente corrente
+ * @returns URL normalizzato
  */
 export const createUrl = (path: string): string => {
-  const basePath = getBasePath();
-  
   // Gestione percorsi speciali
   if (path === '' || path === '/') {
-    return basePath;
+    return '/';
   }
   
-  // Rimuovi slash iniziale dal path se presente
-  const normalizedPath = path.startsWith('/') ? path.substring(1) : path;
-  
-  // Controllo esplicito per evitare duplicazioni
-  // Verifica se il path non contenga già il basePath (ad es. /wedgallery/admin quando basePath è /wedgallery/)
-  if (normalizedPath.startsWith(basePath.substring(1))) {
-    console.warn(`Rilevato tentativo di duplicazione del basePath in "${path}". Correzione automatica applicata.`);
-    return `/${normalizedPath}`;
-  }
-  
-  // Concatena il percorso base con il percorso relativo
-  return `${basePath}${normalizedPath}`;
+  // Normalizza il percorso aggiungendo slash iniziale se mancante
+  return path.startsWith('/') ? path : `/${path}`;
 };
 
 /**
@@ -62,12 +44,9 @@ export const isProduction = (): boolean => {
 };
 
 /**
- * Verifica se siamo già in sottodirectory
- * @returns true se il pathname contiene già il percorso base e siamo in produzione
+ * Verifica se siamo in sottodirectory
+ * @returns sempre false poiché l'app è configurata per eseguire alla radice
  */
 export const isInSubdirectory = (): boolean => {
-  const base = getBasePath();
-  return base !== '/' && 
-         window.location.pathname.startsWith(base) && 
-         isProduction();
+  return false;
 };
