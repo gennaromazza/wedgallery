@@ -132,9 +132,13 @@ export default function GallerySearch() {
                   className="p-0 hover:bg-gray-50 cursor-pointer"
                 >
                   <a 
-                    href={createUrl(`/gallery/${gallery.code}`)}
+                    href={createAbsoluteUrl(`/gallery/${gallery.code}`)}
                     className="block p-3 w-full h-full no-underline"
                     aria-label={`Visualizza la galleria ${gallery.name}`}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      handleGallerySelect(gallery.code);
+                    }}
                   >
                     <div className="flex justify-between">
                       <span className="font-medium text-blue-gray">{gallery.name}</span>

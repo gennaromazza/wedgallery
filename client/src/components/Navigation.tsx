@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Link, useLocation } from "wouter";
 import { useStudio } from "@/context/StudioContext";
-import { createUrl } from "@/lib/basePathFixed";
+import { createUrl, createAbsoluteUrl } from "@/lib/basePathFixed";
 
 interface NavigationProps {
   isAdminNav?: boolean;
@@ -19,13 +19,13 @@ export default function Navigation({ isAdminNav = false, galleryOwner }: Navigat
   const signOut = async () => {
     // Implementazione predefinita sicura
     localStorage.removeItem('isAdmin');
-    window.location.href = createUrl("/admin");
+    window.location.href = createAbsoluteUrl("/admin");
   };
 
   const handleSignOut = async () => {
     try {
       await signOut();
-      window.location.href = createUrl("/");
+      window.location.href = createAbsoluteUrl("/");
     } catch (error) {
       console.error("Error signing out:", error);
     }
@@ -40,6 +40,14 @@ export default function Navigation({ isAdminNav = false, galleryOwner }: Navigat
             <div className="flex">
               <div className="flex-shrink-0 flex items-center">
                 <h1 className="text-off-white font-playfair font-semibold text-2xl">Admin Dashboard</h1>
+              </div>
+              <div className="ml-6 flex items-center">
+                <a 
+                  href={createAbsoluteUrl("/")}
+                  className="text-white text-sm hover:text-sage"
+                >
+                  Vai al sito
+                </a>
               </div>
             </div>
             <div className="flex items-center">
