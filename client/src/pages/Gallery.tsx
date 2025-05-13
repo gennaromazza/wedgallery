@@ -445,7 +445,7 @@ export default function Gallery() {
             La galleria richiesta non è disponibile o è stata rimossa.
           </p>
           <button
-            onClick={() => navigate("/")}
+            onClick={() => navigate(createUrl("/"))}
             className="px-4 py-2 rounded-md btn-primary"
           >
             Torna alla Home

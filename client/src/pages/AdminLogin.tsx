@@ -34,7 +34,7 @@ export default function AdminLogin() {
   // Se c'è già un flag isAdmin nel localStorage, reindirizza alla dashboard
   useEffect(() => {
     if (localStorage.getItem("isAdmin")) {
-      navigate("/admin/dashboard");
+      navigate(createUrl("/admin/dashboard"));
     }
   }, [navigate]);
 

@@ -223,7 +223,7 @@ export default function AdminDashboard() {
     // Verifica se esiste un flag isAdmin nel localStorage
     const isAdmin = localStorage.getItem('isAdmin');
     if (!isAdmin) {
-      navigate("/admin");
+      navigate(createUrl("/admin"));
     }
   }, [navigate]);
 
