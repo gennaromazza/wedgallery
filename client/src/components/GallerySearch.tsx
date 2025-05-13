@@ -79,7 +79,19 @@ export default function GallerySearch() {
   }, [searchTerm, allGalleries]);
 
   const handleGallerySelect = (code: string) => {
-    navigate(createUrl(`/gallery/${code}`));
+    // Determina se l'utente sta utilizzando un dispositivo mobile
+    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+    const url = createUrl(`/gallery/${code}`);
+    console.log("Navigazione a:", url);
+    
+    if (isMobile) {
+      // Su dispositivi mobili, utilizziamo la navigazione diretta
+      console.log("Utilizzo navigazione diretta per dispositivi mobili");
+      window.location.href = url;
+    } else {
+      // Su desktop, utilizziamo wouter
+      navigate(url);
+    }
   };
 
   return (
@@ -114,13 +126,23 @@ export default function GallerySearch() {
               {searchResults.map((gallery) => (
                 <li
                   key={gallery.id}
-                  onClick={() => handleGallerySelect(gallery.code)}
-                  className="p-3 hover:bg-gray-50 cursor-pointer"
+                  className="p-0 hover:bg-gray-50 cursor-pointer"
                 >
-                  <div className="flex justify-between">
-                    <span className="font-medium text-blue-gray">{gallery.name}</span>
-                    <span className="text-sm text-gray-500">Data: {gallery.date}</span>
-                  </div>
+                  <a 
+                    href={createUrl(`/gallery/${gallery.code}`)}
+                    onClick={(e) => {
+                      // Per gestire correttamente la navigazione su dispositivi mobili
+                      handleGallerySelect(gallery.code);
+                      e.preventDefault(); // PreventDefault solo su desktop
+                    }}
+                    className="block p-3 w-full h-full no-underline"
+                    aria-label={`Visualizza la galleria ${gallery.name}`}
+                  >
+                    <div className="flex justify-between">
+                      <span className="font-medium text-blue-gray">{gallery.name}</span>
+                      <span className="text-sm text-gray-500">Data: {gallery.date}</span>
+                    </div>
+                  </a>
                 </li>
               ))}
             </ul>
