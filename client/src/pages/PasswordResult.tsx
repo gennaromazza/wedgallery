@@ -194,9 +194,12 @@ export default function PasswordResult() {
                     <span className="text-gray-600">Data evento:</span>
                     <span className="font-medium text-blue-gray">{gallery.date}</span>
                   </div>
-                  <div className="flex justify-between py-2">
-                    <span className="text-gray-600">Password:</span>
-                    <span className="font-mono bg-white px-3 py-1 rounded-md font-medium text-blue-gray border border-sage/20">{gallery.password}</span>
+                  <div className="flex flex-col py-2">
+                    <span className="text-gray-600 mb-2">Password:</span>
+                    <div className="mx-auto">
+                      <span className="font-mono bg-light-mint px-4 py-2 rounded-md font-bold text-lg text-blue-gray border-2 border-sage shadow-md block text-center tracking-wide">{gallery.password}</span>
+                      <p className="text-xs text-gray-500 mt-2 text-center">Usa questa password per accedere alla galleria</p>
+                    </div>
                   </div>
                 </div>
               </div>
