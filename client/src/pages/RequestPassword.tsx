@@ -21,6 +21,7 @@ import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
 import { FloralCorner, FloralDivider, BackgroundDecoration } from '@/components/WeddingIllustrations';
 import { WeddingImage, DecorativeImage } from '@/components/WeddingImages';
+import { createUrl } from '@/lib/basePath';
 
 const requestSchema = z.object({
   firstName: z.string()
@@ -183,7 +184,7 @@ export default function RequestPassword() {
                   <p className="text-gray-600 mb-6">
                     La galleria che stai cercando non esiste o è stata rimossa.
                   </p>
-                  <Link href="/">
+                  <Link href={createUrl("/")}>
                     <Button className="btn-primary">Torna alla Home</Button>
                   </Link>
                 </div>
@@ -206,10 +207,10 @@ export default function RequestPassword() {
                     La tua richiesta è stata inviata con successo. Riceverai la password via email a breve.
                   </p>
                   <div className="flex flex-col space-y-2 sm:flex-row sm:space-y-0 sm:space-x-4 justify-center">
-                    <Link href={`/gallery/${id}`}>
+                    <Link href={createUrl(`/gallery/${id}`)}>
                       <Button className="btn-primary">Torna alla Galleria</Button>
                     </Link>
-                    <Link href="/">
+                    <Link href={createUrl("/")}>
                       <Button variant="outline">Torna alla Home</Button>
                     </Link>
                   </div>
