@@ -36,3 +36,31 @@ export const createUrl = (path: string): string => {
   // Concatena il percorso base con il percorso relativo
   return `${basePath}${normalizedPath}`;
 };
+
+/**
+ * Crea URL assoluto con origine
+ * @param path Percorso relativo
+ * @returns URL assoluto completo di origine
+ */
+export const createAbsoluteUrl = (path: string): string => {
+  return `${window.location.origin}${createUrl(path)}`;
+};
+
+/**
+ * Verifica se l'applicazione è in esecuzione in ambiente di produzione
+ * @returns true se in produzione, false se in sviluppo
+ */
+export const isProduction = (): boolean => {
+  return import.meta.env.PROD === true;
+};
+
+/**
+ * Verifica se siamo già in sottodirectory
+ * @returns true se il pathname contiene già il percorso base e siamo in produzione
+ */
+export const isInSubdirectory = (): boolean => {
+  const base = getBasePath();
+  return base !== '/' && 
+         window.location.pathname.startsWith(base) && 
+         isProduction();
+};

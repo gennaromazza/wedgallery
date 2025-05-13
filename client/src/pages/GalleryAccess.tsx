@@ -7,7 +7,7 @@ import { collection, query, where, getDocs, doc, getDoc } from "firebase/firesto
 import { db } from "@/lib/firebase";
 import { Link } from "wouter";
 import { useToast } from "@/hooks/use-toast";
-import { createUrl } from "@/lib/basePathFixed";
+import { createUrl } from "@/lib/basePath";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
@@ -130,7 +130,7 @@ export default function GalleryAccess() {
                   <p className="text-gray-600 mb-6">
                     La galleria che stai cercando non esiste o è stata rimossa.
                   </p>
-                  <Link href="/">
+                  <Link href={createUrl("/")}>
                     <Button className="btn-primary">Torna alla Home</Button>
                   </Link>
                 </div>
@@ -192,7 +192,7 @@ export default function GalleryAccess() {
                   <p className="text-sm text-gray-600 mb-2">
                     Non hai la password per questa galleria?
                   </p>
-                  <Link href={`/request-password/${id}`} className="inline-block px-4 py-2 rounded text-blue-gray hover:text-terracotta transition">
+                  <Link href={createUrl(`/request-password/${id}`)} className="inline-block px-4 py-2 rounded text-blue-gray hover:text-terracotta transition">
                     Richiedila qui
                   </Link>
                 </div>
