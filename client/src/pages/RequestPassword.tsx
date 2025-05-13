@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useParams, Link } from "wouter";
+import { useParams, Link, useLocation } from "wouter";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -48,6 +48,7 @@ type RequestFormData = z.infer<typeof requestSchema>;
 
 export default function RequestPassword() {
   const { id } = useParams();
+  const [, navigate] = useLocation(); // Aggiungiamo useLocation hook
   const [isLoading, setIsLoading] = useState(false);
   const [success, setSuccess] = useState(false);
   const [galleryExists, setGalleryExists] = useState<boolean | null>(null);
@@ -132,11 +133,9 @@ export default function RequestPassword() {
         createdAt: serverTimestamp(),
       });
       
-      // Import per creare URL con percorso base corretto
-      const { createUrl } = await import('@/lib/basePath');
-      
-      // Redirect to password result page usando il percorso base configurato
-      window.location.href = createUrl(`/password-result/${id}`);
+      // Naviga alla pagina dei risultati usando il router
+      console.log(`[RequestPassword] Navigating to password result: /password-result/${galleryId}`);
+      navigate(`/password-result/${galleryId}`);
     } catch (error) {
       console.error("Error requesting password:", error);
       toast({
