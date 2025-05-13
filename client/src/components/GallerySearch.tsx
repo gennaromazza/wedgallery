@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { collection, getDocs } from "firebase/firestore";
 import { useLocation } from "wouter";
 import { db } from "@/lib/firebase";
+import { createUrl } from "@/lib/basePath";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import { Search } from "lucide-react";
@@ -78,7 +79,7 @@ export default function GallerySearch() {
   }, [searchTerm, allGalleries]);
 
   const handleGallerySelect = (code: string) => {
-    navigate(`/gallery/${code}`);
+    navigate(createUrl(`/gallery/${code}`));
   };
 
   return (

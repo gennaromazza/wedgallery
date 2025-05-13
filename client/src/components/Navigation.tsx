@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Link, useLocation } from "wouter";
 import { useStudio } from "@/context/StudioContext";
+import { createUrl } from "@/lib/basePath";
 
 interface NavigationProps {
   isAdminNav?: boolean;
@@ -18,13 +19,13 @@ export default function Navigation({ isAdminNav = false, galleryOwner }: Navigat
   const signOut = async () => {
     // Implementazione predefinita sicura
     localStorage.removeItem('isAdmin');
-    window.location.href = "/";
+    window.location.href = createUrl("/");
   };
 
   const handleSignOut = async () => {
     try {
       await signOut();
-      window.location.href = "/";
+      window.location.href = createUrl("/");
     } catch (error) {
       console.error("Error signing out:", error);
     }
