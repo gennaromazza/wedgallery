@@ -16,15 +16,30 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Check, X, AlertCircle } from "lucide-react";
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
 import { FloralCorner, FloralDivider, BackgroundDecoration } from '@/components/WeddingIllustrations';
 import { WeddingImage, DecorativeImage } from '@/components/WeddingImages';
 
 const requestSchema = z.object({
-  firstName: z.string().min(2, "Il nome deve contenere almeno 2 caratteri"),
-  lastName: z.string().min(2, "Il cognome deve contenere almeno 2 caratteri"),
-  email: z.string().email("Inserisci un'email valida"),
+  firstName: z.string()
+    .min(2, "Il nome deve contenere almeno 2 caratteri")
+    .max(50, "Il nome non può superare i 50 caratteri")
+    .regex(/^[a-zA-ZàáâäãåąčćęèéêëėįìíîïłńòóôöõøùúûüųūÿýżźñçčšžÀÁÂÄÃÅĄĆČĖĘÈÉÊËÌÍÎÏĮŁŃÒÓÔÖÕØÙÚÛÜŲŪŸÝŻŹÑßÇŒÆČŠŽ ,.'-]+$/, 
+      "Il nome può contenere solo lettere, spazi e caratteri speciali ,.'-"),
+  lastName: z.string()
+    .min(2, "Il cognome deve contenere almeno 2 caratteri")
+    .max(50, "Il cognome non può superare i 50 caratteri")
+    .regex(/^[a-zA-ZàáâäãåąčćęèéêëėįìíîïłńòóôöõøùúûüųūÿýżźñçčšžÀÁÂÄÃÅĄĆČĖĘÈÉÊËÌÍÎÏĮŁŃÒÓÔÖÕØÙÚÛÜŲŪŸÝŻŹÑßÇŒÆČŠŽ ,.'-]+$/, 
+      "Il cognome può contenere solo lettere, spazi e caratteri speciali ,.'-"),
+  email: z.string()
+    .min(5, "L'email deve contenere almeno 5 caratteri")
+    .max(100, "L'email non può superare i 100 caratteri")
+    .email("Inserisci un'email valida")
+    .refine(email => email.includes("@") && email.includes("."), {
+      message: "L'email deve contenere una @ e un punto (.)"
+    }),
   relation: z.string().min(1, "Seleziona una relazione"),
 });
 
@@ -46,6 +61,7 @@ export default function RequestPassword() {
       email: "",
       relation: "",
     },
+    mode: "onChange", // Abilita la validazione in tempo reale mentre l'utente digita
   });
 
   // Check if the gallery exists on component mount
@@ -232,14 +248,29 @@ export default function RequestPassword() {
                       <label htmlFor="firstName" className="block text-sm font-medium text-blue-gray">
                         Nome
                       </label>
-                      <div className="mt-1">
+                      <div className="mt-1 relative">
                         <Input
                           id="firstName"
                           {...form.register("firstName")}
-                          className="w-full border-beige rounded-md py-3 px-4 focus:ring-sage focus:border-sage"
+                          className={`w-full border-beige rounded-md py-3 px-4 pr-10 focus:ring-sage focus:border-sage
+                            ${form.formState.errors.firstName ? "border-red-500 focus:ring-red-500 focus:border-red-500" : ""}
+                            ${form.formState.dirtyFields.firstName && !form.formState.errors.firstName ? "border-green-500 focus:ring-green-500 focus:border-green-500" : ""}`}
+                          aria-invalid={form.formState.errors.firstName ? "true" : "false"}
                         />
+                        {form.formState.dirtyFields.firstName && (
+                          <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                            {form.formState.errors.firstName ? (
+                              <X className="h-4 w-4 text-red-500" />
+                            ) : (
+                              <Check className="h-4 w-4 text-green-500" />
+                            )}
+                          </div>
+                        )}
                         {form.formState.errors.firstName && (
-                          <p className="mt-1 text-sm text-red-500">{form.formState.errors.firstName.message}</p>
+                          <div className="flex items-center mt-1">
+                            <AlertCircle className="h-3 w-3 text-red-500 mr-1" />
+                            <p className="text-sm text-red-500">{form.formState.errors.firstName.message}</p>
+                          </div>
                         )}
                       </div>
                     </div>
@@ -248,14 +279,29 @@ export default function RequestPassword() {
                       <label htmlFor="lastName" className="block text-sm font-medium text-blue-gray">
                         Cognome
                       </label>
-                      <div className="mt-1">
+                      <div className="mt-1 relative">
                         <Input
                           id="lastName"
                           {...form.register("lastName")}
-                          className="w-full border-beige rounded-md py-3 px-4 focus:ring-sage focus:border-sage"
+                          className={`w-full border-beige rounded-md py-3 px-4 pr-10 focus:ring-sage focus:border-sage
+                            ${form.formState.errors.lastName ? "border-red-500 focus:ring-red-500 focus:border-red-500" : ""}
+                            ${form.formState.dirtyFields.lastName && !form.formState.errors.lastName ? "border-green-500 focus:ring-green-500 focus:border-green-500" : ""}`}
+                          aria-invalid={form.formState.errors.lastName ? "true" : "false"}
                         />
+                        {form.formState.dirtyFields.lastName && (
+                          <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                            {form.formState.errors.lastName ? (
+                              <X className="h-4 w-4 text-red-500" />
+                            ) : (
+                              <Check className="h-4 w-4 text-green-500" />
+                            )}
+                          </div>
+                        )}
                         {form.formState.errors.lastName && (
-                          <p className="mt-1 text-sm text-red-500">{form.formState.errors.lastName.message}</p>
+                          <div className="flex items-center mt-1">
+                            <AlertCircle className="h-3 w-3 text-red-500 mr-1" />
+                            <p className="text-sm text-red-500">{form.formState.errors.lastName.message}</p>
+                          </div>
                         )}
                       </div>
                     </div>
@@ -265,15 +311,31 @@ export default function RequestPassword() {
                     <label htmlFor="email" className="block text-sm font-medium text-blue-gray">
                       Email
                     </label>
-                    <div className="mt-1">
+                    <div className="mt-1 relative">
                       <Input
                         id="email"
                         type="email"
                         {...form.register("email")}
-                        className="w-full border-beige rounded-md py-3 px-4 focus:ring-sage focus:border-sage"
+                        className={`w-full border-beige rounded-md py-3 px-4 pr-10 focus:ring-sage focus:border-sage
+                          ${form.formState.errors.email ? "border-red-500 focus:ring-red-500 focus:border-red-500" : ""}
+                          ${form.formState.dirtyFields.email && !form.formState.errors.email ? "border-green-500 focus:ring-green-500 focus:border-green-500" : ""}`}
+                        aria-invalid={form.formState.errors.email ? "true" : "false"}
+                        placeholder="esempio@mail.com"
                       />
+                      {form.formState.dirtyFields.email && (
+                        <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                          {form.formState.errors.email ? (
+                            <X className="h-4 w-4 text-red-500" />
+                          ) : (
+                            <Check className="h-4 w-4 text-green-500" />
+                          )}
+                        </div>
+                      )}
                       {form.formState.errors.email && (
-                        <p className="mt-1 text-sm text-red-500">{form.formState.errors.email.message}</p>
+                        <div className="flex items-center mt-1">
+                          <AlertCircle className="h-3 w-3 text-red-500 mr-1" />
+                          <p className="text-sm text-red-500">{form.formState.errors.email.message}</p>
+                        </div>
                       )}
                     </div>
                   </div>
@@ -282,9 +344,18 @@ export default function RequestPassword() {
                     <label htmlFor="relation" className="block text-sm font-medium text-blue-gray">
                       Relazione con gli sposi
                     </label>
-                    <div className="mt-1">
-                      <Select onValueChange={(value) => form.setValue("relation", value)}>
-                        <SelectTrigger className="w-full border-beige rounded-md focus:ring-sage focus:border-sage">
+                    <div className="mt-1 relative">
+                      <Select 
+                        onValueChange={(value) => {
+                          form.setValue("relation", value);
+                          form.trigger("relation"); // Forza la validazione dopo la selezione
+                        }}
+                      >
+                        <SelectTrigger 
+                          className={`w-full border-beige rounded-md focus:ring-sage focus:border-sage
+                            ${form.formState.errors.relation ? "border-red-500 focus:ring-red-500 focus:border-red-500" : ""}
+                            ${form.formState.dirtyFields.relation && !form.formState.errors.relation ? "border-green-500 focus:ring-green-500 focus:border-green-500" : ""}`}
+                        >
                           <SelectValue placeholder="Seleziona..." />
                         </SelectTrigger>
                         <SelectContent>
@@ -295,7 +366,10 @@ export default function RequestPassword() {
                         </SelectContent>
                       </Select>
                       {form.formState.errors.relation && (
-                        <p className="mt-1 text-sm text-red-500">{form.formState.errors.relation.message}</p>
+                        <div className="flex items-center mt-1">
+                          <AlertCircle className="h-3 w-3 text-red-500 mr-1" />
+                          <p className="text-sm text-red-500">{form.formState.errors.relation.message}</p>
+                        </div>
                       )}
                     </div>
                   </div>
