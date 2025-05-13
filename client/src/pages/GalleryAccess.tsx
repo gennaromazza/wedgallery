@@ -7,6 +7,7 @@ import { collection, query, where, getDocs, doc, getDoc } from "firebase/firesto
 import { db } from "@/lib/firebase";
 import { Link } from "wouter";
 import { useToast } from "@/hooks/use-toast";
+import { createUrl } from "@/lib/basePathFixed";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
@@ -96,7 +97,11 @@ export default function GalleryAccess() {
       const galleryDoc = querySnapshot.docs[0];
       localStorage.setItem(`gallery_auth_${id}`, "true");
       localStorage.setItem(`gallery_id_${id}`, galleryDoc.id);
-      window.location.href = `/wedgallery/view/${id}`;
+      
+      // Usa createUrl per generare un URL corretto in base all'ambiente
+      const viewUrl = createUrl(`/view/${id}`);
+      console.log(`[GalleryAccess] Navigating to: ${viewUrl}`);
+      window.location.href = viewUrl;
     } catch (error) {
       console.error("Error accessing gallery:", error);
       toast({
