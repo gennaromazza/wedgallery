@@ -3,7 +3,7 @@ import { useLocation, Link } from "wouter";
 import { collection, getDocs, doc, updateDoc, deleteDoc, query, orderBy, collectionGroup, setDoc, getDoc } from "firebase/firestore";
 import { getAuth, signOut } from "firebase/auth";
 import { db, storage, auth } from "@/lib/firebase";
-import { createUrl } from "@/lib/basePathFixed";
+import { createUrl } from "@/lib/basePath";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { formatPasswordRequestsForExcel, exportToExcel } from "@/lib/excelExport";
 import { ref, listAll, deleteObject, uploadBytes, getDownloadURL } from "firebase/storage";

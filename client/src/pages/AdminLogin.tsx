@@ -17,7 +17,7 @@ import {
 import { WeddingImage, DecorativeImage } from "@/components/WeddingImages";
 import { signInWithEmailAndPassword } from "firebase/auth";
 import { auth } from "@/lib/firebase";
-import { createUrl, createAbsoluteUrl } from "@/lib/basePathFixed";
+import { createUrl, createAbsoluteUrl } from "@/lib/basePath";
 
 const loginSchema = z.object({
   email: z.string().email("Inserisci un'email valida"),

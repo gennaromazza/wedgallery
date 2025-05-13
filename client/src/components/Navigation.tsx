@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Link, useLocation } from "wouter";
 import { useStudio } from "@/context/StudioContext";
-import { createUrl, createAbsoluteUrl } from "@/lib/basePathFixed";
+import { createUrl, createAbsoluteUrl } from "@/lib/basePath";
 
 interface NavigationProps {
   isAdminNav?: boolean;

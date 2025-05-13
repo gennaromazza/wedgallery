@@ -12,7 +12,7 @@ import { db } from "@/lib/firebase";
 import { useToast } from "@/hooks/use-toast";
 import { trackPasswordRequest } from "@/lib/analytics";
 import { useStudio } from "@/context/StudioContext";
-import { createUrl } from "@/lib/basePathFixed";
+import { createUrl } from "@/lib/basePath";
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
 import GallerySearch from "@/components/GallerySearch";

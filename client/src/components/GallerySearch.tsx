@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { collection, getDocs } from "firebase/firestore";
 import { useLocation } from "wouter";
 import { db } from "@/lib/firebase";
-import { createUrl, createAbsoluteUrl } from "@/lib/basePathFixed";
+import { createUrl, createAbsoluteUrl } from "@/lib/basePath";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import { Search } from "lucide-react";
