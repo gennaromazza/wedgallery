@@ -23,6 +23,7 @@ interface EditGalleryModalProps {
     description?: string;
     password?: string;
     coverImageUrl?: string;
+    youtubeUrl?: string;
   } | null;
 }
 

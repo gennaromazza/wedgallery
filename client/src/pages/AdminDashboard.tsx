@@ -1,8 +1,9 @@
 import { useState, useEffect } from "react";
-import { useLocation } from "wouter";
+import { useLocation, Link } from "wouter";
 import { collection, getDocs, doc, updateDoc, deleteDoc, query, orderBy, collectionGroup, setDoc, getDoc } from "firebase/firestore";
 import { getAuth, signOut } from "firebase/auth";
 import { db, storage, auth } from "@/lib/firebase";
+import { createUrl } from "@/lib/basePath";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { formatPasswordRequestsForExcel, exportToExcel } from "@/lib/excelExport";
 import { ref, listAll, deleteObject, uploadBytes, getDownloadURL } from "firebase/storage";
@@ -318,6 +319,36 @@ export default function AdminDashboard() {
     }
   };
   
+  // Elimina una richiesta di password
+  const deletePasswordRequest = async (requestId: string) => {
+    if (!requestId) return;
+    
+    try {
+      // Riferimento al documento nella collezione passwordRequests
+      const requestRef = doc(db, "passwordRequests", requestId);
+      
+      // Elimina il documento
+      await deleteDoc(requestRef);
+      
+      // Aggiorna lo stato rimuovendo la richiesta eliminata
+      setPasswordRequests(prevRequests => 
+        prevRequests.filter(request => request.id !== requestId)
+      );
+      
+      toast({
+        title: "Richiesta eliminata",
+        description: "La richiesta è stata eliminata con successo.",
+      });
+    } catch (error) {
+      console.error("Errore nell'eliminazione della richiesta:", error);
+      toast({
+        title: "Errore",
+        description: "Si è verificato un errore durante l'eliminazione.",
+        variant: "destructive"
+      });
+    }
+  };
+  
   // Esporta le richieste di password in un file Excel
   const exportPasswordRequests = () => {
     try {
@@ -520,9 +551,19 @@ export default function AdminDashboard() {
         <div className="max-w-7xl mx-auto py-4 px-4 sm:py-6 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center">
             <h1 className="text-2xl font-bold text-blue-gray">Dashboard amministratore</h1>
-            <Button variant="destructive" size="sm" onClick={handleLogout}>
-              Logout
-            </Button>
+            <div className="flex space-x-3">
+              <Link href={createUrl("/")}>
+                <Button variant="outline" size="sm" className="flex items-center space-x-1">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+                  </svg>
+                  <span>Vai alla Home</span>
+                </Button>
+              </Link>
+              <Button variant="destructive" size="sm" onClick={handleLogout}>
+                Logout
+              </Button>
+            </div>
           </div>
         </div>
       </header>
