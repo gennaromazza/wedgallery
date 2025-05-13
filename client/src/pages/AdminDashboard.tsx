@@ -67,6 +67,14 @@ export default function AdminDashboard() {
   const [isLoading, setIsLoading] = useState(true);
   const [isSettingsLoading, setIsSettingsLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<'galleries' | 'slideshow' | 'requests' | 'settings'>('galleries');
+  
+  // Stati per la paginazione delle gallerie
+  const [currentGalleryPage, setCurrentGalleryPage] = useState(1);
+  const [galleriesPerPage] = useState(5); // Numero di gallerie per pagina
+  
+  // Stati per la paginazione delle richieste password
+  const [currentRequestPage, setCurrentRequestPage] = useState(1);
+  const [requestsPerPage] = useState(5); // Numero di richieste per pagina
   const [studioSettings, setStudioSettings] = useState<StudioSettings>({
     name: '',
     slogan: '',
@@ -530,6 +538,50 @@ export default function AdminDashboard() {
       gallery.date.toLowerCase().includes(query)
     );
   });
+  
+  // Calcola gli indici per la paginazione delle gallerie
+  const indexOfLastGallery = currentGalleryPage * galleriesPerPage;
+  const indexOfFirstGallery = indexOfLastGallery - galleriesPerPage;
+  const currentGalleries = filteredGalleries.slice(indexOfFirstGallery, indexOfLastGallery);
+  const totalGalleryPages = Math.ceil(filteredGalleries.length / galleriesPerPage);
+  
+  // Gestione del cambio pagina per le gallerie
+  const paginateGalleries = (pageNumber: number) => setCurrentGalleryPage(pageNumber);
+  
+  // Funzioni per navigare tra le pagine delle gallerie
+  const goToNextGalleryPage = () => {
+    if (currentGalleryPage < totalGalleryPages) {
+      setCurrentGalleryPage(currentGalleryPage + 1);
+    }
+  };
+  
+  const goToPreviousGalleryPage = () => {
+    if (currentGalleryPage > 1) {
+      setCurrentGalleryPage(currentGalleryPage - 1);
+    }
+  };
+  
+  // Calcola gli indici per la paginazione delle richieste password
+  const indexOfLastRequest = currentRequestPage * requestsPerPage;
+  const indexOfFirstRequest = indexOfLastRequest - requestsPerPage;
+  const currentRequests = passwordRequests.slice(indexOfFirstRequest, indexOfLastRequest);
+  const totalRequestPages = Math.ceil(passwordRequests.length / requestsPerPage);
+  
+  // Gestione del cambio pagina per le richieste
+  const paginateRequests = (pageNumber: number) => setCurrentRequestPage(pageNumber);
+  
+  // Funzioni per navigare tra le pagine delle richieste
+  const goToNextRequestPage = () => {
+    if (currentRequestPage < totalRequestPages) {
+      setCurrentRequestPage(currentRequestPage + 1);
+    }
+  };
+  
+  const goToPreviousRequestPage = () => {
+    if (currentRequestPage > 1) {
+      setCurrentRequestPage(currentRequestPage - 1);
+    }
+  };
 
   // Verifica se l'utente è autenticato
   if (!localStorage.getItem('isAdmin')) {
@@ -651,7 +703,7 @@ export default function AdminDashboard() {
                         </tr>
                       </thead>
                       <tbody className="bg-white divide-y divide-gray-200">
-                        {filteredGalleries.map((gallery) => (
+                        {currentGalleries.map((gallery) => (
                           <tr key={gallery.id}>
                             <td className="px-6 py-4 whitespace-nowrap">
                               <div className="text-sm font-medium text-gray-900">{gallery.name}</div>
