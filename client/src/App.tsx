@@ -58,7 +58,7 @@ function App() {
   const basePath = getBasePath();
   console.log(`[App] Using base path: "${basePath}"`);
   
-  // Gestione avanzata dell'ambiente con logging dettagliato
+  // Gestione avanzata dell'ambiente con correzione automatica dei percorsi duplicati
   useEffect(() => {
     if (import.meta.env.PROD) {
       console.log('[App] Running in production mode');
@@ -66,10 +66,19 @@ function App() {
       console.log('[App] Pathname:', window.location.pathname);
       console.log('[App] Base Path:', basePath);
       
-      // Controlla se l'URL corrente contiene già /wedgallery/wedgallery
+      // Controlla se l'URL corrente contiene il percorso duplicato /wedgallery/wedgallery
       if (window.location.pathname.includes('/wedgallery/wedgallery')) {
-        console.error('[App] ATTENZIONE: URL contiene percorso duplicato /wedgallery/wedgallery');
-        console.log('[App] URL corrente:', window.location.href);
+        console.error('[App] CORREZIONE: URL contiene percorso duplicato /wedgallery/wedgallery');
+        
+        // Estrai il percorso corretto eliminando la duplicazione
+        const correctedPath = window.location.pathname.replace('/wedgallery/wedgallery', '/wedgallery');
+        const correctedUrl = `${window.location.origin}${correctedPath}${window.location.search}`;
+        
+        console.log('[App] Correggo URL da:', window.location.href);
+        console.log('[App] A:', correctedUrl);
+        
+        // Reindirizza l'utente all'URL corretto, senza aggiungere una nuova voce nella history
+        window.history.replaceState(null, '', correctedUrl);
       }
     } else {
       console.log('[App] Running in development mode');
