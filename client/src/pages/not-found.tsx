@@ -1,5 +1,5 @@
 import { Card, CardContent } from "@/components/ui/card";
-import { createUrl } from "@/lib/basePathFixed";
+import { createUrl } from "@/lib/basePath";
 import { Button } from "@/components/ui/button";
 import { FloralCorner, FloralDivider } from '@/components/WeddingIllustrations';
 import { WeddingImage } from '@/components/WeddingImages';

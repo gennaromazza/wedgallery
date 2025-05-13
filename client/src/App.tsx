@@ -8,7 +8,7 @@ import { StudioProvider } from "./context/StudioContext";
 import { ThemeProvider } from "next-themes";
 import { trackPageView } from "./lib/analytics";
 import { useEffect } from "react";
-import { getBasePath } from "./lib/basePathFixed"; // Uso del nuovo modulo
+import { getBasePath } from "./lib/basePath"; // Importazione da modulo unificato
 
 import Home from "@/pages/Home";
 import GalleryAccess from "@/pages/GalleryAccess";
