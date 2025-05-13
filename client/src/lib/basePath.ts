@@ -33,6 +33,13 @@ export const createUrl = (path: string): string => {
   // Rimuovi slash iniziale dal path se presente
   const normalizedPath = path.startsWith('/') ? path.substring(1) : path;
   
+  // Controllo esplicito per evitare duplicazioni
+  // Verifica se il path non contenga già il basePath (ad es. /wedgallery/admin quando basePath è /wedgallery/)
+  if (normalizedPath.startsWith(basePath.substring(1))) {
+    console.warn(`Rilevato tentativo di duplicazione del basePath in "${path}". Correzione automatica applicata.`);
+    return `/${normalizedPath}`;
+  }
+  
   // Concatena il percorso base con il percorso relativo
   return `${basePath}${normalizedPath}`;
 };

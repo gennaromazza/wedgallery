@@ -26,6 +26,13 @@ function createUrl(urlPath) {
   // Rimuovi slash iniziale dal path se presente
   const normalizedPath = urlPath.startsWith('/') ? urlPath.substring(1) : urlPath;
   
+  // Controllo esplicito per evitare duplicazioni
+  // Verifica se il path non contenga già il basePath (ad es. /wedgallery/admin quando basePath è /wedgallery/)
+  if (normalizedPath.startsWith(basePath.substring(1))) {
+    console.log(`[PROTEZIONE] Rilevato tentativo di duplicazione del basePath in "${urlPath}". Correzione automatica applicata.`);
+    return `/${normalizedPath}`;
+  }
+  
   // Concatena il percorso base con il percorso relativo
   return `${basePath}${normalizedPath}`;
 }
