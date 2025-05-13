@@ -38,13 +38,13 @@ export default function GalleryAccess() {
   useEffect(() => {
     async function checkGallery() {
       if (!id) return;
-      
+
       setIsLoading(true);
       try {
         const galleriesRef = collection(db, "galleries");
         const q = query(galleriesRef, where("code", "==", id));
         const querySnapshot = await getDocs(q);
-        
+
         if (querySnapshot.empty) {
           setGalleryNotFound(true);
         } else {
@@ -66,13 +66,13 @@ export default function GalleryAccess() {
         setIsLoading(false);
       }
     }
-    
+
     checkGallery();
   }, [id]);
 
   const onSubmit = async (data: AccessFormData) => {
     if (!id) return;
-    
+
     setIsLoading(true);
     try {
       const galleriesRef = collection(db, "galleries");
@@ -82,7 +82,7 @@ export default function GalleryAccess() {
         where("password", "==", data.password)
       );
       const querySnapshot = await getDocs(q);
-      
+
       if (querySnapshot.empty) {
         toast({
           title: "Accesso negato",
@@ -91,7 +91,7 @@ export default function GalleryAccess() {
         });
         return;
       }
-      
+
       // Successful login, store session and navigate to gallery view
       const galleryDoc = querySnapshot.docs[0];
       localStorage.setItem(`gallery_auth_${id}`, "true");
@@ -112,7 +112,7 @@ export default function GalleryAccess() {
   return (
     <div className="min-h-screen bg-off-white flex flex-col">
       <Navigation />
-      
+
       <div className="flex-grow flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
         <div className="max-w-md w-full space-y-8">
           {galleryNotFound ? (
@@ -155,7 +155,7 @@ export default function GalleryAccess() {
                     </p>
                   </div>
                 </div>
-                
+
                 <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
                   <div>
                     <label htmlFor="password" className="block text-sm font-medium text-blue-gray mb-1">
@@ -173,7 +173,7 @@ export default function GalleryAccess() {
                       <p className="mt-1 text-sm text-red-500">{form.formState.errors.password.message}</p>
                     )}
                   </div>
-                  
+
                   <Button 
                     type="submit" 
                     className="w-full btn-primary py-2 rounded-md"
@@ -182,7 +182,7 @@ export default function GalleryAccess() {
                     {isLoading ? "Verifica in corso..." : "Accedi alla Galleria"}
                   </Button>
                 </form>
-                
+
                 <div className="mt-6 pt-4 border-t border-beige text-center">
                   <p className="text-sm text-gray-600 mb-2">
                     Non hai la password per questa galleria?
@@ -196,7 +196,7 @@ export default function GalleryAccess() {
           )}
         </div>
       </div>
-      
+
       <Footer />
     </div>
   );

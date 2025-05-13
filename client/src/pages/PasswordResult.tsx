@@ -38,11 +38,11 @@ export default function PasswordResult() {
           });
         } else {
           console.log('Galleria non trovata con ID, provo con codice');
-          
+
           // Se non troviamo per ID, proviamo a cercare per codice galleria
           const q = query(galleriesRef, where('code', '==', params.code));
           const querySnapshot = await getDocs(q);
-          
+
           if (!querySnapshot.empty) {
             const galleryData = querySnapshot.docs[0];
             setGallery({
@@ -89,7 +89,7 @@ export default function PasswordResult() {
         <div className="absolute bottom-0 right-0 w-40 h-40 opacity-10 pointer-events-none">
           <FloralCorner position="bottom-right" />
         </div>
-        
+
         <Navigation />
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 relative z-10">
           <div className="text-center">
@@ -118,7 +118,7 @@ export default function PasswordResult() {
         <div className="absolute bottom-0 right-0 w-40 h-40 opacity-10 pointer-events-none">
           <FloralCorner position="bottom-right" />
         </div>
-        
+
         <Navigation />
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 relative z-10">
           <div className="text-center">
@@ -162,9 +162,9 @@ export default function PasswordResult() {
       <div className="absolute bottom-0 right-0 w-40 h-40 opacity-10 pointer-events-none">
         <FloralCorner position="bottom-right" />
       </div>
-      
+
       <Navigation />
-      
+
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 relative z-10">
         <div className="max-w-lg mx-auto bg-white shadow-lg rounded-lg overflow-hidden border border-sage/20 relative">
           <div className="absolute inset-0 opacity-5 pointer-events-none">
@@ -181,7 +181,7 @@ export default function PasswordResult() {
                 <FloralDivider />
               </div>
             </div>
-            
+
             <div className="space-y-6">
               <div className="bg-cream/30 p-5 rounded-md border border-sage/10">
                 <h3 className="text-lg font-medium text-blue-gray font-playfair">Informazioni Galleria</h3>
@@ -203,7 +203,7 @@ export default function PasswordResult() {
                   </div>
                 </div>
               </div>
-              
+
               <div className="flex flex-col sm:flex-row justify-center space-y-3 sm:space-y-0 sm:space-x-4 pt-4">
                 <Link href={createUrl(`/gallery/${gallery.code}`)}>
                   <Button className="w-full sm:w-auto btn-primary relative group overflow-hidden">
@@ -221,7 +221,7 @@ export default function PasswordResult() {
           </div>
         </div>
       </div>
-      
+
       <Footer />
     </div>
   );
