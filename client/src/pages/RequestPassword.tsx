@@ -115,8 +115,11 @@ export default function RequestPassword() {
         createdAt: serverTimestamp(),
       });
       
-      // Redirect to password result page
-      window.location.href = `/password-result/${id}`;
+      // Import per creare URL con percorso base corretto
+      const { createUrl } = await import('@/lib/basePath');
+      
+      // Redirect to password result page usando il percorso base configurato
+      window.location.href = createUrl(`/password-result/${id}`);
     } catch (error) {
       console.error("Error requesting password:", error);
       toast({

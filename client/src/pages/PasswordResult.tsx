@@ -8,6 +8,7 @@ import Navigation from '@/components/Navigation';
 import Footer from '@/components/Footer';
 import { FloralCorner, FloralDivider, BackgroundDecoration } from '@/components/WeddingIllustrations';
 import { WeddingImage, DecorativeImage } from '@/components/WeddingImages';
+import { createUrl } from '@/lib/basePath';
 
 export default function PasswordResult() {
   const [, params] = useRoute('/password-result/:code');
@@ -19,7 +20,7 @@ export default function PasswordResult() {
   useEffect(() => {
     async function fetchGallery() {
       if (!params?.code) {
-        navigate('/');
+        navigate(createUrl('/'));
         return;
       }
 
@@ -54,7 +55,7 @@ export default function PasswordResult() {
               description: 'Galleria non trovata',
               variant: 'destructive'
             });
-            navigate('/');
+            navigate(createUrl('/'));
           }
         }
       } catch (error) {
