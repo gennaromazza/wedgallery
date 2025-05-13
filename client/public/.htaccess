@@ -7,8 +7,16 @@
   RewriteCond %{REQUEST_FILENAME} !-f
   RewriteCond %{REQUEST_FILENAME} !-d
   
-  # Reindirizza tutte le richieste non trovate all'index.html
-  RewriteRule ^(.*)$ index.html [L]
+  # Reindirizza tutte le richieste non trovate all'index.html, preservando anche i parametri di query
+  RewriteRule ^(.*)$ index.html [L,QSA]
+  
+  # Regole esplicite per le rotte principali dell'applicazione
+  # Questo garantisce che le navigazioni dirette funzionino correttamente
+  RewriteRule ^gallery/(.*)$ index.html [L]
+  RewriteRule ^view/(.*)$ index.html [L]
+  RewriteRule ^admin(.*)$ index.html [L]
+  RewriteRule ^request-password/(.*)$ index.html [L]
+  RewriteRule ^password-result/(.*)$ index.html [L]
 </IfModule>
 
 # Configurazione CORS se necessario

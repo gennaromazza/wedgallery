@@ -1,39 +1,42 @@
 // Utility per gestire il percorso base dell'applicazione
 // Utile quando l'app è ospitata in una sottocartella
 
+/**
+ * Restituisce il percorso base dell'applicazione
+ * In ambiente di produzione sarà '/wedgallery/', in sviluppo sarà '/'
+ */
 export const getBasePath = (): string => {
-  if (import.meta.env.VITE_PUBLIC_PATH) {
-    // Assicuriamo che il percorso termini con uno slash ma non ne abbia all'inizio
-    let path = import.meta.env.VITE_PUBLIC_PATH;
-    if (!path.endsWith('/')) {
-      path += '/';
-    }
-    // Rimuovi eventuali slash iniziali per coerenza
-    while (path.startsWith('/')) {
-      path = path.substring(1);
-    }
-    // Aggiungi uno slash all'inizio
-    return '/' + path;
+  // Per produzione (hosting in sottocartella)
+  if (import.meta.env.PROD) {
+    return '/wedgallery/';
   }
+  
+  // Per sviluppo locale (usare la root)
   return '/';
 };
 
-// Funzione per creare URL con il percorso base
+/**
+ * Crea un URL includendo il percorso base dell'applicazione
+ * Per uso nei link e nella navigazione
+ * @param path Percorso relativo (con o senza slash iniziale)
+ * @returns URL completo per l'ambiente corrente
+ */
 export const createUrl = (path: string): string => {
   const basePath = getBasePath();
   
-  // Rimuovi slash iniziale dal path se presente
-  if (path.startsWith('/')) {
-    path = path.substring(1);
+  // Gestione percorsi speciali
+  if (path === '' || path === '/') {
+    return basePath;
   }
   
-  // Assicurati che il basePath termini con uno slash
-  const normalizedBasePath = basePath.endsWith('/') 
-    ? basePath 
-    : basePath + '/';
+  // Rimuovi slash iniziale dal path se presente
+  const normalizedPath = path.startsWith('/') ? path.substring(1) : path;
+  
+  // Concatena il percorso base con il percorso relativo
+  const result = `${basePath}${normalizedPath}`;
   
   // Log per debug
-  console.log(`createUrl: basePath = "${normalizedBasePath}", path = "${path}", result = "${normalizedBasePath}${path}"`);
+  console.log(`createUrl: basePath = "${basePath}", path = "${path}", result = "${result}"`);
   
-  return `${normalizedBasePath}${path}`;
+  return result;
 };
