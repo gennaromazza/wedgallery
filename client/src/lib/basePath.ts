@@ -1,3 +1,4 @@
+
 // Utility per gestire il percorso base dell'applicazione
 // Utile quando l'app è ospitata in una sottocartella
 
@@ -33,10 +34,5 @@ export const createUrl = (path: string): string => {
   const normalizedPath = path.startsWith('/') ? path.substring(1) : path;
   
   // Concatena il percorso base con il percorso relativo
-  const result = `${basePath}${normalizedPath}`;
-  
-  // Log per debug
-  console.log(`createUrl: basePath = "${basePath}", path = "${path}", result = "${result}"`);
-  
-  return result;
+  return `${basePath}${normalizedPath}`;
 };
