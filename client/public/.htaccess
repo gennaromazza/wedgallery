@@ -1,12 +1,34 @@
+# VERSIONE RISOLUTIVA PER SPA IN SOTTODIRECTORY
 <IfModule mod_rewrite.c>
   RewriteEngine On
   RewriteBase /wedgallery/
-
-  # Se il file/directory richiesto non esiste, reindirizza a index.html
+  
+  # CORREZIONE PERCORSI DUPLICATI
+  # Risolve il problema di percorsi come /wedgallery/wedgallery/... 
+  # prima che raggiungano l'applicazione
+  RewriteCond %{THE_REQUEST} /wedgallery/wedgallery/
+  RewriteRule ^wedgallery/(.*) /$1 [R=301,L]
+  
+  # PRIMA REGOLA: Blocca i redirect dei file esistenti (come immagini, css, js)
+  RewriteCond %{REQUEST_FILENAME} -f [OR]
+  RewriteCond %{REQUEST_FILENAME} -d
+  RewriteRule ^ - [L]
+  
+  # FIX per F5 e RICARICAMENTO PAGINA:
+  # Gestisce correttamente le richieste dirette a rotte SPA come /admin, /gallery/123, ecc.
+  # inviando sempre index.html per permettere a React di gestire il routing
+  RewriteCond %{REQUEST_URI} !index\.html
   RewriteCond %{REQUEST_FILENAME} !-f
-  RewriteCond %{REQUEST_FILENAME} !-d
   RewriteRule ^ index.html [QSA,L]
 </IfModule>
+
+# Disabilita MultiViews per evitare conflitti
+<IfModule mod_negotiation.c>
+  Options -MultiViews
+</IfModule>
+
+# Elimina problemi di slash alla fine
+DirectorySlash Off
 
 # Abilita CORS
 <IfModule mod_headers.c>

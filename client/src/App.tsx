@@ -58,33 +58,52 @@ function App() {
   const basePath = getBasePath();
   console.log(`[App] Using base path: "${basePath}"`);
   
-  // Gestione avanzata dell'ambiente con correzione automatica dei percorsi duplicati
+  // Sistema di correzione avanzato per gestire i percorsi duplicati e rotte non valide
   useEffect(() => {
-    if (import.meta.env.PROD) {
-      console.log('[App] Running in production mode');
-      console.log('[App] Base URL:', window.location.origin);
-      console.log('[App] Pathname:', window.location.pathname);
-      console.log('[App] Base Path:', basePath);
-      
-      // Pattern problematico: URL che contiene /wedgallery/ ripetuto più volte
+    // Otteniamo informazioni sull'ambiente e sull'URL corrente
+    const isProduction = import.meta.env.PROD;
+    const { origin, pathname, search, href } = window.location;
+    
+    console.log(`[App] Running in ${isProduction ? 'production' : 'development'} mode`);
+    console.log('[App] Current URL:', href);
+    console.log('[App] Pathname:', pathname);
+    console.log('[App] Base Path:', basePath);
+    
+    // FASE 1: Gestione dei percorsi duplicati in ambiente di produzione
+    if (isProduction) {
+      // CASO 1: URL che contiene /wedgallery/ ripetuto più volte
+      // Esempi: /wedgallery/wedgallery/admin o /wedgallery/wedgallery/wedgallery/gallery/abc
       const duplicatePattern = /\/wedgallery(\/+wedgallery)+/;
       
-      if (duplicatePattern.test(window.location.pathname)) {
+      if (duplicatePattern.test(pathname)) {
         console.error('[App] CORREZIONE: URL contiene percorso /wedgallery duplicato');
         
         // Sostituisci tutte le occorrenze multiple con una singola
-        // \1 è il gruppo catturato (\/wedgallery)
-        const correctedPath = window.location.pathname.replace(duplicatePattern, '/wedgallery');
-        const correctedUrl = `${window.location.origin}${correctedPath}${window.location.search}`;
+        const correctedPath = pathname.replace(duplicatePattern, '/wedgallery');
+        const correctedUrl = `${origin}${correctedPath}${search}`;
         
-        console.log('[App] Correggo URL da:', window.location.href);
+        console.log('[App] Correzione URL da:', href);
         console.log('[App] A:', correctedUrl);
         
         // Reindirizza l'utente all'URL corretto, senza aggiungere una nuova voce nella history
         window.history.replaceState(null, '', correctedUrl);
+        return; // Termina qui per non continuare con altri controlli
       }
-    } else {
-      console.log('[App] Running in development mode');
+      
+      // CASO 2: URL con percorso duplicato in formato diverso
+      // Esempio: /wedgallery//admin o /wedgallery///gallery/abc
+      const multiSlashPattern = /\/wedgallery\/+/;
+      
+      if (multiSlashPattern.test(pathname)) {
+        const correctedPath = pathname.replace(multiSlashPattern, '/wedgallery/');
+        const correctedUrl = `${origin}${correctedPath}${search}`;
+        
+        console.log('[App] Correzione slash multipli da:', href);
+        console.log('[App] A:', correctedUrl);
+        
+        window.history.replaceState(null, '', correctedUrl);
+        return;
+      }
     }
   }, [basePath]);
   

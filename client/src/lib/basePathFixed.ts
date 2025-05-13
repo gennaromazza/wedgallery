@@ -48,45 +48,57 @@ export function createAbsoluteUrl(path: string): string {
  */
 export function createUrl(path: string): string {
   try {
+    // Sicurezza: se path è undefined, usiamo stringa vuota
+    const safePath = path || '';
     const basePath = getBasePath();
     
-    // CASO SPECIALE - HOME PAGE
-    if (path === '' || path === '/') {
+    // CASO 1: HOME PAGE
+    if (safePath === '' || safePath === '/') {
       // Per la home page, sempre ritorna il basePath con slash
       const home = basePath ? `${basePath}/` : '/';
-      console.log(`[createUrl] HOME path: "${path}" → "${home}"`);
+      console.log(`[createUrl] HOME path: "${safePath}" → "${home}"`);
       return home;
     }
     
-    // STRATEGIA SICURA PER TUTTI GLI ALTRI PERCORSI
+    // CASO 2: TUTTI GLI ALTRI PERCORSI
     
-    // 1. Normalizza il path rimuovendo slash iniziali e finali
-    // (verranno aggiunti in modo consistente)
-    const cleanPath = path.replace(/^\/|\/$/g, '');
+    // 1. Elimina slash duplicati e normalizza il percorso 
+    // Rimuovi slash iniziali e finali per poi riaggiungerli in modo consistente
+    let cleanPath = safePath.replace(/^\/+|\/+$/g, '');
     
-    // 2. Determina se è necessario includere il basePath
-    // Non facciamo affidamento sulla posizione attuale dell'URL
-    // ma garantiamo sempre un percorso completo e corretto
+    // 2. Rimuovi eventuali duplicazioni del basePath se già presenti nel path
+    if (basePath && basePath !== '/' && cleanPath.startsWith(basePath.replace(/^\//, ''))) {
+      // Se il percorso ripete il basePath, lo rimuoviamo
+      cleanPath = cleanPath.replace(new RegExp(`^${basePath.replace(/^\//, '')}`), '');
+      // Rimuovi anche eventuali slash iniziali rimasti
+      cleanPath = cleanPath.replace(/^\/+/, '');
+      console.log(`[createUrl] FIXED duplicated basePath in "${safePath}"`);
+    }
     
-    // Per un'app in produzione, aggiungiamo sempre il basePath
+    // 3. Costruisci l'URL finale in base all'ambiente
+    let finalUrl: string;
+    
+    // In produzione, aggiungi sempre il basePath
     if (basePath && import.meta.env.PROD) {
-      // Rimuovi eventuali slash iniziali e finali dal basePath
+      // Garantisci uno slash tra basePath e path
       const cleanBasePath = basePath.replace(/^\/|\/$/g, '');
-      // Costruisci l'URL garantendo uno slash tra basePath e path
-      const url = `/${cleanBasePath}/${cleanPath}`;
-      console.log(`[createUrl] PROD path: "${path}" → "${url}"`);
-      return url;
+      finalUrl = cleanPath ? `/${cleanBasePath}/${cleanPath}` : `/${cleanBasePath}/`;
+      console.log(`[createUrl] PROD path: "${safePath}" → "${finalUrl}"`);
     } 
     // In sviluppo, usa solo il percorso semplice
     else {
-      const url = `/${cleanPath}`;
-      console.log(`[createUrl] DEV path: "${path}" → "${url}"`);
-      return url;
+      finalUrl = `/${cleanPath}`;
+      console.log(`[createUrl] DEV path: "${safePath}" → "${finalUrl}"`);
     }
+    
+    // 4. Elimina slash duplicati nel risultato finale
+    finalUrl = finalUrl.replace(/\/+/g, '/');
+    return finalUrl;
+    
   } catch (error) {
     console.error(`[createUrl] Errore nel creare l'URL per "${path}":`, error);
-    // In caso di errore, ritorna un percorso valido
-    return path.startsWith('/') ? path : `/${path}`;
+    // In caso di errore, ritorna un percorso valido con slash iniziale
+    return path?.startsWith('/') ? path : `/${path || ''}`;
   }
 }
 
