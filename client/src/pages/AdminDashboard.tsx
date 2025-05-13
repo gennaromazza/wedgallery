@@ -841,6 +841,16 @@ export default function AdminDashboard() {
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-1">
                               <div className="flex space-x-1 flex-wrap">
+                                <Link to={createUrl(`/gallery/${gallery.code}`)} target="_blank">
+                                  <Button 
+                                    variant="outline" 
+                                    size="icon"
+                                    className="h-8 w-8 bg-green-50 hover:bg-green-100 border-green-200" 
+                                    title="Visualizza galleria"
+                                  >
+                                    <Eye className="h-4 w-4 text-green-600" />
+                                  </Button>
+                                </Link>
                                 <Button 
                                   variant="outline" 
                                   size="icon"
