@@ -12,6 +12,7 @@ import { db } from "@/lib/firebase";
 import { useToast } from "@/hooks/use-toast";
 import { trackPasswordRequest } from "@/lib/analytics";
 import { useStudio } from "@/context/StudioContext";
+import { createUrl } from "@/lib/basePath";
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
 import GallerySearch from "@/components/GallerySearch";
@@ -148,8 +149,8 @@ export default function Home() {
           "Password visualizzata. Le tue informazioni sono state salvate.",
       });
 
-      // Redirect to password result page
-      navigate(`/password-result/${selectedGallery.id}`);
+      // Redirect to password result page with correct base path
+      navigate(createUrl(`/password-result/${selectedGallery.id}`));
     } catch (error) {
       console.error("Error saving password request:", error);
       toast({

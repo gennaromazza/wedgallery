@@ -131,7 +131,7 @@ export default function PasswordResult() {
               <FloralDivider />
             </div>
             <div className="mt-6">
-              <Link href="/">
+              <Link href={createUrl('/')}>
                 <Button className="btn-primary relative group overflow-hidden">
                   <span className="absolute inset-0 opacity-0 group-hover:opacity-10 transition-opacity">
                     <BackgroundDecoration />
@@ -202,7 +202,7 @@ export default function PasswordResult() {
               </div>
               
               <div className="flex flex-col sm:flex-row justify-center space-y-3 sm:space-y-0 sm:space-x-4 pt-4">
-                <Link href={`/gallery/${gallery.code}`}>
+                <Link href={createUrl(`/gallery/${gallery.code}`)}>
                   <Button className="w-full sm:w-auto btn-primary relative group overflow-hidden">
                     <span className="absolute inset-0 opacity-0 group-hover:opacity-10 transition-opacity">
                       <BackgroundDecoration />
@@ -210,7 +210,7 @@ export default function PasswordResult() {
                     <span className="relative z-10">Vai alla Galleria</span>
                   </Button>
                 </Link>
-                <Link href="/">
+                <Link href={createUrl('/')}>
                   <Button variant="outline" className="w-full sm:w-auto">Torna alla Home</Button>
                 </Link>
               </div>
