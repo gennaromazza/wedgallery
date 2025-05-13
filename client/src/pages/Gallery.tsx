@@ -101,7 +101,7 @@ export default function Gallery() {
       // Check if user is authenticated for this gallery or is admin
       const isAuth = localStorage.getItem(`gallery_auth_${id}`);
       if (!isAuth && !isAdmin) {
-        navigate(`/access/${id}`);
+        navigate(createUrl(`/access/${id}`));
         return;
       }
 
@@ -118,7 +118,7 @@ export default function Gallery() {
             description: "La galleria richiesta non esiste o è stata rimossa.",
             variant: "destructive",
           });
-          navigate("/");
+          navigate(createUrl("/"));
           return;
         }
         
@@ -310,7 +310,7 @@ export default function Gallery() {
 
   const handleSignOut = () => {
     localStorage.removeItem(`gallery_auth_${id}`);
-    navigate("/");
+    navigate(createUrl("/"));
   };
   
   // Funzione per caricare più foto quando l'utente scorre verso il basso
