@@ -20,6 +20,7 @@ interface GalleryData {
   location: string;
   description?: string;
   coverImageUrl?: string;
+  youtubeUrl?: string;
   hasChapters?: boolean;
 }
 
@@ -40,6 +41,19 @@ interface ChapterData {
   title: string;
   description?: string;
   position: number;
+}
+
+// Funzione per estrarre l'ID del video da un URL di YouTube
+function getYouTubeVideoId(url: string): string {
+  try {
+    // Supporta vari formati di URL YouTube
+    const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
+    const match = url.match(regExp);
+    return (match && match[2].length === 11) ? match[2] : "";
+  } catch (error) {
+    console.error("Errore nell'analisi dell'URL di YouTube:", error);
+    return "";
+  }
 }
 
 export default function Gallery() {
@@ -116,6 +130,7 @@ export default function Gallery() {
           location: galleryData.location,
           description: galleryData.description || "",
           coverImageUrl: galleryData.coverImageUrl || "",
+          youtubeUrl: galleryData.youtubeUrl || "",
           hasChapters: galleryData.hasChapters || false
         });
         
@@ -482,6 +497,25 @@ export default function Gallery() {
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-8">
             <div className="bg-white p-6 rounded-lg shadow-sm">
               <p className="text-gray-700 italic">{gallery.description}</p>
+            </div>
+          </div>
+        )}
+        
+        {/* Video YouTube se presente */}
+        {gallery.youtubeUrl && gallery.youtubeUrl.trim() !== "" && (
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-8">
+            <div className="bg-white p-6 rounded-lg shadow-sm">
+              <h3 className="text-lg font-semibold mb-4">Video del matrimonio</h3>
+              <div className="relative w-full pb-[56.25%]">
+                <iframe 
+                  src={`https://www.youtube.com/embed/${getYouTubeVideoId(gallery.youtubeUrl)}`}
+                  title="Video del matrimonio"
+                  className="absolute top-0 left-0 w-full h-full rounded-lg"
+                  frameBorder="0"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  allowFullScreen
+                ></iframe>
+              </div>
             </div>
           </div>
         )}
