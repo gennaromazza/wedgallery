@@ -1,14 +1,21 @@
 
 // Utility per gestire il percorso base dell'applicazione
-// Configurato per un'installazione a livello root
+// Supporta sia installazione root che in sottocartella
+import { PRODUCTION_BASE_PATH } from '../config';
 
 /**
  * Restituisce il percorso base dell'applicazione
- * Sempre '/' poiché l'app è installata a livello root
+ * In sviluppo: sempre '/'
+ * In produzione: utilizza il percorso configurato in config.ts
  */
 export const getBasePath = (): string => {
-  // Sempre a livello root
-  return '/';
+  // In ambiente di sviluppo, usa sempre la root
+  if (!import.meta.env.PROD) {
+    return '/';
+  }
+  
+  // In produzione, usa il percorso configurato
+  return PRODUCTION_BASE_PATH;
 };
 
 /**

@@ -89,7 +89,7 @@ function App() {
           <AuthProvider>
             <StudioProvider>
               <Toaster />
-              <WouterRouter base="">
+              <WouterRouter base={basePath.endsWith('/') ? basePath.slice(0, -1) : basePath}>
                 <Router />
               </WouterRouter>
             </StudioProvider>
