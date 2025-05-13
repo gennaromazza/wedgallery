@@ -1,6 +1,6 @@
 <IfModule mod_rewrite.c>
   RewriteEngine On
-  RewriteBase /wedgallery/
+  RewriteBase /wedgallery
 
   # Se il file/directory richiesto non esiste, reindirizza a index.html
   RewriteCond %{REQUEST_FILENAME} !-f
