@@ -78,7 +78,7 @@ export default function Gallery() {
   // Check authentication and fetch gallery data
   // Check if current user is admin
   const [isAdmin, setIsAdmin] = useState(false);
-  
+
   // Assicuriamoci che activeTab sia impostato correttamente quando i capitoli cambiano
   useEffect(() => {
     if (chapters.length > 0 && (!activeTab || activeTab === '')) {
@@ -86,7 +86,7 @@ export default function Gallery() {
       setActiveTab('all');
     }
   }, [chapters, activeTab]);
-  
+
 
 
   useEffect(() => {
@@ -95,10 +95,10 @@ export default function Gallery() {
       const admin = localStorage.getItem('isAdmin') === 'true';
       setIsAdmin(admin);
     };
-    
+
     checkAdmin();
   }, []);
-  
+
   useEffect(() => {
     async function fetchGallery() {
       // Check if user is authenticated for this gallery or is admin
@@ -114,7 +114,7 @@ export default function Gallery() {
         const galleriesRef = collection(db, "galleries");
         const q = query(galleriesRef, where("code", "==", id));
         const querySnapshot = await getDocs(q);
-        
+
         if (querySnapshot.empty) {
           toast({
             title: "Galleria non trovata",
@@ -124,7 +124,7 @@ export default function Gallery() {
           navigate(createUrl("/"));
           return;
         }
-        
+
         const galleryDoc = querySnapshot.docs[0];
         const galleryData = galleryDoc.data();
         setGallery({
@@ -138,7 +138,7 @@ export default function Gallery() {
           // Usiamo il valore dalla galleria, ma lo sovrascriveremo se troviamo capitoli
           hasChapters: galleryData.hasChapters || false
         });
-        
+
         // Cerchiamo sempre i capitoli, indipendentemente dal flag hasChapters
         // Questo garantisce che i capitoli vengano sempre caricati se esistono
         console.log("Cerco capitoli per galleria ID:", galleryDoc.id);
@@ -146,17 +146,17 @@ export default function Gallery() {
           const chaptersRef = collection(db, "galleries", galleryDoc.id, "chapters");
           const chaptersQuery = query(chaptersRef, orderBy("position", "asc"));
           const chaptersSnapshot = await getDocs(chaptersQuery);
-          
+
           if (!chaptersSnapshot.empty) {
             const chaptersData = chaptersSnapshot.docs.map(doc => ({
               id: doc.id,
               ...doc.data()
             })) as ChapterData[];
-            
+
             // Aggiorniamo hasChapters nella gallery locale se troviamo capitoli
             if (chaptersData.length > 0 && !galleryData.hasChapters) {
               setGallery(prev => prev ? {...prev, hasChapters: true} : null);
-              
+
               // Aggiorniamo anche il documento in Firestore se necessario
               try {
                 const galleryRef = doc(db, "galleries", galleryDoc.id);
@@ -168,7 +168,7 @@ export default function Gallery() {
                 console.error("Errore nell'aggiornamento di hasChapters:", updateError);
               }
             }
-            
+
             setChapters(chaptersData);
             console.log(`Caricati ${chaptersData.length} capitoli`);
           } else {
@@ -177,11 +177,11 @@ export default function Gallery() {
         } catch (chaptersError) {
           console.error("Errore nel caricamento dei capitoli:", chaptersError);
         }
-        
+
         // Fetch photos for the gallery with pagination
         const photosRef = collection(db, "galleries", galleryDoc.id, "photos");
         let photosQuery;
-        
+
         // Create query based on hasChapters with pagination
         if (galleryData.hasChapters) {
           photosQuery = query(
@@ -195,42 +195,42 @@ export default function Gallery() {
             limit(photosPerPage)
           );
         }
-        
+
         const photosSnapshot = await getDocs(photosQuery);
-        
+
         let photosData = photosSnapshot.docs.map(doc => ({
           id: doc.id,
           ...doc.data(),
         })) as PhotoData[];
-        
+
         // Controlla se ci sono altre foto da caricare
         setHasMorePhotos(photosData.length >= photosPerPage);
-        
+
         // Se non ci sono foto nella sottocollezione "photos" ma è indicato che ci sono foto (photoCount > 0),
         // potrebbe essere che le foto siano state caricate nello Storage ma i metadati non siano stati salvati
         // in Firestore. In questo caso, tentiamo di recuperare le foto dallo Storage.
         if (photosData.length === 0 && galleryData.photoCount > 0) {
           console.log("Nessuna foto trovata nella sottocollezione, ma photoCount è", galleryData.photoCount);
           console.log("Tentativo di recupero dallo Storage...");
-          
+
           try {
             // Importiamo ciò che serve da firebase/storage
             const { ref, listAll, getDownloadURL, getMetadata } = await import("firebase/storage");
             const { storage } = await import("@/lib/firebase");
-            
+
             // Percorso nella cartella di Storage per questa galleria
             // Controlla prima il percorso diretto alla galleria
             const storageRef = ref(storage, `galleries/${galleryDoc.id}`);
-            
+
             console.log("Verifico percorso Storage:", `galleries/${galleryDoc.id}`);
-            
+
             // Elenca tutti i file nella cartella
             let listResult = await listAll(storageRef);
-            
+
             // Se non ci sono file, prova percorsi alternativi
             if (listResult.items.length === 0) {
               console.log("Nessun file trovato, provo percorsi alternativi");
-              
+
               // Prova con un possibile spazio nel path (come indicato dall'utente)
               const pathWithSpace = ref(storage, `galleries/ ${galleryDoc.id}`);
               console.log("Provo con path con spazio:", `galleries/ ${galleryDoc.id}`);
@@ -244,7 +244,7 @@ export default function Gallery() {
                 console.log("Errore con path con spazio:", e);
               }
             }
-            
+
             // Se ancora non ci sono file e l'ID è quello specifico, prova direttamente con il path hardcoded
             if (listResult.items.length === 0 && galleryDoc.id === 'kWraDKOW7MZiM5eHSM11') {
               console.log("Provo con path hardcoded galleries/kWraDKOW7MZiM5eHSM11");
@@ -259,12 +259,12 @@ export default function Gallery() {
                 console.log("Errore con path hardcoded:", e);
               }
             }
-            
+
             // Per ogni file, recupera l'URL di download e i metadati
             const photoPromises = listResult.items.map(async (itemRef) => {
               const url = await getDownloadURL(itemRef);
               const metadata = await getMetadata(itemRef);
-              
+
               // Crea oggetto foto
               return {
                 id: itemRef.name, // Usa il nome del file come ID
@@ -275,15 +275,15 @@ export default function Gallery() {
                 createdAt: metadata.timeCreated || new Date().toISOString()
               };
             });
-            
+
             // Attendiamo tutte le promise
             const photosFromStorage = await Promise.all(photoPromises);
-            
+
             // Aggiorniamo i dati delle foto
             if (photosFromStorage.length > 0) {
               photosData = photosFromStorage;
               console.log("Recuperate", photosFromStorage.length, "foto dallo Storage");
-              
+
               // Salvare i metadati in Firestore per usi futuri
               photosFromStorage.forEach(async (photo) => {
                 try {
@@ -304,7 +304,7 @@ export default function Gallery() {
             console.error("Errore nel recupero dallo Storage:", storageError);
           }
         }
-        
+
         setPhotos(photosData);
       } catch (error) {
         console.error("Error fetching gallery:", error);
@@ -317,7 +317,7 @@ export default function Gallery() {
         setIsLoading(false);
       }
     }
-    
+
     fetchGallery();
   }, [id]);
 
@@ -334,16 +334,16 @@ export default function Gallery() {
     localStorage.removeItem(`gallery_auth_${id}`);
     navigate(createUrl("/"));
   };
-  
+
   // Funzione per caricare più foto quando l'utente scorre verso il basso
   const loadMorePhotos = useCallback(async () => {
     if (!gallery || !hasMorePhotos || loadingMorePhotos) return;
-    
+
     setLoadingMorePhotos(true);
     try {
       const photosRef = collection(db, "galleries", gallery.id, "photos");
       let photosQuery;
-      
+
       // Create query based on hasChapters with pagination and startAfter
       if (gallery.hasChapters) {
         // Se ci sono capitoli, ordinare per posizione nel capitolo
@@ -352,7 +352,7 @@ export default function Gallery() {
           const lastPhoto = photos[photos.length - 1];
           const lastPhotoRef = doc(db, "galleries", gallery.id, "photos", lastPhoto.id);
           const lastPhotoDoc = await getDoc(lastPhotoRef);
-          
+
           photosQuery = query(
             photosRef, 
             orderBy("chapterPosition", "asc"),
@@ -372,7 +372,7 @@ export default function Gallery() {
           const lastPhoto = photos[photos.length - 1];
           const lastPhotoRef = doc(db, "galleries", gallery.id, "photos", lastPhoto.id);
           const lastPhotoDoc = await getDoc(lastPhotoRef);
-          
+
           photosQuery = query(
             photosRef,
             startAfter(lastPhotoDoc),
@@ -385,18 +385,18 @@ export default function Gallery() {
           );
         }
       }
-      
+
       const photosSnapshot = await getDocs(photosQuery);
-      
+
       if (!photosSnapshot.empty) {
         const newPhotosData = photosSnapshot.docs.map(doc => ({
           id: doc.id,
           ...doc.data(),
         })) as PhotoData[];
-        
+
         // Aggiungi le nuove foto all'array esistente
         setPhotos(prevPhotos => [...prevPhotos, ...newPhotosData]);
-        
+
         // Verifica se ci sono ancora altre foto da caricare
         setHasMorePhotos(newPhotosData.length >= photosPerPage);
       } else {
@@ -427,29 +427,29 @@ export default function Gallery() {
         loadMorePhotos();
       }
     };
-    
+
     window.addEventListener('scroll', handleScroll);
-    
+
     return () => {
       window.removeEventListener('scroll', handleScroll);
     };
   }, [hasMorePhotos, loadingMorePhotos, isLoading, loadMorePhotos]);
-  
+
   // Funzione per scaricare tutte le foto
   const downloadAll = useCallback(async () => {
     if (!gallery || photos.length === 0 || isDownloading) return;
-    
+
     setIsDownloading(true);
     try {
       toast({
         title: "Preparazione download",
         description: "Stiamo preparando le foto per il download. L'operazione potrebbe richiedere qualche secondo...",
       });
-      
+
       // In una implementazione reale, qui potremmo generare uno zip sul server
       // Per ora simuliamo un breve ritardo, come se stessimo preparando il file
       await new Promise(resolve => setTimeout(resolve, 1500));
-      
+
       // Apri una nuova finestra con le istruzioni per il download
       toast({
         title: "Download pronto",
@@ -466,7 +466,7 @@ export default function Gallery() {
       setIsDownloading(false);
     }
   }, [gallery, photos, isDownloading, toast]);
-  
+
   // Display loading state
   if (isLoading) {
     return (
@@ -476,7 +476,7 @@ export default function Gallery() {
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <Skeleton className="h-10 w-80 mb-2" />
             <Skeleton className="h-6 w-60 mb-8" />
-            
+
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8">
               {[...Array(9)].map((_, i) => (
                 <Skeleton key={i} className="h-64 rounded-lg" />
@@ -512,7 +512,7 @@ export default function Gallery() {
   // Componente modale per la condivisione
   const ShareModal = () => {
     const shareUrl = createAbsoluteUrl(`/view/${id}`);
-    
+
     const copyToClipboard = () => {
       navigator.clipboard.writeText(shareUrl).then(() => {
         toast({
@@ -522,9 +522,9 @@ export default function Gallery() {
         setShowShareModal(false);
       });
     };
-    
+
     if (!showShareModal) return null;
-    
+
     return (
       <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" onClick={() => setShowShareModal(false)}>
         <div className="bg-white rounded-lg max-w-md w-full p-6" onClick={e => e.stopPropagation()}>
@@ -532,7 +532,7 @@ export default function Gallery() {
           <p className="text-gray-600 mb-4">
             Condividi questa galleria con familiari e amici utilizzando il link qui sotto:
           </p>
-          
+
           <div className="flex">
             <input 
               type="text" 
@@ -547,7 +547,7 @@ export default function Gallery() {
               Copia
             </button>
           </div>
-          
+
           <div className="mt-6 flex justify-end">
             <button
               onClick={() => setShowShareModal(false)}
@@ -560,7 +560,7 @@ export default function Gallery() {
       </div>
     );
   };
-  
+
   return (
     <div className="min-h-screen bg-off-white">
       <Navigation galleryOwner={gallery.name.split(' - ')[0]} />
@@ -568,7 +568,7 @@ export default function Gallery() {
 
       {/* Hero Section */}
       <div className="relative w-full overflow-hidden">
-        
+
         {gallery.coverImageUrl ? (
           <div className="w-full h-64 md:h-96 overflow-hidden">
             <img 
@@ -585,7 +585,7 @@ export default function Gallery() {
             </div>
           </div>
         )}
-        
+
         <div className={`absolute bottom-0 left-0 right-0 p-6 ${gallery.coverImageUrl ? 'text-white' : ''}`}>
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex justify-between items-start">
@@ -618,7 +618,7 @@ export default function Gallery() {
                   )}
                 </div>
               </div>
-              
+
               <div className="hidden md:flex gap-2">
                 <button
                   onClick={() => downloadAll()}
@@ -637,7 +637,7 @@ export default function Gallery() {
                     </>
                   )}
                 </button>
-                
+
                 <button
                   onClick={() => setShowShareModal(true)}
                   className={`inline-flex items-center px-3 py-1.5 rounded-md text-sm ${gallery.coverImageUrl ? 'bg-white/20 text-white hover:bg-white/30' : 'bg-sage-100 text-sage-700 hover:bg-sage-200'} transition-colors`}
@@ -652,7 +652,7 @@ export default function Gallery() {
       </div>
 
       <div className="py-10 pt-6">
-        
+
         {/* Descrizione della galleria se presente */}
         {gallery.description && (
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-8">
@@ -661,7 +661,7 @@ export default function Gallery() {
             </div>
           </div>
         )}
-        
+
         {/* Video YouTube se presente */}
         {gallery.youtubeUrl && gallery.youtubeUrl.trim() !== "" && (
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-8">
@@ -680,7 +680,7 @@ export default function Gallery() {
             </div>
           </div>
         )}
-        
+
         <main>
           <div className="max-w-7xl mx-auto sm:px-6 lg:px-8">
             <div className="px-4 py-4">
@@ -696,7 +696,7 @@ export default function Gallery() {
                           <path d="M50,5 C60,15 70,15 80,5 C70,25 60,25 50,15 C40,25 30,25 20,5 C30,15 40,15 50,5 Z" />
                         </svg>
                       </div>
-                      
+
                       {/* Menu elegante con design creativo */}
                       <div className="relative z-10 mx-auto max-w-4xl bg-white/80 backdrop-blur-sm rounded-xl shadow-md border border-sage/10 p-3">
                         <TabsList className="relative flex w-full overflow-x-auto pb-1 pt-1 bg-transparent gap-1 scrollbar-thin scrollbar-thumb-sage/20 scrollbar-track-transparent justify-center flex-wrap">
@@ -713,7 +713,7 @@ export default function Gallery() {
                               Tutte le foto ({photos.length})
                             </span>
                           </TabsTrigger>
-                          
+
                           {chapters.map((chapter, index) => (
                             <TabsTrigger 
                               key={chapter.id} 
@@ -730,7 +730,7 @@ export default function Gallery() {
                           ))}
                         </TabsList>
                       </div>
-                      
+
                       {/* Decorazione floreale sotto il menu */}
                       <div className="absolute -bottom-6 left-1/2 transform -translate-x-1/2 w-40 h-12 flex justify-center opacity-30 rotate-180">
                         <svg viewBox="0 0 100 30" xmlns="http://www.w3.org/2000/svg" className="w-full h-full fill-sage-500">
@@ -738,11 +738,11 @@ export default function Gallery() {
                         </svg>
                       </div>
                     </div>
-                    
+
                     {/* Tabs Content */}
                     <TabsContent value="all" className="space-y-6">
                       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2 sm:gap-4 lg:gap-6">
-                        {photos.length === 0 ? (
+                        {photos.length ===0 ? (
                           <div className="col-span-full text-center py-12">
                             <div className="flex flex-col items-center">
                               <div className="w-48 h-48 mb-6">
@@ -782,7 +782,7 @@ export default function Gallery() {
                         )}
                       </div>
                     </TabsContent>
-                    
+
                     <TabsContent value="unassigned" className="space-y-6">
                       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2 sm:gap-4 lg:gap-6">
                         {photos.filter(p => !p.chapterId).length === 0 ? (
@@ -811,13 +811,13 @@ export default function Gallery() {
                         )}
                       </div>
                     </TabsContent>
-                    
+
                     {chapters.map(chapter => (
                       <TabsContent key={chapter.id} value={chapter.id} className="space-y-4">
                         {chapter.description && (
                           <p className="text-blue-gray italic mb-4 md:mb-6 text-sm md:text-base">{chapter.description}</p>
                         )}
-                        
+
                         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2 sm:gap-4 lg:gap-6">
                           {photos.filter(p => p.chapterId === chapter.id).length === 0 ? (
                             <div className="col-span-full text-center py-8">
@@ -849,7 +849,7 @@ export default function Gallery() {
                   </Tabs>
                 </div>
               )}
-              
+
               {/* Mostra questo solo se non ci sono capitoli e non ci sono foto */}
               {chapters.length === 0 && photos.length === 0 && (
                 <div className="text-center py-12">
@@ -866,7 +866,7 @@ export default function Gallery() {
                   </div>
                 </div>
               )}
-              
+
               {/* Se ci sono foto ma non capitoli, visualizza le foto in una griglia semplice */}
               {chapters.length === 0 && photos.length > 0 && (
                       <div className="mb-12 relative">
@@ -876,7 +876,7 @@ export default function Gallery() {
                             <path d="M50,5 C60,15 70,15 80,5 C70,25 60,25 50,15 C40,25 30,25 20,5 C30,15 40,15 50,5 Z" />
                           </svg>
                         </div>
-                        
+
                         {/* Menu elegante con design creativo */}
                         <div className="relative z-10 mx-auto max-w-4xl bg-white/80 backdrop-blur-sm rounded-xl shadow-md border border-sage/10 p-3">
                           <TabsList className="relative flex w-full overflow-x-auto pb-1 pt-1 bg-transparent gap-1 scrollbar-thin scrollbar-thumb-sage/20 scrollbar-track-transparent justify-center flex-wrap">
@@ -893,7 +893,7 @@ export default function Gallery() {
                                 Tutte le foto ({photos.length})
                               </span>
                             </TabsTrigger>
-                            
+
                             <TabsTrigger 
                               value="unassigned" 
                               className="flex-shrink-0 text-blue-gray/80 bg-sage/5 data-[state=active]:bg-sage/15 data-[state=active]:text-sage-800 hover:text-sage-700 rounded-lg border border-sage/20 data-[state=active]:border-sage/40 transition-all px-4 py-2 text-sm font-medium"
@@ -906,7 +906,7 @@ export default function Gallery() {
                                 Non assegnate ({photos.filter(p => !p.chapterId).length})
                               </span>
                             </TabsTrigger>
-                            
+
                             {chapters.map((chapter, index) => (
                               <TabsTrigger 
                                 key={chapter.id} 
@@ -923,7 +923,7 @@ export default function Gallery() {
                             ))}
                           </TabsList>
                         </div>
-                        
+
                         {/* Decorazione floreale sotto il menu */}
                         <div className="absolute -bottom-6 left-1/2 transform -translate-x-1/2 w-40 h-12 flex justify-center opacity-30 rotate-180">
                           <svg viewBox="0 0 100 30" xmlns="http://www.w3.org/2000/svg" className="w-full h-full fill-sage-500">
@@ -931,7 +931,7 @@ export default function Gallery() {
                           </svg>
                         </div>
                       </div>
-                      
+
                       <TabsContent value="all" className="space-y-6">
                         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2 sm:gap-4 lg:gap-6">
                           {photos.map((photo, index) => (
@@ -958,7 +958,7 @@ export default function Gallery() {
                           ))}
                         </div>
                       </TabsContent>
-                      
+
                       <TabsContent value="unassigned" className="space-y-6">
                         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2 sm:gap-4 lg:gap-6">
                           {photos.filter(p => !p.chapterId).map((photo, index) => (
@@ -985,13 +985,13 @@ export default function Gallery() {
                           ))}
                         </div>
                       </TabsContent>
-                      
+
                       {chapters.map(chapter => (
                         <TabsContent key={chapter.id} value={chapter.id} className="space-y-4">
                           {chapter.description && (
                             <p className="text-blue-gray italic mb-4 md:mb-6 text-sm md:text-base">{chapter.description}</p>
                           )}
-                          
+
                           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2 sm:gap-4 lg:gap-6">
                             {photos.filter(p => p.chapterId === chapter.id).map((photo, index) => (
                               <div
@@ -1016,7 +1016,7 @@ export default function Gallery() {
                               </div>
                             ))}
                           </div>
-                          
+
                           {photos.filter(p => p.chapterId === chapter.id).length === 0 && (
                             <div className="text-center py-8">
                               <div className="flex flex-col items-center">
@@ -1056,7 +1056,7 @@ export default function Gallery() {
                       ))}
                     </div>
                   )}
-                  
+
                   {/* Pulsante "Carica altre foto" */}
                   {hasMorePhotos && (
                     <div className="w-full flex flex-col items-center mt-8 mb-4">
@@ -1093,7 +1093,7 @@ export default function Gallery() {
           </div>
         </main>
       </div>
-      
+
       {/* Instagram Call to Action */}
       <div className="bg-blue-gray/5 border-t border-blue-gray/10 py-12 mt-10 relative overflow-hidden">
         {/* Decorazioni */}
@@ -1102,12 +1102,12 @@ export default function Gallery() {
         <div className="absolute inset-0 opacity-5 pointer-events-none">
           <BackgroundDecoration />
         </div>
-        
+
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
           <div className="w-full max-w-xs mx-auto h-10 opacity-20 mb-8">
             <FloralDivider />
           </div>
-          
+
           <div className="flex flex-col md:flex-row items-center justify-between gap-6">
             <div className="text-center md:text-left flex md:flex-row flex-col items-center gap-6">
               <div className="md:w-32 w-24 h-auto flex-shrink-0 order-1 md:order-none mb-4 md:mb-0">
@@ -1120,7 +1120,7 @@ export default function Gallery() {
                 </p>
               </div>
             </div>
-            
+
             <div className="flex items-center space-x-2">
               <a 
                 href={studioSettings.socialLinks.instagram ? 
@@ -1142,7 +1142,7 @@ export default function Gallery() {
               </a>
             </div>
           </div>
-          
+
           <div className="mt-12 pt-6 border-t border-gray-200 text-center text-gray-500 text-sm">
             <div className="w-20 h-20 mx-auto mb-4">
               <WeddingImage type="flower-bouquet" className="w-full h-auto opacity-20" />
