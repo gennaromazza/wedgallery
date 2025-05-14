@@ -8,7 +8,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import GalleryHeader from "@/components/gallery/GalleryHeader";
 import YouTubeEmbed from "@/components/gallery/YouTubeEmbed";
 import LoadMoreButton from "@/components/gallery/LoadMoreButton";
-import GalleryTabs from "@/components/gallery/GalleryTabs";
+import ChaptersManager from "@/components/ChaptersManager";
 import GalleryFooter from "@/components/gallery/GalleryFooter";
 import { useGalleryData } from "@/hooks/use-gallery-data";
 
@@ -163,10 +163,15 @@ export default function Gallery() {
                 <>
                   {/* Visualizzazione con tab o semplice griglia di foto in base alla presenza di capitoli */}
                   {chapters.length > 0 ? (
-                    <GalleryTabs 
+                    <ChaptersManager 
                       chapters={chapters}
-                      photos={photos}
-                      openLightbox={openLightbox}
+                      photos={photos.map(p => ({
+                        ...p,
+                        file: {} as File,
+                        position: 0
+                      }))}
+                      onPhotosUpdate={() => {}}
+                      onChaptersUpdate={() => {}}
                     />
                   ) : (
                     <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2 sm:gap-4 lg:gap-6">
