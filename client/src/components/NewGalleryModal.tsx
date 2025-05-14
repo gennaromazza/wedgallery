@@ -180,15 +180,22 @@ export default function NewGalleryModal({ isOpen, onClose, onSuccess }: NewGalle
           let totalProcessed = 0;
           let photosCollection = collection(db, "galleries", galleryRef.id, "photos");
           
-          // Funzione per ottenere un nuovo batch quando necessario
-          const getOrCreateBatch = () => {
+          // Funzione per gestire il batch quando necessario
+          const checkAndCommitBatchIfNeeded = async () => {
             if (operationsInCurrentBatch >= BATCH_LIMIT) {
-              // Commit del batch corrente e creazione di uno nuovo
-              currentBatch.commit();
-              currentBatch = writeBatch(db);
-              operationsInCurrentBatch = 0;
+              try {
+                // Commit del batch corrente e creazione di uno nuovo
+                console.log(`Commit del batch con ${operationsInCurrentBatch} operazioni`);
+                await currentBatch.commit();
+                currentBatch = writeBatch(db);
+                operationsInCurrentBatch = 0;
+              } catch (batchError) {
+                console.error("Errore durante il commit del batch:", batchError);
+                // Ricrea un nuovo batch in caso di errore
+                currentBatch = writeBatch(db);
+                operationsInCurrentBatch = 0;
+              }
             }
-            return currentBatch;
           };
           
           const totalPhotos = selectedFiles.length;
@@ -229,9 +236,12 @@ export default function NewGalleryModal({ isOpen, onClose, onSuccess }: NewGalle
                   createdAt: serverTimestamp()
                 };
                 
-                const batch = getOrCreateBatch();
+                // Verifica e commit del batch se necessario
+                await checkAndCommitBatchIfNeeded();
+                
+                // Usa il batch corrente
                 const newPhotoRef = doc(photosCollection);
-                batch.set(newPhotoRef, photoData);
+                currentBatch.set(newPhotoRef, photoData);
                 operationsInCurrentBatch++;
                 
                 totalProcessed++;
@@ -282,9 +292,19 @@ export default function NewGalleryModal({ isOpen, onClose, onSuccess }: NewGalle
       
     } catch (error) {
       console.error("Errore durante la creazione della galleria:", error);
+      
+      // Mostra dettagli dell'errore per il debug
+      let errorMessage = "Si è verificato un errore durante la creazione della galleria";
+      if (error instanceof Error) {
+        errorMessage += `: ${error.message}`;
+        console.error("Stack trace:", error.stack);
+      } else {
+        console.error("Dettagli errore:", JSON.stringify(error));
+      }
+      
       toast({
         title: "Errore",
-        description: "Si è verificato un errore durante la creazione della galleria",
+        description: errorMessage,
         variant: "destructive",
       });
     } finally {
