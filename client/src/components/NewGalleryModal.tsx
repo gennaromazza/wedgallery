@@ -109,6 +109,10 @@ export default function NewGalleryModal({ isOpen, onClose, onSuccess }: NewGalle
       });
       return;
     }
+
+    if (typeof onSuccess !== 'function') {
+      console.warn('onSuccess callback is not defined');
+    }
     
     setIsLoading(true);
     
@@ -287,7 +291,9 @@ export default function NewGalleryModal({ isOpen, onClose, onSuccess }: NewGalle
         description: "Galleria creata con successo!",
       });
       
-      onSuccess();
+      if (typeof onSuccess === 'function') {
+        onSuccess();
+      }
       onClose();
       
     } catch (error) {
