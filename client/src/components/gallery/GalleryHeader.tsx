@@ -30,7 +30,7 @@ export default function GalleryHeader({
   };
 
   return (
-    <div className="relative bg-white py-12 sm:py-16 overflow-hidden">
+    <div className="relative bg-white py-6 sm:py-10 overflow-hidden">
       {/* Decorazioni */}
       <FloralCorner position="top-left" className="absolute top-0 left-0 w-32 h-32 opacity-10 pointer-events-none" />
       <FloralCorner position="top-right" className="absolute top-0 right-0 w-32 h-32 opacity-10 pointer-events-none" />
@@ -38,43 +38,56 @@ export default function GalleryHeader({
         <BackgroundDecoration />
       </div>
       
-      <div className="max-w-7xl mx-auto sm:px-6 lg:px-8 relative z-10">
-        <div className="px-4 text-center mb-10">
-          <h1 className="text-3xl md:text-4xl font-bold text-blue-gray font-playfair">
-            {name}
-          </h1>
-          <div className="mt-2 text-blue-gray/70 flex justify-center items-center space-x-2">
-            <span>{formatDate(date)}</span>
-            {location && (
-              <>
-                <span>•</span>
-                <span>{location}</span>
-              </>
-            )}
+      {coverImageUrl && coverImageUrl.trim() !== "" ? (
+        <div className="relative w-full mb-10">
+          <div className="relative w-full max-w-6xl mx-auto h-64 sm:h-80 md:h-96 lg:h-[450px] overflow-hidden rounded-lg shadow-lg">
+            <img 
+              src={coverImageUrl} 
+              alt={`Copertina: ${name}`} 
+              className="w-full h-full object-cover"
+            />
+            <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-black/70 flex flex-col items-center justify-end p-6 sm:p-8">
+              <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold text-white font-playfair text-center drop-shadow-md">
+                {name}
+              </h1>
+              <div className="mt-3 text-white/90 flex flex-wrap justify-center items-center gap-2 text-lg drop-shadow-md">
+                <span>{formatDate(date)}</span>
+                {location && (
+                  <>
+                    <span className="hidden sm:inline">•</span>
+                    <span>{location}</span>
+                  </>
+                )}
+              </div>
+            </div>
           </div>
         </div>
-        
-        {coverImageUrl && coverImageUrl.trim() !== "" && (
-          <div className="px-4 mb-10">
-            <div className="max-w-4xl mx-auto overflow-hidden rounded-lg shadow-sm">
-              <img 
-                src={coverImageUrl} 
-                alt={`Copertina: ${name}`} 
-                className="w-full h-auto object-cover"
-              />
+      ) : (
+        <div className="max-w-7xl mx-auto sm:px-6 lg:px-8 relative z-10">
+          <div className="px-4 text-center mb-10">
+            <h1 className="text-3xl md:text-4xl font-bold text-blue-gray font-playfair">
+              {name}
+            </h1>
+            <div className="mt-2 text-blue-gray/70 flex justify-center items-center space-x-2">
+              <span>{formatDate(date)}</span>
+              {location && (
+                <>
+                  <span>•</span>
+                  <span>{location}</span>
+                </>
+              )}
             </div>
           </div>
-        )}
-        
-        {/* Descrizione */}
-        {description && description.trim() !== "" && (
-          <div className="px-4 mb-8">
-            <div className="max-w-4xl mx-auto bg-white p-6 rounded-lg shadow-sm">
-              <p className="text-gray-700 italic">{description}</p>
-            </div>
+        </div>
+      )}
+      
+      {description && description.trim() !== "" && (
+        <div className="px-4 mb-8 max-w-7xl mx-auto">
+          <div className="max-w-4xl mx-auto bg-white p-6 rounded-lg shadow-sm">
+            <p className="text-gray-700 italic">{description}</p>
           </div>
-        )}
-      </div>
+        </div>
+      )}
     </div>
   );
 }

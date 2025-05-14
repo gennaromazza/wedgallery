@@ -162,7 +162,7 @@ export default function Gallery() {
               ) : (
                 <>
                   {/* Visualizzazione con tab o semplice griglia di foto in base alla presenza di capitoli */}
-                  {gallery.hasChapters && chapters.length > 0 ? (
+                  {chapters.length > 0 ? (
                     <GalleryTabs 
                       chapters={chapters}
                       photos={photos}
