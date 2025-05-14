@@ -130,7 +130,7 @@ export default function GalleryTabs({
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2 sm:gap-4 lg:gap-6">
           {photos.map((photo, index) => (
             <div
-              key={photo.id}
+              key={`all-${photo.id}-${index}`}
               className="gallery-image h-40 sm:h-52 lg:h-64"
               onClick={() => openLightbox(photos.findIndex(p => p.id === photo.id))}
             >
@@ -157,7 +157,7 @@ export default function GalleryTabs({
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2 sm:gap-4 lg:gap-6">
           {photos.filter(p => !p.chapterId).map((photo, index) => (
             <div
-              key={photo.id}
+              key={`unassigned-${photo.id}-${index}`}
               className="gallery-image h-40 sm:h-52 lg:h-64"
               onClick={() => openLightbox(photos.findIndex(p => p.id === photo.id))}
             >
@@ -189,7 +189,7 @@ export default function GalleryTabs({
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2 sm:gap-4 lg:gap-6">
             {photos.filter(p => p.chapterId === chapter.id).map((photo, index) => (
               <div
-                key={photo.id}
+                key={`chapter-${chapter.id}-${photo.id}-${index}`}
                 className="gallery-image h-40 sm:h-52 lg:h-64 relative overflow-hidden rounded-md shadow-sm transition-transform duration-300 hover:scale-[1.02] hover:shadow-md"
                 onClick={() => openLightbox(photos.findIndex(p => p.id === photo.id))}
               >
