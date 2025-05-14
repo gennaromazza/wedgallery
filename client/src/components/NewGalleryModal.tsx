@@ -15,6 +15,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { FileUpload } from "@/components/ui/file-upload";
 import ChaptersModal from "@/components/ChaptersModal";
 import { Chapter, PhotoWithChapter } from "@/components/ChaptersManager";
+import { uploadPhotos as uploadPhotosOptimized, UploadSummary } from "@/lib/photoUploader";
 
 interface NewGalleryModalProps {
   isOpen: boolean;
@@ -27,6 +28,9 @@ export default function NewGalleryModal({ isOpen, onClose }: NewGalleryModalProp
   const [previews, setPreviews] = useState<string[]>([]);
   const [coverImage, setCoverImage] = useState<File | null>(null);
   const [coverPreview, setCoverPreview] = useState<string | null>(null);
+  const [creationStep, setCreationStep] = useState<"editing" | "uploading" | "complete">("editing");
+  const [progress, setProgress] = useState(0);
+  const [uploadProgress, setUploadProgress] = useState<UploadSummary | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const coverInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
@@ -131,41 +135,38 @@ export default function NewGalleryModal({ isOpen, onClose }: NewGalleryModalProp
     };
   };
 
+  // Funzione di upload ottimizzata
   const uploadPhotos = async (galleryId: string, files: File[]) => {
-    const uploadedPhotos = [];
+    console.log(`Avvio caricamento ottimizzato di ${files.length} foto`);
+    setCreationStep("uploading");
     
-    for (const file of files) {
-      const storageRef = ref(storage, `galleries/${galleryId}/${file.name}`);
-      const uploadTask = uploadBytesResumable(storageRef, file);
+    try {
+      // Utilizza il caricatore ottimizzato con gestione del progresso
+      const uploadedPhotos = await uploadPhotosOptimized(
+        galleryId,
+        files,
+        6, // concurrency
+        () => {}, // Aggiornamenti individuali dei file non necessari qui
+        (summary) => {
+          // Aggiorna informazioni di progresso globali
+          setUploadProgress(summary);
+          
+          // Aggiorna il progresso di upload generale
+          setProgress(Math.round(summary.avgProgress));
+        }
+      );
       
-      try {
-        // Wait for upload to complete
-        await new Promise<void>((resolve, reject) => {
-          uploadTask.on(
-            "state_changed",
-            () => {},
-            (error) => reject(error),
-            () => resolve()
-          );
-        });
-        
-        // Get download URL
-        const downloadUrl = await getDownloadURL(uploadTask.snapshot.ref);
-        
-        uploadedPhotos.push({
-          name: file.name,
-          url: downloadUrl,
-          size: file.size,
-          contentType: file.type,
-          createdAt: serverTimestamp(),
-        });
-      } catch (error) {
-        console.error("Error uploading file:", error);
-        throw error;
-      }
+      console.log(`Completato il caricamento di ${uploadedPhotos.length} foto`);
+      return uploadedPhotos;
+    } catch (error) {
+      console.error("Errore durante il caricamento delle foto:", error);
+      toast({
+        title: "Errore di caricamento",
+        description: "Si è verificato un errore durante il caricamento delle foto. Riprova.",
+        variant: "destructive",
+      });
+      throw error;
     }
-    
-    return uploadedPhotos;
   };
 
   // Gestisce la prima fase: raccolta dati e passaggio al modale dei capitoli
@@ -477,7 +478,7 @@ export default function NewGalleryModal({ isOpen, onClose }: NewGalleryModalProp
                                     console.log("Foto con capitoli:", result.photosWithChapters.slice(0, 3), `...e altre ${result.photosWithChapters.length - 3}`);
                                     
                                     // Verifica che i capitoli e le foto siano associati correttamente
-                                    const chapterCounts = {};
+                                    const chapterCounts: Record<string, number> = {};
                                     result.chapters.forEach(chapter => {
                                       chapterCounts[chapter.id] = result.photosWithChapters.filter(p => p.chapterId === chapter.id).length;
                                     });

@@ -200,10 +200,27 @@ export default function ChaptersManager({
   // Filtra le foto in base al capitolo attivo
   const filteredPhotos = activeTab === 'all' 
     ? photos 
-    : photos.filter(photo => photo.chapterId === activeTab);
+    : activeTab === 'unassigned'
+      ? photos.filter(photo => !photo.chapterId)
+      : photos.filter(photo => photo.chapterId === activeTab);
   
   // Foto non assegnate ad alcun capitolo
   const unassignedPhotos = photos.filter(photo => !photo.chapterId);
+  
+  // Debug per vedere lo stato delle assegnazioni
+  useEffect(() => {
+    console.log("ChaptersManager - Stato attuale:");
+    console.log(`- Totale foto: ${photos.length}`);
+    console.log(`- Foto non assegnate: ${unassignedPhotos.length}`);
+    console.log(`- Capitoli: ${chapters.length}`);
+    
+    // Conta foto per capitolo
+    const countsByChapter: Record<string, number> = {};
+    chapters.forEach(chapter => {
+      countsByChapter[chapter.title] = photos.filter(p => p.chapterId === chapter.id).length;
+    });
+    console.log("Foto per capitolo:", countsByChapter);
+  }, [photos, chapters, unassignedPhotos.length]);
   
   // Renderizza il componente
   return (
