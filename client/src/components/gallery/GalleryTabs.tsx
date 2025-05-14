@@ -119,7 +119,7 @@ export default function GalleryTabs({
               value={chapter.id} 
               className="flex-shrink-0 text-blue-gray/70 bg-sage/5 data-[state=active]:bg-sage/10 data-[state=active]:text-sage-700 hover:text-sage-700 rounded-t-lg border-b-2 border-transparent data-[state=active]:border-sage-500 transition-all px-6 py-2.5 font-medium"
             >
-              {chapter.title} ({photos.filter(p => p.chapterId === chapter.id).length})
+              {chapter.title} ({photos.filter(p => p.chapterId === chapter.id).length}) <span className="hidden">{chapter.id}</span>
             </TabsTrigger>
           ))}
         </TabsList>

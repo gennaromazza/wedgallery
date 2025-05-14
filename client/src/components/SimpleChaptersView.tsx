@@ -128,7 +128,7 @@ export default function SimpleChaptersView({
       {chapters.map((chapter) => (
         <div key={chapter.id} className="mb-12">
           <div className="bg-white/80 backdrop-blur-sm rounded-xl shadow-md border border-sage/10 p-4">
-            <h2 className="text-xl font-playfair mb-2">{chapter.title}</h2>
+            <h2 className="text-xl font-playfair mb-2">{chapter.title} <span className="text-xs text-sage-600">(ID: {chapter.id})</span></h2>
             
             {chapter.description && (
               <p className="text-blue-gray italic mb-4 md:mb-6 text-sm md:text-base">{chapter.description}</p>

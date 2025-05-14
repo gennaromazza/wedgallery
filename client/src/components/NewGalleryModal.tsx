@@ -171,6 +171,8 @@ export default function NewGalleryModal({ isOpen, onClose, onSuccess }: NewGalle
             originalId: chapter.id, // Memorizza l'ID originale per debug
             createdAt: serverTimestamp()
           });
+          
+          console.log(`Capitolo ${chapter.title} - ID originale: ${chapter.id}, nuovo ID: ${newChapterId}`);
         }
         
         await batch.commit();
@@ -234,7 +236,9 @@ export default function NewGalleryModal({ isOpen, onClose, onSuccess }: NewGalle
             for (const photo of chunk) {
               try {
                 // Carica la foto nello storage
-                const storageRef = ref(storage, `gallery-photos/${galleryRef.id}/${uuidv4()}-${photo.name}`);
+                // Genera un ID unico per la foto
+                const photoUuid = uuidv4();
+                const storageRef = ref(storage, `gallery-photos/${galleryRef.id}/${photoUuid}-${photo.name}`);
                 await uploadBytes(storageRef, photo.file);
                 const photoUrl = await getDownloadURL(storageRef);
                 
