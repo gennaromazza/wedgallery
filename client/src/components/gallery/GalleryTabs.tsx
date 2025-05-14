@@ -63,29 +63,34 @@ export default function GalleryTabs({
   // Se ci sono foto ma non ci sono capitoli, mostriamo solo la griglia di foto
   if (chapters.length === 0) {
     return (
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2 sm:gap-4 lg:gap-6">
-        {photos.map((photo, index) => (
-          <div
-            key={photo.id}
-            className="gallery-image h-40 sm:h-52 lg:h-64"
-            onClick={() => openLightbox(index)}
-          >
-            <img
-              src={photo.url}
-              alt={photo.name || `Foto ${index + 1}`}
-              className="w-full h-full object-cover transition-opacity duration-300 opacity-0 hover:opacity-95"
-              loading="lazy"
-              onLoad={(e) => {
-                // Imposta l'opacità a 1 quando l'immagine è caricata
-                (e.target as HTMLImageElement).classList.replace('opacity-0', 'opacity-100');
-              }}
-              style={{ 
-                backgroundColor: '#f3f4f6',
-                objectFit: 'cover',
-              }}
-            />
-          </div>
-        ))}
+      <div className="relative">
+        <div className="absolute inset-0 bg-gradient-to-b from-sage/5 to-transparent opacity-50 pointer-events-none"></div>
+        
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2 sm:gap-4 lg:gap-6">
+          {photos.map((photo, index) => (
+            <div
+              key={photo.id}
+              className="gallery-image h-40 sm:h-52 lg:h-64 relative overflow-hidden rounded-md shadow-sm transition-transform duration-300 hover:scale-[1.02] hover:shadow-md"
+              onClick={() => openLightbox(index)}
+            >
+              <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent opacity-0 hover:opacity-100 transition-opacity z-10 pointer-events-none"></div>
+              <img
+                src={photo.url}
+                alt={photo.name || `Foto ${index + 1}`}
+                className="w-full h-full object-cover transition-all duration-300 opacity-0 hover:brightness-105"
+                loading="lazy"
+                onLoad={(e) => {
+                  // Imposta l'opacità a 1 quando l'immagine è caricata
+                  (e.target as HTMLImageElement).classList.replace('opacity-0', 'opacity-100');
+                }}
+                style={{ 
+                  backgroundColor: '#f3f4f6',
+                  objectFit: 'cover',
+                }}
+              />
+            </div>
+          ))}
+        </div>
       </div>
     );
   }

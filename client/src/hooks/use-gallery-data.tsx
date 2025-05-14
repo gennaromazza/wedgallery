@@ -171,12 +171,15 @@ export function useGalleryData(galleryId: string) {
         const { ref, listAll, getDownloadURL, getMetadata } = await import("firebase/storage");
         const { storage } = await import("@/lib/firebase");
         
-        // Tentativi di percorsi multipli nello Storage ordinati per probabilità
+        // Usa direttamente l'ID della galleria come riferimento principale
+        console.log("Tentativo di recupero delle foto per galleryId:", galleryId);
+        
+        // Percorsi di storage più comuni
         const possiblePaths = [
           `galleries/${galleryId}`, 
           `galleries/ ${galleryId}`,
-          `galleries/${galleryId.toLowerCase()}`,
-          `galleries/${galleryId.toUpperCase()}`,
+          `galleries/${String(galleryId).toLowerCase()}`,
+          `galleries/${String(galleryId).toUpperCase()}`,
           `galleries/${galleryId}/photos`
         ];
         
