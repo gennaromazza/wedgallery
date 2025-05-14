@@ -310,57 +310,155 @@ export function FileUpload({
         const hasWebkitRelativePaths = webkitFilesWithPaths.length > 0;
         console.log(`File con percorsi relativi: ${webkitFilesWithPaths.length}`);
         
-        // Se abbiamo percorsi relativi e il supporto per cartelle è abilitato, elabora come cartelle
+        // Se abbiamo percorsi relativi e il supporto per cartelle è abilitato
         if (enableFolderUpload && hasWebkitRelativePaths && onChaptersExtracted) {
-          console.log("Rilevata selezione di cartella da input, estrazione capitoli in corso...");
+          // Mostra l'indicatore di progresso
+          setIsProcessingFolders(true);
+          setProcessingProgress(0);
+          setProcessingStatus('Inizializzazione elaborazione cartelle...');
+          setTotalFilesFound(0);
+          setProcessedFiles(0);
           
-          // Raggruppa i file per cartella
-          const folderMap = new Map<string, { files: File[]; folderName: string }>();
+          // Callback per aggiornare il progresso
+          const updateProgress = (progress: number, status: string, filesFound?: number, filesProcessed?: number) => {
+            setProcessingProgress(progress);
+            setProcessingStatus(status);
+            if (filesFound !== undefined) setTotalFilesFound(filesFound);
+            if (filesProcessed !== undefined) setProcessedFiles(filesProcessed);
+          };
           
-          for (const file of webkitFilesWithPaths) {
-            // Ottieni il percorso relativo
-            const path = (file as any).webkitRelativePath;
-            if (path && path.includes('/')) {
-              // Estrai il nome della cartella principale
-              const folderName = path.split('/')[0];
+          try {
+            // Genera automaticamente i capitoli dai file con percorsi relativi
+            updateProgress(5, 'Analisi delle cartelle...', newFiles.length, 0);
+            
+            // Crea una mappa di cartelle in base ai percorsi relativi dei file
+            const chapters: Chapter[] = [];
+            const photosWithChapters: PhotoWithChapter[] = [];
+            const folderMap = new Map<string, File[]>();
+            let processedFiles = 0;
+            
+            // Primo passaggio: raggruppa i file per cartella
+            for (const file of webkitFilesWithPaths) {
+              // Ottieni il percorso relativo
+              const path = (file as any).webkitRelativePath || '';
+              if (path && path.includes('/')) {
+                // Estrai il nome della cartella principale
+                const folderName = path.split('/')[0];
+                
+                // Aggiungi file al gruppo della cartella
+                if (!folderMap.has(folderName)) {
+                  folderMap.set(folderName, [file]);
+                } else {
+                  folderMap.get(folderName)!.push(file);
+                }
+              }
               
-              // Aggiungi il file alla cartella appropriata
-              if (!folderMap.has(folderName)) {
-                folderMap.set(folderName, {
-                  files: [file],
-                  folderName
-                });
-              } else {
-                folderMap.get(folderName)!.files.push(file);
+              processedFiles++;
+              if (processedFiles % 100 === 0) {
+                updateProgress(20, `Analisi file ${processedFiles}/${newFiles.length}...`, newFiles.length, processedFiles);
               }
             }
-          }
-          
-          console.log(`Trovate ${folderMap.size} cartelle dalla selezione`);
-          
-          if (folderMap.size > 0) {
-            // Crea capitoli e assegna foto in base alla struttura delle cartelle
-            const result = createChaptersFromFolderStructure(newFiles, folderMap);
-            console.log(`Creati ${result.chapters.length} capitoli con ${result.photosWithChapters.length} foto`);
             
-            // Notifica i capitoli estratti attraverso il callback
-            onChaptersExtracted(result);
+            // Secondo passaggio: crea capitoli per ogni cartella
+            updateProgress(40, 'Creazione capitoli...', newFiles.length, processedFiles);
+            let position = 0;
             
-            // Procedi con la compressione e l'upload
-            await processFiles(newFiles);
-          } else {
-            // Se non abbiamo trovato cartelle, usa l'approccio tradizionale
-            console.log("Nessuna struttura di cartelle trovata, utilizzo tradizionale");
-            const result = extractChaptersFromFolders(newFiles);
+            Array.from(folderMap.entries()).forEach(([folderName, files], idx) => {
+              // Crea un capitolo per questa cartella
+              const chapterId = `chapter-${Date.now()}-${idx}`;
+              chapters.push({
+                id: chapterId,
+                title: folderName,
+                description: `Foto dalla cartella "${folderName}"`,
+                position: idx
+              });
+              
+              // Assegna tutti i file a questo capitolo
+              files.forEach((file, fileIdx) => {
+                photosWithChapters.push({
+                  id: `photo-${Date.now()}-${position}`,
+                  file,
+                  url: URL.createObjectURL(file),
+                  name: file.name,
+                  chapterId,
+                  position: position++
+                });
+              });
+              
+              console.log(`Capitolo "${folderName}" creato con ${files.length} foto`);
+            });
             
-            if (result.chapters.length > 0) {
-              console.log("Capitoli estratti dal metodo tradizionale:", result.chapters);
-              onChaptersExtracted(result);
-              await processFiles(result.photosWithChapters.map(p => p.file));
-            } else {
-              // Nessun capitolo, upload standard
-              await processFiles(newFiles);
+            // Terzo passaggio: gestisci i file che non hanno percorsi relativi
+            const otherFiles = newFiles.filter(file => !webkitFilesWithPaths.includes(file));
+            
+            if (otherFiles.length > 0) {
+              // Crea un capitolo "Altre foto" per i file senza percorso
+              const chapterId = `chapter-${Date.now()}-other`;
+              chapters.push({
+                id: chapterId,
+                title: "Altre foto",
+                description: "Foto senza categoria specifica",
+                position: chapters.length
+              });
+              
+              // Assegna i file rimanenti a questo capitolo
+              otherFiles.forEach((file, idx) => {
+                photosWithChapters.push({
+                  id: `photo-${Date.now()}-${position}`,
+                  file,
+                  url: URL.createObjectURL(file),
+                  name: file.name,
+                  chapterId,
+                  position: position++
+                });
+              });
+              
+              console.log(`Capitolo "Altre foto" creato con ${otherFiles.length} foto`);
             }
+            
+            updateProgress(70, 'Preparazione per caricamento...', newFiles.length, newFiles.length);
+            
+            // Notifica i capitoli creati
+            if (chapters.length > 0) {
+              console.log(`Creati ${chapters.length} capitoli con ${photosWithChapters.length} foto totali`);
+              
+              onChaptersExtracted({
+                chapters,
+                photosWithChapters
+              });
+              
+              // Procedi con la compressione e il caricamento
+              updateProgress(80, 'Compressione e caricamento foto...', newFiles.length, newFiles.length);
+              await processFiles(newFiles);
+              
+              // Operazione completata
+              updateProgress(100, 'Elaborazione cartelle completata!', newFiles.length, newFiles.length);
+              setTimeout(() => setIsProcessingFolders(false), 1000);
+            } else {
+              console.log("Nessun capitolo creato, uso metodo tradizionale");
+              
+              // Fallback al metodo tradizionale
+              updateProgress(60, 'Nessun capitolo rilevato, provo metodo alternativo...', newFiles.length, newFiles.length);
+              const result = extractChaptersFromFolders(newFiles);
+              
+              if (result.chapters.length > 0) {
+                onChaptersExtracted(result);
+                await processFiles(result.photosWithChapters.map(p => p.file));
+              } else {
+                await processFiles(newFiles);
+              }
+              
+              setIsProcessingFolders(false);
+            }
+          } catch (error: any) {
+            console.error("Errore durante l'elaborazione delle cartelle:", error);
+            setProcessingStatus(`Errore: ${error.message || 'Errore sconosciuto'}`);
+            
+            // Tenta comunque il metodo tradizionale
+            setTimeout(() => {
+              setIsProcessingFolders(false);
+              processFiles(newFiles).catch(console.error);
+            }, 2000);
           }
         } else {
           // Processo standard per i file senza supporto cartelle
