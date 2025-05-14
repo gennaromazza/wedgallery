@@ -30,7 +30,7 @@ interface FileUploadProps {
   }) => void;
 }
 
-export function FileUpload({
+export default function FileUpload({
   onFilesSelected,
   multiple = false,
   maxFiles = 10,

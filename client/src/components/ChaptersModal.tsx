@@ -24,6 +24,22 @@ export default function ChaptersModal({
   onSave
 }: ChaptersModalProps) {
   const handleSave = () => {
+    console.log("ChaptersModal - Salvataggio capitoli:", chapters);
+    console.log("ChaptersModal - Foto associate ai capitoli:", 
+      chapters.map(chapter => ({
+        id: chapter.id,
+        title: chapter.title,
+        count: photos.filter(p => p.chapterId === chapter.id).length
+      }))
+    );
+    
+    // Verifica l'integrità dei dati prima di salvare
+    const unassignedPhotos = photos.filter(p => !p.chapterId).length;
+    if (unassignedPhotos > 0) {
+      console.warn(`Attenzione: ci sono ${unassignedPhotos} foto non assegnate a capitoli`);
+    }
+    
+    // Salva le modifiche e chiudi il modale
     onSave();
     onClose();
   };

@@ -39,6 +39,21 @@ export default function ChaptersManager({
   chapters,
   onChaptersUpdate
 }: ChaptersManagerProps) {
+  
+  // Debug stato attuale dei capitoli e foto
+  useEffect(() => {
+    console.log("ChaptersManager - Stato attuale:");
+    console.log(`- Totale foto: ${photos.length}`); 
+    console.log(`- Foto non assegnate: ${photos.filter(p => !p.chapterId).length}`);
+    console.log(`- Capitoli: ${chapters.length}`);
+    
+    // Conteggio foto per capitolo
+    const photosPerChapter: Record<string, number> = {};
+    chapters.forEach(chapter => {
+      photosPerChapter[chapter.id] = photos.filter(p => p.chapterId === chapter.id).length;
+    });
+    console.log("Foto per capitolo:", photosPerChapter);
+  }, [photos, chapters]);
   const [activeTab, setActiveTab] = useState<string>('all');
   const [editingChapterId, setEditingChapterId] = useState<string | null>(null);
   const [newChapterTitle, setNewChapterTitle] = useState('');
