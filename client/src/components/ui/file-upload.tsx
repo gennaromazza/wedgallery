@@ -74,56 +74,75 @@ export function FileUpload({
     setIsDragging(false);
   };
 
-  // Processa i file (compressione e callback)
+  // Processa i file con gestione ottimizzata della memoria
   const processFiles = async (files: File[]) => {
     try {
-      // Comprime le immagini se l'opzione è abilitata
+      // Per evitare problemi di memoria con molti file, processiamo in batch
+      const BATCH_SIZE = 20; // Numero di file da processare in ogni batch
+      const totalBatches = Math.ceil(files.length / BATCH_SIZE);
+      
+      console.log(`Processando ${files.length} file in ${totalBatches} batch di ${BATCH_SIZE}`);
+      
       if (enableCompression) {
-        // Imposta lo stato di compressione per mostrare il caricamento
-        const fileNames = files.map(file => file.name);
-        setCompressingFiles([...compressingFiles, ...fileNames]);
+        // Array per memorizzare tutti i file compressi
+        const allCompressedFiles: File[] = [];
         
-        // Memorizza le dimensioni originali
-        const originalSizes: {[filename: string]: number} = {};
-        files.forEach(file => {
-          originalSizes[file.name] = file.size;
-        });
-        
-        // Comprime le immagini
-        const compressedFiles = await Promise.all(files.map(async (file) => {
-          // Per ogni file, se è un'immagine comprimi, altrimenti mantieni originale
-          if (file.type.startsWith('image/')) {
-            try {
-              // Usa il metodo di compressione singolo per avere più controllo
-              const compressedFile = await import('@/lib/imageCompression').then(
-                module => module.compressImage(file, compressionOptions)
-              );
-              
-              // Memorizza le informazioni sulla compressione
-              setCompressionData(prev => ({
-                ...prev,
-                [file.name]: {
-                  originalSize: file.size,
-                  compressedSize: compressedFile.size,
-                  compressionRatio: file.size / compressedFile.size
-                }
-              }));
-              
-              return compressedFile;
-            } catch (error) {
-              console.error(`Errore durante la compressione di ${file.name}:`, error);
+        // Processa i file in batch
+        for (let i = 0; i < files.length; i += BATCH_SIZE) {
+          const batchFiles = files.slice(i, i + BATCH_SIZE);
+          const batchNumber = Math.floor(i / BATCH_SIZE) + 1;
+          
+          console.log(`Processando batch ${batchNumber}/${totalBatches} (${batchFiles.length} file)`);
+          
+          // Imposta lo stato di compressione per questo batch
+          const batchFileNames = batchFiles.map(file => file.name);
+          setCompressingFiles(prev => [...prev, ...batchFileNames]);
+          
+          // Comprimi i file di questo batch
+          const batchCompressedFiles = await Promise.all(batchFiles.map(async (file) => {
+            if (file.type.startsWith('image/')) {
+              try {
+                // Usa il metodo di compressione singolo
+                const compressedFile = await import('@/lib/imageCompression').then(
+                  module => module.compressImage(file, compressionOptions)
+                );
+                
+                // Memorizza le informazioni sulla compressione
+                setCompressionData(prev => ({
+                  ...prev,
+                  [file.name]: {
+                    originalSize: file.size,
+                    compressedSize: compressedFile.size,
+                    compressionRatio: file.size / compressedFile.size
+                  }
+                }));
+                
+                return compressedFile;
+              } catch (error) {
+                console.error(`Errore durante la compressione di ${file.name}:`, error);
+                return file;
+              }
+            } else {
               return file;
             }
-          } else {
-            return file;
+          }));
+          
+          // Aggiungi i file compressi all'array complessivo
+          allCompressedFiles.push(...batchCompressedFiles);
+          
+          // Rimuovi lo stato di compressione per questo batch
+          setCompressingFiles(prev => prev.filter(name => !batchFileNames.includes(name)));
+          
+          // Piccola pausa tra i batch per aiutare il garbage collector
+          if (batchNumber < totalBatches) {
+            await new Promise(resolve => setTimeout(resolve, 100));
           }
-        }));
+        }
         
-        // Rimuovi lo stato di compressione
-        setCompressingFiles(prev => prev.filter(name => !fileNames.includes(name)));
-        
-        onFilesSelected(compressedFiles);
+        console.log(`Compressione completata per ${allCompressedFiles.length} file`);
+        onFilesSelected(allCompressedFiles);
       } else {
+        // Se la compressione non è abilitata, passa i file originali
         onFilesSelected(files);
       }
     } catch (error) {
