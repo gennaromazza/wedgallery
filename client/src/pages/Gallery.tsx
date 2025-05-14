@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { useParams, useLocation } from "wouter";
-import { collection, query, where, getDocs, doc, getDoc, addDoc, serverTimestamp, orderBy, limit, startAfter } from "firebase/firestore";
+import { collection, query, where, getDocs, doc, getDoc, addDoc, updateDoc, serverTimestamp, orderBy, limit, startAfter } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { useStudio } from "@/context/StudioContext";
 import { trackGalleryView } from "@/lib/analytics";
@@ -14,7 +14,7 @@ import { Photo } from "@shared/schema";
 import { FloralCorner, FloralDivider, BackgroundDecoration } from '@/components/WeddingIllustrations';
 import { WeddingImage, DecorativeImage } from '@/components/WeddingImages';
 import { Share2 as ShareIcon, Download as DownloadIcon, Loader2 as Loader2Icon, Calendar as CalendarIcon, MapPin as MapPinIcon } from "lucide-react";
-import { format } from "date-fns";
+import { formatDateString } from "@/lib/dateFormatter";
 
 interface GalleryData {
   id: string;
@@ -88,50 +88,6 @@ export default function Gallery() {
     }
   }, [chapters, activeTab]);
   
-  // Funzione per formattare la data
-  const formatDateString = useCallback((dateStr: string) => {
-    try {
-      // Per date in formato ISO
-      if (dateStr.includes('T')) {
-        const date = new Date(dateStr);
-        if (!isNaN(date.getTime())) {
-          return format(date, 'dd MMMM yyyy');
-        }
-      }
-      
-      // Per date in formati già leggibili (es. "Maggio 2025")
-      if (!dateStr.includes('-') && !dateStr.includes('/')) {
-        return dateStr;
-      }
-      
-      // Per date in formato standard yyyy-mm-dd o dd/mm/yyyy
-      if (dateStr.includes('-') || dateStr.includes('/')) {
-        const parts = dateStr.includes('-') 
-          ? dateStr.split('-')
-          : dateStr.split('/');
-        
-        if (parts.length === 3) {
-          // Determina se la data è in formato yyyy-mm-dd o dd/mm/yyyy
-          const isYearFirst = parts[0].length === 4;
-          const year = isYearFirst ? parts[0] : parts[2];
-          const month = isYearFirst ? parts[1] : parts[1];
-          const day = isYearFirst ? parts[2] : parts[0];
-          
-          const date = new Date(Number(year), Number(month) - 1, Number(day));
-          if (!isNaN(date.getTime())) {
-            return format(date, 'dd MMMM yyyy');
-          }
-        }
-      }
-      
-      // Ritorna la data originale se non è stato possibile formattarla
-      return dateStr;
-    } catch (e) {
-      console.error('Errore nella formattazione della data:', e);
-      return dateStr;
-    }
-  }, []);
-
 
 
   useEffect(() => {
@@ -180,8 +136,8 @@ export default function Gallery() {
           description: galleryData.description || "",
           coverImageUrl: galleryData.coverImageUrl || "",
           youtubeUrl: galleryData.youtubeUrl || "",
-          // Forziamo hasChapters a true se ci sono capitoli nella collezione
-          hasChapters: true
+          // Usiamo il valore dalla galleria, ma lo sovrascriveremo se troviamo capitoli
+          hasChapters: galleryData.hasChapters || false
         });
         
         // Fetch chapters if the gallery has them
@@ -196,6 +152,22 @@ export default function Gallery() {
                 id: doc.id,
                 ...doc.data()
               })) as ChapterData[];
+              
+              // Aggiorniamo hasChapters nella gallery locale se troviamo capitoli
+              if (chaptersData.length > 0 && !gallery?.hasChapters) {
+                setGallery(prev => prev ? {...prev, hasChapters: true} : null);
+                
+                // Aggiorniamo anche il documento in Firestore se necessario
+                try {
+                  const galleryRef = doc(db, "galleries", galleryDoc.id);
+                  await updateDoc(galleryRef, {
+                    hasChapters: true
+                  });
+                  console.log("Aggiornato stato hasChapters della galleria");
+                } catch (updateError) {
+                  console.error("Errore nell'aggiornamento di hasChapters:", updateError);
+                }
+              }
               
               setChapters(chaptersData);
               console.log(`Caricati ${chaptersData.length} capitoli`);
