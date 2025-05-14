@@ -50,6 +50,12 @@ export function FileUpload({
     compressedSize: number;
     compressionRatio: number;
   }}>({});
+  // Stati per il caricamento delle cartelle
+  const [isProcessingFolders, setIsProcessingFolders] = useState(false);
+  const [processingProgress, setProcessingProgress] = useState(0);
+  const [processingStatus, setProcessingStatus] = useState('');
+  const [totalFilesFound, setTotalFilesFound] = useState(0);
+  const [processedFiles, setProcessedFiles] = useState(0);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const dropAreaRef = useRef<HTMLDivElement>(null);
 
@@ -175,32 +181,65 @@ export function FileUpload({
       if (enableFolderUpload && hasDirectories && onChaptersExtracted && e.dataTransfer.items) {
         console.log("Utilizzo del processore avanzato di cartelle...");
         
-        // Mostra messaggio all'utente
-        alert("Sto elaborando le cartelle, questa operazione può richiedere tempo per molte foto. Per favore, attendi.");
+        // Mostra l'indicatore di progresso
+        setIsProcessingFolders(true);
+        setProcessingProgress(0);
+        setProcessingStatus('Inizializzazione elaborazione cartelle...');
+        setTotalFilesFound(0);
+        setProcessedFiles(0);
         
         try {
+          // Callback per aggiornare il progresso
+          const updateProgress = (progress: number, status: string, filesFound?: number, filesProcessed?: number) => {
+            setProcessingProgress(progress);
+            setProcessingStatus(status);
+            if (filesFound !== undefined) setTotalFilesFound(filesFound);
+            if (filesProcessed !== undefined) setProcessedFiles(filesProcessed);
+          };
+          
+          // Aggiorna lo stato iniziale
+          updateProgress(5, 'Analisi delle cartelle in corso...', 0, 0);
+          
           // Utilizziamo il nuovo metodo avanzato per processare le cartelle
-          const { files, folderMap } = await processItemsWithFolders(Array.from(e.dataTransfer.items));
+          const { files, folderMap } = await processItemsWithFolders(Array.from(e.dataTransfer.items), updateProgress);
           console.log(`Processore avanzato ha trovato ${files.length} file in ${folderMap.size} cartelle`);
+          
+          // Aggiorna lo stato dopo aver trovato i file
+          updateProgress(50, 'Creazione capitoli in corso...', files.length, 0);
           
           // Se abbiamo trovato file e cartelle
           if (files.length > 0 && folderMap.size > 0) {
             // Crea capitoli e assegna foto in base alla struttura delle cartelle
-            const result = createChaptersFromFolderStructure(files, folderMap);
+            const result = createChaptersFromFolderStructure(files, folderMap, updateProgress);
             console.log(`Creati ${result.chapters.length} capitoli con ${result.photosWithChapters.length} foto`);
+            
+            // Aggiorna lo stato
+            updateProgress(75, 'Preparazione foto per caricamento...', files.length, files.length);
             
             // Notifica i capitoli estratti attraverso il callback
             onChaptersExtracted(result);
             
             // Procedi con la compressione e l'upload di tutti i file
+            updateProgress(85, 'Compressione e caricamento foto...', files.length, files.length);
             await processFiles(files);
+            
+            // Operazione completata
+            updateProgress(100, 'Elaborazione cartelle completata!', files.length, files.length);
+            setTimeout(() => setIsProcessingFolders(false), 1000); // Nascondi il loader dopo 1 secondo
             return;
           } else {
             console.log("Nessuna struttura di cartelle trovata, passaggio alla creazione manuale.");
+            updateProgress(50, 'Nessuna struttura di cartelle trovata, passaggio alla creazione manuale...', 0, 0);
           }
         } catch (error) {
           console.error("Errore durante l'elaborazione avanzata delle cartelle:", error);
-          // Continua con l'approccio di fallback
+          setProcessingStatus(`Errore: ${(error as any).message || 'Errore sconosciuto'}`);
+          // Mostra l'errore per alcuni secondi prima di passare al fallback
+          setTimeout(() => {
+            // Continua con l'approccio di fallback
+            setIsProcessingFolders(false);
+          }, 2000);
+          return;
         }
       }
       
@@ -361,46 +400,78 @@ export function FileUpload({
           "border-2 border-dashed rounded-lg p-6 transition-colors cursor-pointer text-center",
           isDragging 
             ? "border-primary bg-primary/5" 
-            : "border-muted-foreground/25 hover:border-primary/50",
-          "flex flex-col items-center justify-center gap-2"
+            : isProcessingFolders
+              ? "border-blue-500 bg-blue-50"
+              : "border-muted-foreground/25 hover:border-primary/50",
+          "flex flex-col items-center justify-center gap-2",
+          isProcessingFolders ? "pointer-events-none" : ""
         )}
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
         onDrop={handleDrop}
         onClick={handleClick}
       >
-        {enableFolderUpload ? <Folder className="h-10 w-10 text-muted-foreground" /> : <Upload className="h-10 w-10 text-muted-foreground" />}
-        <p className="text-sm font-medium">
-          {enableFolderUpload ? (
-            <>Trascina le cartelle qui o <span className="text-primary">selezionane dal computer</span></>
-          ) : (
-            <>Trascina le foto qui o <span className="text-primary">selezionane dal computer</span></>
-          )}
-        </p>
-        <div className="text-xs text-muted-foreground space-y-1">
-          {enableFolderUpload ? (
-            <p className="font-medium text-green-600">
-              Carica intere cartelle per creare automaticamente i capitoli
+        {isProcessingFolders ? (
+          <div className="w-full text-center">
+            <div className="animate-pulse mb-3">
+              <Folder className="h-10 w-10 text-blue-500 mx-auto animate-bounce" />
+            </div>
+            <h3 className="text-lg font-semibold text-blue-700 mb-2">{processingStatus}</h3>
+            
+            {/* Barra di progresso */}
+            <div className="w-full bg-gray-200 rounded-full h-2.5 mb-3">
+              <div
+                className="bg-blue-600 h-2.5 rounded-full transition-all duration-300 ease-in-out"
+                style={{ width: `${processingProgress}%` }}
+              ></div>
+            </div>
+            
+            {/* Informazioni sul progresso */}
+            <div className="text-sm text-gray-600 flex justify-between items-center">
+              <span>{processedFiles} di {totalFilesFound} file</span>
+              <span>{processingProgress}%</span>
+            </div>
+            
+            <p className="text-xs text-gray-500 mt-3">
+              L'elaborazione di molte foto può richiedere tempo. Non chiudere questa finestra.
             </p>
-          ) : (
-            <p>
-              {multiple 
-                ? "Carica quante immagini desideri" 
-                : "Puoi caricare una sola immagine"}
+          </div>
+        ) : (
+          <>
+            {enableFolderUpload ? <Folder className="h-10 w-10 text-muted-foreground" /> : <Upload className="h-10 w-10 text-muted-foreground" />}
+            <p className="text-sm font-medium">
+              {enableFolderUpload ? (
+                <>Trascina le cartelle qui o <span className="text-primary">selezionane dal computer</span></>
+              ) : (
+                <>Trascina le foto qui o <span className="text-primary">selezionane dal computer</span></>
+              )}
             </p>
-          )}
-          <p className="text-xs">
-            Formato consigliato: max 2000px di lato lungo, max 5MB, 72-300 DPI
-          </p>
-          <p className="text-xs">
-            Immagini più grandi saranno compresse automaticamente
-          </p>
-          {enableFolderUpload && (
-            <p className="text-xs font-medium text-blue-500">
-              I nomi delle cartelle ("Sposo", "Sposa", "Cerimonia", ecc.) verranno usati come capitoli
-            </p>
-          )}
-        </div>
+            <div className="text-xs text-muted-foreground space-y-1">
+              {enableFolderUpload ? (
+                <p className="font-medium text-green-600">
+                  Carica intere cartelle per creare automaticamente i capitoli
+                </p>
+              ) : (
+                <p>
+                  {multiple 
+                    ? "Carica quante immagini desideri" 
+                    : "Puoi caricare una sola immagine"}
+                </p>
+              )}
+              <p className="text-xs">
+                Formato consigliato: max 2000px di lato lungo, max 5MB, 72-300 DPI
+              </p>
+              <p className="text-xs">
+                Immagini più grandi saranno compresse automaticamente
+              </p>
+              {enableFolderUpload && (
+                <p className="text-xs font-medium text-blue-500">
+                  I nomi delle cartelle ("Sposo", "Sposa", "Cerimonia", ecc.) verranno usati come capitoli
+                </p>
+              )}
+            </div>
+          </>
+        )}
       </div>
 
       {/* Input file nascosto */}

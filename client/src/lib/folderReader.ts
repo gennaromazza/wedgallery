@@ -134,7 +134,10 @@ export async function getAllFilesFromEntries(entries: any[]): Promise<{
  * @param items - Array di DataTransferItem da processare
  * @returns Promise con array di file e mappa della struttura delle cartelle
  */
-export async function processItemsWithFolders(items: DataTransferItem[]): Promise<{
+export async function processItemsWithFolders(
+  items: DataTransferItem[],
+  progressCallback?: (progress: number, status: string, filesFound?: number, filesProcessed?: number) => void
+): Promise<{
   files: File[];
   folderMap: Map<string, {files: File[]; folderName: string}>;
 }> {
@@ -145,6 +148,11 @@ export async function processItemsWithFolders(items: DataTransferItem[]): Promis
   // Per logging
   let totalFiles = 0;
   let totalFolders = 0;
+  
+  // Notifica l'inizio del processo
+  if (progressCallback) {
+    progressCallback(10, 'Analisi delle cartelle...', 0, 0);
+  }
   
   for (let i = 0; i < items.length; i++) {
     const item = items[i];
@@ -165,8 +173,49 @@ export async function processItemsWithFolders(items: DataTransferItem[]): Promis
   console.log(`Trovate ${entries.length} entry totali: ${totalFiles} file e ${totalFolders} cartelle`);
   console.log("Nomi cartelle:", Array.from(folderNames).join(", "));
   
-  // Elabora tutte le entry (file e cartelle)
-  return await getAllFilesFromEntries(entries);
+  // Aggiorna il progresso
+  if (progressCallback) {
+    progressCallback(20, `Trovate ${totalFolders} cartelle, inizio scansione...`, totalFiles, 0);
+  }
+  
+  // Wrapper per getAllFilesFromEntries che aggiorna il progresso
+  const getFilesWithProgress = async (entries: any[]) => {
+    let processedFiles = 0;
+    let lastProgressUpdate = Date.now();
+    
+    // Interval per aggiornare il progresso anche se il valore non cambia
+    const progressInterval = setInterval(() => {
+      if (progressCallback && Date.now() - lastProgressUpdate > 1000) {
+        progressCallback(
+          20 + Math.min(50, (processedFiles / Math.max(totalFiles, 1)) * 30),
+          `Elaborazione cartelle in corso (${processedFiles}/${totalFiles || '?'} file)...`,
+          totalFiles,
+          processedFiles
+        );
+      }
+    }, 500);
+    
+    // Ottieni i file con un conteggio personalizzato
+    const result = await getAllFilesFromEntries(entries);
+    
+    // Aggiorna il conteggio finale e pulisci l'intervallo
+    clearInterval(progressInterval);
+    processedFiles = result.files.length;
+    
+    if (progressCallback) {
+      progressCallback(
+        45, 
+        `Trovati ${result.files.length} file in ${result.folderMap.size} cartelle`,
+        result.files.length,
+        result.files.length
+      );
+    }
+    
+    return result;
+  };
+  
+  // Elabora tutte le entry (file e cartelle) con aggiornamenti di progresso
+  return await getFilesWithProgress(entries);
 }
 
 /**
@@ -177,8 +226,14 @@ export async function processItemsWithFolders(items: DataTransferItem[]): Promis
  */
 export function createChaptersFromFolderStructure(
   files: File[],
-  folderMap: Map<string, {files: File[]; folderName: string}>
+  folderMap: Map<string, {files: File[]; folderName: string}>,
+  progressCallback?: (progress: number, status: string, filesFound?: number, filesProcessed?: number) => void
 ): { chapters: Chapter[]; photosWithChapters: PhotoWithChapter[] } {
+  // Aggiorna il progresso
+  if (progressCallback) {
+    progressCallback(50, 'Creazione dei capitoli dalle cartelle...', files.length, 0);
+  }
+
   // Crea un capitolo per ogni cartella
   const chapters: Chapter[] = Array.from(folderMap.entries()).map(([folderName, data], idx) => ({
     id: `chapter-${Date.now()}-${idx}`,
@@ -205,6 +260,11 @@ export function createChaptersFromFolderStructure(
   // Crea l'array di foto con capitoli
   const photosWithChapters: PhotoWithChapter[] = [];
   let position = 0;
+  
+  // Aggiorna il progresso
+  if (progressCallback) {
+    progressCallback(55, `Trovati ${chapters.length} capitoli, assegnazione foto...`, files.length, 0);
+  }
   
   // Primo passaggio: assegna le foto che hanno una cartella definita
   // Uso Array.from per evitare errori con l'iterator di Map
@@ -262,6 +322,16 @@ export function createChaptersFromFolderStructure(
   });
   
   console.log(`Creati ${chapters.length} capitoli con ${photosWithChapters.length} foto totali`);
+  
+  // Aggiorna il progresso
+  if (progressCallback) {
+    progressCallback(
+      65, 
+      `Completata organizzazione di ${photosWithChapters.length} foto in ${chapters.length} capitoli`,
+      files.length,
+      photosWithChapters.length
+    );
+  }
   
   return {
     chapters,
