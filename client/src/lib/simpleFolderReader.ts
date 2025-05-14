@@ -50,16 +50,25 @@ export async function processFilesFromFolders(
   updateProgress(10, `Trovate ${folderEntries.length} cartelle`, 0, 0);
   
   // Crea i capitoli in base alle cartelle trovate
-  const chapters: Chapter[] = folderEntries.map((folder, idx) => ({
-    id: `chapter-${Date.now()}-${idx}`,
-    title: folder.name,
-    description: `Foto dalla cartella "${folder.name}"`,
-    position: idx
-  }));
+  // Creiamo una mappa per tener traccia degli ID dei capitoli per ogni nome di cartella
+  const folderNameToChapterId: Map<string, string> = new Map();
+  
+  const chapters: Chapter[] = folderEntries.map((folder, idx) => {
+    const chapterId = `chapter-${Date.now()}-${idx}`;
+    folderNameToChapterId.set(folder.name, chapterId);
+    
+    return {
+      id: chapterId,
+      title: folder.name,
+      description: `Foto dalla cartella "${folder.name}"`,
+      position: idx
+    };
+  });
   
   // Aggiungi un capitolo "Altre foto" se abbiamo file nella radice
+  const defaultChapterId = `chapter-${Date.now()}-default`;
   const defaultChapter: Chapter = {
-    id: `chapter-${Date.now()}-default`,
+    id: defaultChapterId,
     title: "Altre foto",
     description: "Foto senza cartella specifica",
     position: chapters.length
@@ -202,29 +211,36 @@ export async function processFilesFromFolders(
   let assignedCount = 0;
   
   // Prima assegna i file delle cartelle ai rispettivi capitoli
-  for (let i = 0; i < chapters.length; i++) {
-    const chapter = chapters[i];
-    const files = folderFiles.get(chapter.title) || [];
+  // Iterazione manuale attraverso la mappa
+  const folderNames = Array.from(folderFiles.keys());
+  
+  for (const folderName of folderNames) {
+    const files = folderFiles.get(folderName) || [];
+    const chapterId = folderNameToChapterId.get(folderName);
     
-    for (let j = 0; j < files.length; j++) {
-      const file = files[j];
-      photosWithChapters.push({
-        id: `photo-${Date.now()}-${position}`,
-        file,
-        url: URL.createObjectURL(file),
-        name: file.name,
-        chapterId: chapter.id,
-        position: position++
-      });
+    if (chapterId) {
+      console.log(`Assegnando ${files.length} file al capitolo "${folderName}" (ID: ${chapterId})`);
       
-      assignedCount++;
-      if (assignedCount % 20 === 0) {
-        updateProgress(
-          70 + Math.min(20, (assignedCount / Math.max(totalProcessed, 1)) * 20),
-          `Assegnazione file ai capitoli (${assignedCount}/${totalProcessed})...`,
-          totalProcessed,
-          assignedCount
-        );
+      for (let j = 0; j < files.length; j++) {
+        const file = files[j];
+        photosWithChapters.push({
+          id: `photo-${Date.now()}-${position}`,
+          file,
+          url: URL.createObjectURL(file),
+          name: file.name,
+          chapterId: chapterId, // Usiamo l'ID corretto dalla mappa
+          position: position++
+        });
+        
+        assignedCount++;
+        if (assignedCount % 20 === 0) {
+          updateProgress(
+            70 + Math.min(20, (assignedCount / Math.max(totalProcessed, 1)) * 20),
+            `Assegnazione file ai capitoli (${assignedCount}/${totalProcessed})...`,
+            totalProcessed,
+            assignedCount
+          );
+        }
       }
     }
   }
@@ -242,7 +258,7 @@ export async function processFilesFromFolders(
         file,
         url: URL.createObjectURL(file),
         name: file.name,
-        chapterId: defaultChapter.id,
+        chapterId: defaultChapterId,
         position: position++
       });
       
