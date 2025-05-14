@@ -436,7 +436,6 @@ export default function Gallery() {
       toast({
         title: "Download pronto",
         description: "Puoi scaricare le foto individualmente dalla galleria. Clicca su ogni foto per vederla a schermo intero e poi usa il pulsante di download.",
-        variant: "success",
       });
     } catch (error) {
       console.error("Errore nel download delle foto:", error);
@@ -501,7 +500,6 @@ export default function Gallery() {
         toast({
           title: "Link copiato",
           description: "Il link alla galleria è stato copiato negli appunti.",
-          variant: "success",
         });
         setShowShareModal(false);
       });
