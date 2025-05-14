@@ -42,17 +42,26 @@ export default function ChaptersManager({
   
   // Debug stato attuale dei capitoli e foto
   useEffect(() => {
-    console.log("ChaptersManager - Stato attuale:");
-    console.log(`- Totale foto: ${photos.length}`); 
-    console.log(`- Foto non assegnate: ${photos.filter(p => !p.chapterId).length}`);
-    console.log(`- Capitoli: ${chapters.length}`);
+    const unassignedPhotos = photos.filter(p => !p.chapterId);
+    const photosPerChapter = new Map<string, number>();
     
-    // Conteggio foto per capitolo
-    const photosPerChapter: Record<string, number> = {};
+    // Conteggio accurato per capitolo
     chapters.forEach(chapter => {
-      photosPerChapter[chapter.id] = photos.filter(p => p.chapterId === chapter.id).length;
+      const count = photos.filter(p => p.chapterId === chapter.id).length;
+      photosPerChapter.set(chapter.id, count);
     });
-    console.log("Foto per capitolo:", photosPerChapter);
+
+    console.log("ChaptersManager - Stato attuale:");
+    console.log(`- Totale foto: ${photos.length}`);
+    console.log(`- Foto non assegnate: ${unassignedPhotos.length}`);
+    console.log(`- Capitoli: ${chapters.length}`);
+    console.log("Foto per capitolo:", Object.fromEntries(photosPerChapter));
+    
+    // Verifica incongruenze
+    const totalAssigned = Array.from(photosPerChapter.values()).reduce((a, b) => a + b, 0);
+    if (totalAssigned + unassignedPhotos.length !== photos.length) {
+      console.warn("⚠️ Incongruenza nel conteggio delle foto!");
+    }
   }, [photos, chapters]);
   const [activeTab, setActiveTab] = useState<string>('all');
   const [editingChapterId, setEditingChapterId] = useState<string | null>(null);

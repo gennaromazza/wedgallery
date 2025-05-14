@@ -38,9 +38,9 @@ export default function TabsChapters({
   if (chapters.length === 0) {
     return null;
   }
-  
+
   console.log("Rendering TabsChapters component con", chapters.length, "capitoli");
-  
+
   return (
     <div className="mb-8">
       <Tabs defaultValue="all" value={activeTab} onValueChange={setActiveTab} className="w-full">
@@ -51,7 +51,7 @@ export default function TabsChapters({
               <path d="M50,5 C60,15 70,15 80,5 C70,25 60,25 50,15 C40,25 30,25 20,5 C30,15 40,15 50,5 Z" />
             </svg>
           </div>
-          
+
           {/* Menu elegante con design creativo */}
           <div className="relative z-10 mx-auto max-w-4xl bg-white/80 backdrop-blur-sm rounded-xl shadow-md border border-sage/10 p-3">
             <TabsList className="relative flex w-full overflow-x-auto pb-1 pt-1 bg-transparent gap-1 scrollbar-thin scrollbar-thumb-sage/20 scrollbar-track-transparent justify-center flex-wrap">
@@ -68,7 +68,7 @@ export default function TabsChapters({
                   Tutte le foto ({photos.length})
                 </span>
               </TabsTrigger>
-              
+
               {chapters.map((chapter) => (
                 <TabsTrigger 
                   key={chapter.id} 
@@ -85,7 +85,7 @@ export default function TabsChapters({
               ))}
             </TabsList>
           </div>
-          
+
           {/* Decorazione floreale sotto il menu */}
           <div className="absolute -bottom-6 left-1/2 transform -translate-x-1/2 w-40 h-12 flex justify-center opacity-30 rotate-180">
             <svg viewBox="0 0 100 30" xmlns="http://www.w3.org/2000/svg" className="w-full h-full fill-sage-500">
@@ -93,7 +93,7 @@ export default function TabsChapters({
             </svg>
           </div>
         </div>
-        
+
         {/* TabsContent - Tutte le foto */}
         <TabsContent value="all" className="space-y-6">
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2 sm:gap-4 lg:gap-6">
@@ -137,21 +137,24 @@ export default function TabsChapters({
             )}
           </div>
         </TabsContent>
-        
+
         {/* TabsContent per ogni capitolo */}
         {chapters.map(chapter => (
           <TabsContent key={chapter.id} value={chapter.id} className="space-y-4">
             {chapter.description && (
               <p className="text-blue-gray italic mb-4 md:mb-6 text-sm md:text-base">{chapter.description}</p>
             )}
-            
+
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2 sm:gap-4 lg:gap-6">
               {photos.filter(p => p.chapterId === chapter.id).length === 0 ? (
                 <div className="col-span-full text-center py-8">
                   <p className="text-gray-500 italic">Nessuna foto in questo capitolo.</p>
                 </div>
               ) : (
-                photos.filter(p => p.chapterId === chapter.id).map((photo, index) => (
+                photos
+                    .filter(p => p.chapterId === chapter.id)
+                    .sort((a, b) => (a.position || 0) - (b.position || 0))
+                    .map((photo, index) => (
                   <div
                     key={photo.id}
                     className="gallery-image h-40 sm:h-52 lg:h-64"

@@ -254,8 +254,10 @@ export function useGalleryData(galleryCode: string) {
               }
             }
 
-            setChapters(chaptersData);
-            console.log(`Caricati ${chaptersData.length} capitoli`);
+            // Ordina i capitoli per posizione
+            const sortedChapters = chaptersData.sort((a, b) => a.position - b.position);
+            setChapters(sortedChapters);
+            console.log(`Caricati ${sortedChapters.length} capitoli ordinati per posizione`);
           } else {
             console.log("Nessun capitolo trovato per questa galleria");
           }
