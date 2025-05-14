@@ -153,7 +153,11 @@ export default function TabsChapters({
               ) : (
                 photos
                     .filter(p => p.chapterId === chapter.id)
-                    .sort((a, b) => (a.position || 0) - (b.position || 0))
+                    .sort((a, b) => {
+                      const posA = typeof a.chapterPosition === 'number' ? a.chapterPosition : a.position || 0;
+                      const posB = typeof b.chapterPosition === 'number' ? b.chapterPosition : b.position || 0;
+                      return posA - posB;
+                    })
                     .map((photo, index) => (
                   <div
                     key={photo.id}

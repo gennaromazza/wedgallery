@@ -192,9 +192,17 @@ export default function ChaptersManager({
 
     console.log(`Foto trovata: ${photoToUpdate.name}, capitolo attuale: ${photoToUpdate.chapterId || 'nessuno'}`);
     
+    const targetChapterPhotos = photos.filter(p => p.chapterId === chapterId);
+    const newPosition = targetChapterPhotos.length;
+    
     const updatedPhotos = photos.map(photo => 
       photo.id === photoId 
-        ? { ...photo, chapterId, position: photo.position } 
+        ? { 
+            ...photo, 
+            chapterId,
+            position: photo.position,
+            chapterPosition: newPosition
+          } 
         : photo
     );
     

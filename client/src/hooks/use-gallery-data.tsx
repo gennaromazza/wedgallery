@@ -316,7 +316,17 @@ export function useGalleryData(galleryCode: string) {
 
       if (photosToAdd.length > 0) {
         // Aggiungi le nuove foto all'array esistente
-        setPhotos(prevPhotos => [...prevPhotos, ...photosToAdd]);
+        setPhotos(prevPhotos => {
+          const updatedPhotos = [...prevPhotos, ...photosToAdd];
+          return gallery.hasChapters 
+            ? updatedPhotos.sort((a, b) => {
+                if (a.chapterId !== b.chapterId) {
+                  return (a.chapterId || '').localeCompare(b.chapterId || '');
+                }
+                return (a.chapterPosition || 0) - (b.chapterPosition || 0);
+              })
+            : updatedPhotos;
+        });
 
         // Verifica se ci sono ancora altre foto da caricare
         setHasMorePhotos(photosToAdd.length >= photosPerPage);
