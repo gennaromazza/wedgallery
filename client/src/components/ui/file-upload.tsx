@@ -6,6 +6,7 @@ import { compressImages } from '@/lib/imageCompression';
 import ImageCompressionInfo from '@/components/ImageCompressionInfo';
 import { extractChaptersFromFolders } from '@/lib/folderChapterMapper';
 import { Chapter, PhotoWithChapter } from '@/components/ChaptersManager';
+import { processItemsWithFolders, createChaptersFromFolderStructure } from '@/lib/folderReader';
 
 interface FileUploadProps {
   onFilesSelected: (files: File[]) => void;
@@ -179,7 +180,7 @@ export function FileUpload({
             // proviamo manualmente a creare capitoli basati sui nomi delle cartelle che abbiamo rilevato
             console.log("Creazione manuale capitoli dalle cartelle rilevate:", dirNames);
             
-            // Dividiamo i file in gruppi basati sui nomi delle cartelle se possibile
+            // Creare capitoli basati sui nomi delle cartelle
             const manualChapters: Chapter[] = dirNames.map((dirName, idx) => ({
               id: `chapter-${Date.now()}-${idx}`,
               title: dirName,
@@ -187,18 +188,65 @@ export function FileUpload({
               position: idx
             }));
             
-            // Dividi i file in modo equo tra i capitoli (soluzione imperfetta ma meglio di niente)
-            const filesPerChapter = Math.ceil(newFiles.length / dirNames.length);
-            const manualPhotosWithChapters: PhotoWithChapter[] = [];
+            console.log("Creando assegnazione intelligente delle foto ai capitoli...");
+            // Analizziamo le informazioni sulle cartelle dai file DataTransferItems
+            // per assegnare correttamente ogni file alla sua cartella
             
+            // Mappatura da nome file a cartella di appartenenza
+            const fileToFolderMap = new Map<string, string>();
+            
+            // Eseguiamo una prima passata per mappare i file alle cartelle
+            if (e.dataTransfer.items) {
+              // Tentiamo di raccogliere informazioni da DataTransferItems
+              // per creare la mappatura file -> cartella
+              const items = Array.from(e.dataTransfer.items);
+              for (let i = 0; i < items.length; i++) {
+                const item = items[i];
+                const entry = item.webkitGetAsEntry && item.webkitGetAsEntry();
+                
+                if (entry?.isFile) {
+                  const fileEntry = entry as any;
+                  const pathParts = fileEntry.fullPath?.split('/') || [];
+                  
+                  if (pathParts.length > 1) {
+                    const folderName = pathParts[pathParts.length - 2]; // cartella madre
+                    const fileName = pathParts[pathParts.length - 1]; // nome file
+                    fileToFolderMap.set(fileName, folderName);
+                    console.log(`Mappatura file ${fileName} alla cartella ${folderName}`);
+                  }
+                }
+              }
+            }
+            
+            // Ora creiamo l'array di PhotoWithChapter con le assegnazioni corrette
+            const manualPhotosWithChapters: PhotoWithChapter[] = [];
+            const dirNameToChapter = new Map<string, Chapter>();
+            manualChapters.forEach(chapter => dirNameToChapter.set(chapter.title, chapter));
+            
+            // Assegnazione intelligente delle foto ai capitoli
             newFiles.forEach((file, idx) => {
-              const chapterIdx = Math.min(Math.floor(idx / filesPerChapter), dirNames.length - 1);
+              // Tenta di ottenere la cartella di appartenenza dalla mappatura
+              const folderName = fileToFolderMap.get(file.name);
+              // Se non troviamo la cartella o non esiste nel nostro elenco, usiamo una assegnazione predefinita
+              let targetChapter: Chapter | undefined;
+              
+              if (folderName && dirNameToChapter.has(folderName)) {
+                // Abbiamo un match diretto tra file e cartella
+                targetChapter = dirNameToChapter.get(folderName);
+                console.log(`Assegnando ${file.name} alla cartella corrispondente: ${folderName}`);
+              } else {
+                // Se non abbiamo informazioni sulla cartella, distribuiamo in modo equo
+                const chapterIdx = idx % dirNames.length;
+                targetChapter = manualChapters[chapterIdx];
+                console.log(`Assegnazione predefinita di ${file.name} a ${targetChapter.title}`);
+              }
+              
               manualPhotosWithChapters.push({
                 id: `photo-${Date.now()}-${idx}`,
                 file,
                 url: URL.createObjectURL(file),
                 name: file.name,
-                chapterId: manualChapters[chapterIdx].id,
+                chapterId: targetChapter?.id || manualChapters[0].id,
                 position: idx
               });
             });
