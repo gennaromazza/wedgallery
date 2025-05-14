@@ -174,7 +174,8 @@ export default function EditGalleryModal({ isOpen, onClose, gallery }: EditGalle
         description,
         password,
         coverImageUrl: newCoverImageUrl,
-        youtubeUrl
+        youtubeUrl,
+        hasChapters: chapters.length > 0 // Aggiorniamo hasChapters in base alla presenza di capitoli
       });
       
       toast({

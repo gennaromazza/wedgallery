@@ -9,6 +9,7 @@ import { collection, addDoc, doc, updateDoc, serverTimestamp, writeBatch } from 
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { db, storage } from "../lib/firebase";
 import { format } from "date-fns";
+import { formatDateString } from "@/lib/dateFormatter";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { CalendarIcon, Loader2 } from "lucide-react";
@@ -136,6 +137,7 @@ export default function NewGalleryModal({ isOpen, onClose, onSuccess }: NewGalle
         coverImageUrl: coverImageStorageUrl,
         youtubeUrl: youtubeUrl || "",
         photoCount: 0, // Sarà aggiornato dopo il caricamento delle foto
+        hasChapters: chapters.length > 0, // Aggiungiamo questa proprietà
         createdAt: serverTimestamp(),
         updatedAt: serverTimestamp(),
       };
@@ -182,13 +184,15 @@ export default function NewGalleryModal({ isOpen, onClose, onSuccess }: NewGalle
           
           // Visualizza l'assegnazione dei capitoli alle foto per il debug
           console.log("Associazioni foto-capitoli prima del caricamento:");
-          const chaptersCount = {};
+          // Utilizziamo Map invece di un oggetto per evitare problemi TypeScript
+          const chapterCountMap = new Map<string, number>();
           for (const photo of selectedFiles) {
             if (photo.chapterId) {
-              chaptersCount[photo.chapterId] = (chaptersCount[photo.chapterId] || 0) + 1;
+              const currentCount = chapterCountMap.get(photo.chapterId) || 0;
+              chapterCountMap.set(photo.chapterId, currentCount + 1);
             }
           }
-          console.log("Conteggio foto per capitolo:", chaptersCount);
+          console.log("Conteggio foto per capitolo:", Object.fromEntries(chapterCountMap));
           
           setUploadProgress(0);
           
