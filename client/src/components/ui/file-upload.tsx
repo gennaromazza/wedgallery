@@ -385,7 +385,10 @@ export default function FileUpload({
             updateProgress(40, 'Creazione capitoli...', newFiles.length, processedFiles);
             let chapterIndex = 0;
             
-            for (const [folderName, files] of folderMap) {
+            // Utilizzo Array.from per compatibilità con TypeScript
+            const folderEntries = Array.from(folderMap.entries());
+            for (let i = 0; i < folderEntries.length; i++) {
+              const [folderName, files] = folderEntries[i];
               const chapterId = `folder-chapter-${Date.now()}-${chapterIndex}`;
               
               // Crea il capitolo
@@ -396,30 +399,32 @@ export default function FileUpload({
                 position: chapterIndex
               });
               
+              chapterIndex++;
+              
               // Crea le anteprime per ogni file nel capitolo
-              for (let i = 0; i < files.length; i++) {
-                const file = files[i];
+              for (let j = 0; j < files.length; j++) {
+                const file = files[j];
                 photosWithChapters.push({
-                  id: `folder-photo-${Date.now()}-${chapterIndex}-${i}`,
+                  id: `folder-photo-${Date.now()}-${chapterIndex}-${j}`,
                   file,
                   url: URL.createObjectURL(file),
                   name: file.name,
                   chapterId: chapterId,
-                  position: i,
+                  position: j,
                   folderPath: (file as any).webkitRelativePath
                 });
               }
-              
-              chapterIndex++;
             }
             
             // Invia i capitoli e le foto con capitoli
             updateProgress(70, 'Capitoli creati, preparazione foto...', newFiles.length, newFiles.length);
             
-            onChaptersExtracted({
-              chapters,
-              photosWithChapters
-            });
+            if (onChaptersExtracted) {
+              onChaptersExtracted({
+                chapters,
+                photosWithChapters
+              });
+            }
             
             // Procedi con il processamento standard
             await processFiles(newFiles);
