@@ -313,6 +313,23 @@ export default function NewGalleryModal({ isOpen, onClose, onSuccess }: NewGalle
     onClose();
   };
 
+  const handleChaptersExtracted = (result: { 
+    chapters: Chapter[]; 
+    photosWithChapters: PhotoWithChapter[];
+  }) => {
+    console.log(`Capitoli estratti: ${result.chapters.length}, foto assegnate: ${result.photosWithChapters.length}`);
+    
+    // Aggiorna lo stato con i capitoli e le foto
+    setChapters(result.chapters);
+    setSelectedFiles(result.photosWithChapters);
+    
+    // Mostra conferma all'utente
+    toast({
+      title: "Cartelle rilevate",
+      description: `Sono stati creati ${result.chapters.length} capitoli dalle cartelle`,
+    });
+  };
+
   const handleFilesSelected = (files: File[] | PhotoWithChapter[]) => {
     console.log("File selezionati:", files.length);
     
@@ -515,7 +532,12 @@ export default function NewGalleryModal({ isOpen, onClose, onSuccess }: NewGalle
             
             <div className="space-y-4">
               <Label>Carica foto</Label>
-              <FileUpload onFilesSelected={handleFilesSelected} />
+              <FileUpload 
+                onFilesSelected={handleFilesSelected} 
+                multiple={true}
+                enableFolderUpload={true}
+                onChaptersExtracted={handleChaptersExtracted}
+              />
               
               {selectedFiles.length > 0 && (
                 <div className="flex flex-wrap items-center gap-2">
