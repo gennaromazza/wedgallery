@@ -1,35 +1,6 @@
 
 # Collections and Variables Documentation
 
-## Database Collections
-
-### Galleries Collection
-Main collection for storing gallery information.
-
-Fields:
-- `id`: Serial primary key
-- `name`: Text (gallery name)
-- `code`: Text (unique gallery code)
-- `password`: Text (gallery access password)
-- `date`: Text (event date)
-- `location`: Text (event location)
-- `photoCount`: Integer (number of photos, default: 0)
-- `active`: Boolean (gallery status, default: true)
-- `createdAt`: Timestamp (creation date)
-
-### Password Requests Collection 
-Collection for managing gallery access requests.
-
-Fields:
-- `id`: Serial primary key
-- `galleryId`: Integer (reference to gallery)
-- `firstName`: Text
-- `lastName`: Text
-- `email`: Text
-- `relation`: Text (relationship to event)
-- `status`: Text (request status)
-- `createdAt`: Timestamp
-
 ## Storage Structures
 
 ### Photos
@@ -41,6 +12,8 @@ Gallery photos are stored with the following metadata:
 - `contentType`: String (mime type)
 - `createdAt`: Timestamp
 - `chapterId`: String (optional, reference to chapter)
+- `position`: Number (order position within gallery)
+- `chapterPosition`: Number (order position within chapter)
 
 ### Chapters
 Chapter organization structure:
@@ -50,9 +23,6 @@ Chapter organization structure:
 - `position`: Number (order position)
 
 ## Environment Variables
-
-### Server Configuration
-- `NODE_ENV`: Application environment (development/production)
 
 ### Firebase Configuration
 - `FIREBASE_PROJECT_ID`
@@ -64,37 +34,9 @@ Chapter organization structure:
 - `PRODUCTION_BASE_PATH`: Base URL path in production ('/wedgallery/')
 - `VITE_FIREBASE_CONFIG`: Firebase client configuration
 - `VITE_GOOGLE_ANALYTICS_ID`: Google Analytics tracking ID
+- `NODE_ENV`: Application environment (development/production)
 
 ## Type Definitions
-
-### Gallery Type
-```typescript
-type Gallery = {
-  id: number;
-  name: string;
-  code: string;
-  password: string;
-  date: string;
-  location: string;
-  photoCount: number;
-  active: boolean;
-  createdAt: Date;
-}
-```
-
-### Password Request Type
-```typescript
-type PasswordRequest = {
-  id: number;
-  galleryId: number;
-  firstName: string;
-  lastName: string;
-  email: string;
-  relation: string;
-  status: string;
-  createdAt: Date;
-}
-```
 
 ### Photo Type
 ```typescript
@@ -106,6 +48,22 @@ type Photo = {
   contentType: string;
   createdAt: Date;
   chapterId?: string;
+  position: number;
+  chapterPosition?: number;
+}
+```
+
+### PhotoWithChapter Type
+```typescript
+interface PhotoWithChapter {
+  id: string;
+  file: File;
+  url: string;
+  name: string;
+  chapterId?: string;
+  position: number;
+  chapterPosition?: number;
+  folderPath?: string;
 }
 ```
 
@@ -118,3 +76,51 @@ type Chapter = {
   position: number;
 }
 ```
+
+### Gallery Type
+```typescript
+type Gallery = {
+  id: string;
+  name: string;
+  code: string;
+  password: string;
+  date: string;
+  location: string;
+  photoCount: number;
+  active: boolean;
+  createdAt: Date;
+  coverImageUrl?: string;
+  youtubeUrl?: string;
+  description?: string;
+}
+```
+
+## Hook Usage
+
+### useChapters Hook
+Central hook for managing chapters and photo assignments:
+
+```typescript
+const {
+  chapters,
+  photos,
+  setChapters,
+  setPhotos,
+  addChapter,
+  removeChapter,
+  updateChapter,
+  moveChapter,
+  assignPhotoToChapter,
+  assignMultiplePhotosToChapter,
+  processNewFolders
+} = useChapters({
+  initialChapters: [],
+  initialPhotos: []
+});
+```
+
+Key features:
+- Chapter management (add, remove, update, reorder)
+- Photo assignment to chapters
+- Bulk photo operations
+- Folder processing for automatic chapter creation
