@@ -6,7 +6,8 @@ import { compressImages } from '@/lib/imageCompression';
 import ImageCompressionInfo from '@/components/ImageCompressionInfo';
 import { extractChaptersFromFolders } from '@/lib/folderChapterMapper';
 import { Chapter, PhotoWithChapter } from '@/components/ChaptersManager';
-import { processItemsWithFolders, createChaptersFromFolderStructure } from '@/lib/folderReader';
+// Importa il nuovo lettore di cartelle semplificato
+import { processFilesFromFolders } from '@/lib/simpleFolderReader';
 
 interface FileUploadProps {
   onFilesSelected: (files: File[]) => void;
@@ -177,9 +178,9 @@ export function FileUpload({
         console.log("Nomi cartelle:", dirNames.join(", "));
       }
       
-      // Se abbiamo cartelle e il supporto è abilitato, usa la nuova implementazione avanzata
+      // Se abbiamo cartelle e il supporto è abilitato, usa l'implementazione semplificata
       if (enableFolderUpload && hasDirectories && onChaptersExtracted && e.dataTransfer.items) {
-        console.log("Utilizzo del processore avanzato di cartelle...");
+        console.log("Utilizzo del lettore semplificato di cartelle...");
         
         // Mostra l'indicatore di progresso
         setIsProcessingFolders(true);
@@ -197,43 +198,38 @@ export function FileUpload({
             if (filesProcessed !== undefined) setProcessedFiles(filesProcessed);
           };
           
-          // Aggiorna lo stato iniziale
-          updateProgress(5, 'Analisi delle cartelle in corso...', 0, 0);
+          // Utilizziamo il nuovo metodo semplificato per processare le cartelle
+          console.log("Avvio processFilesFromFolders...");
+          const result = await processFilesFromFolders(Array.from(e.dataTransfer.items), updateProgress);
+          console.log(`Lettore cartelle semplificato ha trovato ${result.files.length} file in ${result.chapters.length} capitoli`);
           
-          // Utilizziamo il nuovo metodo avanzato per processare le cartelle
-          const { files, folderMap } = await processItemsWithFolders(Array.from(e.dataTransfer.items), updateProgress);
-          console.log(`Processore avanzato ha trovato ${files.length} file in ${folderMap.size} cartelle`);
-          
-          // Aggiorna lo stato dopo aver trovato i file
-          updateProgress(50, 'Creazione capitoli in corso...', files.length, 0);
-          
-          // Se abbiamo trovato file e cartelle
-          if (files.length > 0 && folderMap.size > 0) {
-            // Crea capitoli e assegna foto in base alla struttura delle cartelle
-            const result = createChaptersFromFolderStructure(files, folderMap, updateProgress);
-            console.log(`Creati ${result.chapters.length} capitoli con ${result.photosWithChapters.length} foto`);
-            
-            // Aggiorna lo stato
-            updateProgress(75, 'Preparazione foto per caricamento...', files.length, files.length);
+          // Se abbiamo trovato file e capitoli
+          if (result.files.length > 0 && result.chapters.length > 0) {
+            console.log(`Trovati ${result.photosWithChapters.length} foto assegnate ai capitoli`);
             
             // Notifica i capitoli estratti attraverso il callback
-            onChaptersExtracted(result);
+            onChaptersExtracted({
+              chapters: result.chapters,
+              photosWithChapters: result.photosWithChapters
+            });
+            
+            // Aggiorna lo stato
+            updateProgress(85, 'Compressione e caricamento foto...', result.files.length, result.files.length);
             
             // Procedi con la compressione e l'upload di tutti i file
-            updateProgress(85, 'Compressione e caricamento foto...', files.length, files.length);
-            await processFiles(files);
+            await processFiles(result.files);
             
             // Operazione completata
-            updateProgress(100, 'Elaborazione cartelle completata!', files.length, files.length);
+            updateProgress(100, 'Elaborazione cartelle completata!', result.files.length, result.files.length);
             setTimeout(() => setIsProcessingFolders(false), 1000); // Nascondi il loader dopo 1 secondo
             return;
           } else {
             console.log("Nessuna struttura di cartelle trovata, passaggio alla creazione manuale.");
             updateProgress(50, 'Nessuna struttura di cartelle trovata, passaggio alla creazione manuale...', 0, 0);
           }
-        } catch (error) {
-          console.error("Errore durante l'elaborazione avanzata delle cartelle:", error);
-          setProcessingStatus(`Errore: ${(error as any).message || 'Errore sconosciuto'}`);
+        } catch (error: any) {
+          console.error("Errore durante l'elaborazione delle cartelle:", error);
+          setProcessingStatus(`Errore: ${error.message || 'Errore sconosciuto'}`);
           // Mostra l'errore per alcuni secondi prima di passare al fallback
           setTimeout(() => {
             // Continua con l'approccio di fallback
