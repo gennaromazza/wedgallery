@@ -48,18 +48,34 @@ export function useGalleryData(galleryCode: string) {
   const loadPhotos = async (galleryId: string, galleryData: any) => {
     // Utilizza la collezione gallery-photos per cercare le foto
     const photosRef = collection(db, "gallery-photos");
+    
+    // Crea una query per ottenere le foto della galleria
     let photosQuery = query(
       photosRef,
       where("galleryId", "==", galleryId),
       limit(photosPerPage)
     );
     
+    // Ottieni i documenti
     const photosSnapshot = await getDocs(photosQuery);
     
+    // Converti i documenti in oggetti PhotoData
     let photosData = photosSnapshot.docs.map(doc => ({
       id: doc.id,
       ...doc.data(),
     })) as PhotoData[];
+    
+    // Ordina le foto per capitolo e posizione se la galleria ha capitoli
+    if (galleryData.hasChapters && photosData.length > 0) {
+      photosData.sort((a, b) => {
+        // Prima ordina per ID del capitolo
+        if (a.chapterId !== b.chapterId) {
+          return a.chapterId ? (b.chapterId ? a.chapterId.localeCompare(b.chapterId) : -1) : 1;
+        }
+        // Poi per posizione nel capitolo
+        return (a.chapterPosition || 0) - (b.chapterPosition || 0);
+      });
+    }
     
     // Controlla se ci sono altre foto da caricare
     setHasMorePhotos(photosData.length >= photosPerPage);
