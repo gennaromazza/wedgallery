@@ -160,11 +160,10 @@ export function useGalleryData(galleryId: string) {
     // Controlla se ci sono altre foto da caricare
     setHasMorePhotos(photosData.length >= photosPerPage);
     
-    // Se non ci sono foto nella sottocollezione "photos" ma è indicato che ci sono foto (photoCount > 0),
-    // potrebbe essere che le foto siano state caricate nello Storage ma i metadati non siano stati salvati
-    // in Firestore. In questo caso, tentiamo di recuperare le foto dallo Storage.
-    if (photosData.length === 0 && galleryData.photoCount > 0) {
-      console.log("Nessuna foto trovata nella sottocollezione, ma photoCount è", galleryData.photoCount);
+    // Logica di debug e recupero migliorata: se non ci sono foto o ne abbiamo trovate meno di quelle attese
+    // proviamo a recuperarle direttamente dallo Storage
+    if (photosData.length < galleryData.photoCount || photosData.length === 0) {
+      console.log(`Trovate solo ${photosData.length} foto in Firestore, ma photoCount è ${galleryData.photoCount}`);
       console.log("Tentativo di recupero dallo Storage...");
       
       try {
@@ -172,30 +171,40 @@ export function useGalleryData(galleryId: string) {
         const { ref, listAll, getDownloadURL, getMetadata } = await import("firebase/storage");
         const { storage } = await import("@/lib/firebase");
         
-        // Percorso nella cartella di Storage per questa galleria
-        const storageRef = ref(storage, `galleries/${galleryId}`);
+        // Tentativi di percorsi multipli nello Storage ordinati per probabilità
+        const possiblePaths = [
+          `galleries/${galleryId}`, 
+          `galleries/ ${galleryId}`,
+          `galleries/${galleryId.toLowerCase()}`,
+          `galleries/${galleryId.toUpperCase()}`,
+          `galleries/${galleryId}/photos`
+        ];
         
-        console.log("Verifico percorso Storage:", `galleries/${galleryId}`);
+        let listResult = null;
         
-        // Elenca tutti i file nella cartella
-        let listResult = await listAll(storageRef);
-        
-        // Se non ci sono file, prova percorsi alternativi
-        if (listResult.items.length === 0) {
-          console.log("Nessun file trovato, provo percorsi alternativi");
+        // Prova tutti i percorsi possibili
+        for (const path of possiblePaths) {
+          if (listResult && listResult.items.length > 0) break;
           
-          // Prova con un possibile spazio nel path (come indicato dall'utente)
-          const pathWithSpace = ref(storage, `galleries/ ${galleryId}`);
-          console.log("Provo con path con spazio:", `galleries/ ${galleryId}`);
           try {
-            const spaceResult = await listAll(pathWithSpace);
-            if (spaceResult.items.length > 0) {
-              console.log("Trovate", spaceResult.items.length, "foto con path con spazio");
-              listResult = spaceResult;
+            console.log("Verifico percorso Storage:", path);
+            const pathRef = ref(storage, path);
+            const result = await listAll(pathRef);
+            
+            if (result.items.length > 0) {
+              console.log(`Trovate ${result.items.length} foto nel percorso ${path}`);
+              listResult = result;
+              break;
             }
           } catch (e) {
-            console.log("Errore con path con spazio:", e);
+            console.log(`Percorso ${path} non valido:`, e);
           }
+        }
+        
+        // Se non abbiamo ancora trovato foto, termina
+        if (!listResult || listResult.items.length === 0) {
+          console.log("Nessuna foto trovata dopo tutti i tentativi di percorso");
+          return;
         }
         
         // Per ogni file, recupera l'URL di download e i metadati
