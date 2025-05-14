@@ -226,10 +226,16 @@ export function useGalleryData(galleryCode: string) {
           const chaptersSnapshot = await getDocs(chaptersQuery);
           
           if (!chaptersSnapshot.empty) {
-            const chaptersData = chaptersSnapshot.docs.map(doc => ({
-              id: doc.id,
-              ...doc.data()
-            })) as ChapterData[];
+            const chaptersData = chaptersSnapshot.docs.map(doc => {
+              const data = doc.data();
+              console.log(`Capitolo caricato - ID: ${doc.id}, Titolo: ${data.title || 'Senza titolo'}`, data);
+              return {
+                id: doc.id,
+                title: data.title || 'Senza titolo',
+                description: data.description || '',
+                position: data.position || 0
+              };
+            }) as ChapterData[];
             
             // Aggiorniamo hasChapters nella gallery locale se troviamo capitoli
             if (chaptersData.length > 0 && !galleryData.hasChapters) {
