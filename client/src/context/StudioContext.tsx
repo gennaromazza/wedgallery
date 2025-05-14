@@ -83,10 +83,14 @@ export function StudioProvider({ children }: StudioProviderProps) {
         const settingsSnapshot = await getDoc(settingsDoc);
         
         if (settingsSnapshot.exists()) {
-          const settingsData = settingsSnapshot.data() as StudioSettings;
+          const settingsData = settingsSnapshot.data() as Partial<StudioSettings>;
           setStudioSettings(prev => ({
+            ...defaultSettings,
             ...prev,
-            ...settingsData
+            ...Object.entries(settingsData).reduce((acc, [key, value]) => ({
+              ...acc,
+              [key]: value ?? defaultSettings[key as keyof StudioSettings]
+            }), {})
           }));
         }
       } catch (err) {

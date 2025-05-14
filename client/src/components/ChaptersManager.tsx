@@ -176,13 +176,16 @@ export default function ChaptersManager({
     console.log(`Assegnando foto ${photoId} al capitolo ${chapterId || 'nessuno'}`);
     
     const photoToUpdate = photos.find(p => p.id === photoId);
-    if (photoToUpdate) {
-      console.log(`Foto trovata: ${photoToUpdate.name}, capitolo attuale: ${photoToUpdate.chapterId || 'nessuno'}`);
+    if (!photoToUpdate) {
+      console.error(`Foto ${photoId} non trovata`);
+      return;
     }
+
+    console.log(`Foto trovata: ${photoToUpdate.name}, capitolo attuale: ${photoToUpdate.chapterId || 'nessuno'}`);
     
     const updatedPhotos = photos.map(photo => 
       photo.id === photoId 
-        ? { ...photo, chapterId } 
+        ? { ...photo, chapterId, position: photo.position } 
         : photo
     );
     

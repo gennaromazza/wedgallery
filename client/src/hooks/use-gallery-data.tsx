@@ -238,16 +238,17 @@ export function useGalleryData(galleryCode: string) {
             }) as ChapterData[];
 
             // Aggiorniamo hasChapters nella gallery locale se troviamo capitoli
-            if (chaptersData.length > 0 && !galleryData.hasChapters) {
-              setGallery(prev => prev ? {...prev, hasChapters: true} : null);
+            const hasChapters = chaptersData.length > 0;
+            if (hasChapters !== galleryData.hasChapters) {
+              setGallery(prev => prev ? {...prev, hasChapters} : null);
 
-              // Aggiorniamo anche il documento in Firestore se necessario
+              // Aggiorniamo anche il documento in Firestore
               try {
                 const galleryRef = doc(db, "galleries", galleryDoc.id);
                 await updateDoc(galleryRef, {
-                  hasChapters: true
+                  hasChapters
                 });
-                console.log("Aggiornato stato hasChapters della galleria");
+                console.log(`Aggiornato stato hasChapters della galleria a ${hasChapters}`);
               } catch (updateError) {
                 console.error("Errore nell'aggiornamento di hasChapters:", updateError);
               }
