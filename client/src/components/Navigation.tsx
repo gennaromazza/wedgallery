@@ -10,7 +10,7 @@ interface NavigationProps {
 
 export default function Navigation({ isAdminNav = false, galleryOwner }: NavigationProps) {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [location] = useLocation();
+  const [location, navigate] = useLocation();
   const { studioSettings } = useStudio();
   
   // Implementazione sicura per i metodi di autenticazione
@@ -19,13 +19,13 @@ export default function Navigation({ isAdminNav = false, galleryOwner }: Navigat
   const signOut = async () => {
     // Implementazione predefinita sicura
     localStorage.removeItem('isAdmin');
-    window.location.href = createAbsoluteUrl("/admin");
+    navigate("/admin");
   };
 
   const handleSignOut = async () => {
     try {
       await signOut();
-      window.location.href = createAbsoluteUrl("/");
+      navigate("/");
     } catch (error) {
       console.error("Error signing out:", error);
     }

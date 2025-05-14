@@ -1,17 +1,19 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { useParams, useLocation } from "wouter";
 import { collection, query, where, getDocs, doc, getDoc, addDoc, updateDoc, serverTimestamp, orderBy, limit, startAfter } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { useStudio } from "@/context/StudioContext";
 import { trackGalleryView } from "@/lib/analytics";
-import { createUrl } from "@/lib/basePath";
+import { createUrl, createAbsoluteUrl } from "@/lib/basePath";
 import Navigation from "@/components/Navigation";
 import ImageLightbox from "@/components/ImageLightbox";
 import { useToast } from "@/hooks/use-toast";
 import { Skeleton } from "@/components/ui/skeleton";
-import SimpleChaptersView from "@/components/SimpleChaptersView";
-import { WeddingImage } from '@/components/WeddingImages';
-import { Loader2 as Loader2Icon, Calendar as CalendarIcon, MapPin as MapPinIcon } from "lucide-react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Photo } from "@shared/schema";
+import { FloralCorner, FloralDivider, BackgroundDecoration } from '@/components/WeddingIllustrations';
+import { WeddingImage, DecorativeImage } from '@/components/WeddingImages';
+import { Share2 as ShareIcon, Download as DownloadIcon, Loader2 as Loader2Icon, Calendar as CalendarIcon, MapPin as MapPinIcon } from "lucide-react";
 import { formatDateString } from "@/lib/dateFormatter";
 
 interface GalleryData {
@@ -139,43 +141,41 @@ export default function Gallery() {
           hasChapters: galleryData.hasChapters || false
         });
         
-        // Cerchiamo sempre i capitoli, indipendentemente dal flag hasChapters
-        // Questo garantisce che i capitoli vengano sempre caricati se esistono
-        console.log("Cerco capitoli per galleria ID:", galleryDoc.id);
-        try {
-          const chaptersRef = collection(db, "galleries", galleryDoc.id, "chapters");
-          const chaptersQuery = query(chaptersRef, orderBy("position", "asc"));
-          const chaptersSnapshot = await getDocs(chaptersQuery);
-          
-          if (!chaptersSnapshot.empty) {
-            const chaptersData = chaptersSnapshot.docs.map(doc => ({
-              id: doc.id,
-              ...doc.data()
-            })) as ChapterData[];
+        // Fetch chapters if the gallery has them
+        if (galleryData.hasChapters) {
+          try {
+            const chaptersRef = collection(db, "galleries", galleryDoc.id, "chapters");
+            const chaptersQuery = query(chaptersRef, orderBy("position", "asc"));
+            const chaptersSnapshot = await getDocs(chaptersQuery);
             
-            // Aggiorniamo hasChapters nella gallery locale se troviamo capitoli
-            if (chaptersData.length > 0 && !galleryData.hasChapters) {
-              setGallery(prev => prev ? {...prev, hasChapters: true} : null);
+            if (!chaptersSnapshot.empty) {
+              const chaptersData = chaptersSnapshot.docs.map(doc => ({
+                id: doc.id,
+                ...doc.data()
+              })) as ChapterData[];
               
-              // Aggiorniamo anche il documento in Firestore se necessario
-              try {
-                const galleryRef = doc(db, "galleries", galleryDoc.id);
-                await updateDoc(galleryRef, {
-                  hasChapters: true
-                });
-                console.log("Aggiornato stato hasChapters della galleria");
-              } catch (updateError) {
-                console.error("Errore nell'aggiornamento di hasChapters:", updateError);
+              // Aggiorniamo hasChapters nella gallery locale se troviamo capitoli
+              if (chaptersData.length > 0 && !gallery?.hasChapters) {
+                setGallery(prev => prev ? {...prev, hasChapters: true} : null);
+                
+                // Aggiorniamo anche il documento in Firestore se necessario
+                try {
+                  const galleryRef = doc(db, "galleries", galleryDoc.id);
+                  await updateDoc(galleryRef, {
+                    hasChapters: true
+                  });
+                  console.log("Aggiornato stato hasChapters della galleria");
+                } catch (updateError) {
+                  console.error("Errore nell'aggiornamento di hasChapters:", updateError);
+                }
               }
+              
+              setChapters(chaptersData);
+              console.log(`Caricati ${chaptersData.length} capitoli`);
             }
-            
-            setChapters(chaptersData);
-            console.log(`Caricati ${chaptersData.length} capitoli`);
-          } else {
-            console.log("Nessun capitolo trovato per questa galleria");
+          } catch (chaptersError) {
+            console.error("Errore nel caricamento dei capitoli:", chaptersError);
           }
-        } catch (chaptersError) {
-          console.error("Errore nel caricamento dei capitoli:", chaptersError);
         }
         
         // Fetch photos for the gallery with pagination
