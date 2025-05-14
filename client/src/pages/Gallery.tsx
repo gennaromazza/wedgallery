@@ -11,7 +11,7 @@ import LoadMoreButton from "@/components/gallery/LoadMoreButton";
 import ChaptersManager from "@/components/ChaptersManager";
 import GalleryFooter from "@/components/gallery/GalleryFooter";
 import { useGalleryData } from "@/hooks/use-gallery-data";
-import TabsChapters from "@/components/gallery/TabsChapters";
+import TabsChapters from "@/components/TabsChapters";
 
 export default function Gallery() {
   const { id } = useParams();
