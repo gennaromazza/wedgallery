@@ -135,14 +135,16 @@ export default function GalleryTabs({
 
       <TabsContent value="all" className="space-y-6">
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2 sm:gap-4 lg:gap-6">
-          {photos.map((photo, index) => (
-            <PhotoGridItem
-              key={`all-${photo.id}-${index}`}
-              photo={photo}
-              index={index}
-              openLightbox={openLightbox}
-            />
-          ))}
+          {photos
+            .sort((a, b) => (a.chapterPosition || 0) - (b.chapterPosition || 0))
+            .map((photo, index) => (
+              <PhotoGridItem
+                key={`all-${photo.id}-${index}`}
+                photo={photo}
+                index={index}
+                openLightbox={openLightbox}
+              />
+            ))}
         </div>
       </TabsContent>
 
@@ -172,7 +174,11 @@ export default function GalleryTabs({
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2 sm:gap-4 lg:gap-6">
             {photos
               .filter(p => p.chapterId === chapter.id)
-              .sort((a, b) => (a.chapterPosition || 0) - (b.chapterPosition || 0))
+              .sort((a, b) => {
+                const posA = typeof a.chapterPosition === 'number' ? a.chapterPosition : a.position || 0;
+                const posB = typeof b.chapterPosition === 'number' ? b.chapterPosition : b.position || 0;
+                return posA - posB;
+              })
               .map((photo, index) => (
                 <PhotoGridItem
                   key={`chapter-${chapter.id}-${photo.id}-${index}`}
