@@ -45,7 +45,7 @@ export default function NewGalleryModal({ isOpen, onClose, onSuccess }: NewGalle
   const [chapters, setChapters] = useState<Chapter[]>([]);
   const { toast } = useToast();
   const fileInputRef = useRef<HTMLInputElement>(null);
-  
+
   // Variabili per la compressione dell'immagine di copertina
   const [originalSize, setOriginalSize] = useState<number | undefined>(undefined);
   const [compressedSize, setCompressedSize] = useState<number | undefined>(undefined);
@@ -65,10 +65,10 @@ export default function NewGalleryModal({ isOpen, onClose, onSuccess }: NewGalle
   const handleCoverImageSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    
+
     setIsCompressing(true);
     setOriginalSize(file.size);
-    
+
     try {
       // Opzioni per la compressione dell'immagine di copertina
       const options = {
@@ -76,17 +76,17 @@ export default function NewGalleryModal({ isOpen, onClose, onSuccess }: NewGalle
         maxWidthOrHeight: 1920,
         useWebWorker: true,
       };
-      
+
       const compressedFile = await imageCompression(file, options);
       setCompressedSize(compressedFile.size);
       setCompressionRatio(file.size / compressedFile.size);
-      
+
       setCoverImageFile(compressedFile);
-      
+
       // Crea un URL per la preview
       const previewUrl = URL.createObjectURL(compressedFile);
       setCoverImageUrl(previewUrl);
-      
+
     } catch (error) {
       console.error("Errore nella compressione dell'immagine:", error);
       toast({
@@ -101,7 +101,7 @@ export default function NewGalleryModal({ isOpen, onClose, onSuccess }: NewGalle
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!name || !code) {
       toast({
         title: "Errore",
@@ -114,9 +114,9 @@ export default function NewGalleryModal({ isOpen, onClose, onSuccess }: NewGalle
     if (typeof onSuccess !== 'function') {
       console.warn('onSuccess callback is not defined');
     }
-    
+
     setIsLoading(true);
-    
+
     try {
       // Carica prima l'immagine di copertina, se presente
       let coverImageStorageUrl = "";
@@ -125,7 +125,7 @@ export default function NewGalleryModal({ isOpen, onClose, onSuccess }: NewGalle
         await uploadBytes(coverImageStorageRef, coverImageFile);
         coverImageStorageUrl = await getDownloadURL(coverImageStorageRef);
       }
-      
+
       // Crea la galleria nel database
       const galleryData = {
         name,
@@ -141,29 +141,29 @@ export default function NewGalleryModal({ isOpen, onClose, onSuccess }: NewGalle
         createdAt: serverTimestamp(),
         updatedAt: serverTimestamp(),
       };
-      
+
       console.log("Creazione galleria con dati:", galleryData);
       const galleryRef = await addDoc(collection(db, "galleries"), galleryData);
-      
+
       // Salvataggio dei capitoli al database
       const chapterIdMap = new Map<string, string>(); // Mappa da vecchio ID capitolo a nuovo ID Firestore
-      
+
       if (chapters.length > 0) {
         console.log("Salvataggio capitoli nel database:", chapters);
-        
+
         // Visualizza i chapterIds originali per il debug
         console.log("IDs originali dei capitoli:", chapters.map(c => c.id).join(", "));
-        
+
         const batch = writeBatch(db);
-        
+
         // Salva i capitoli
         for (const chapter of chapters) {
           const chapterRef = doc(collection(db, "galleries", galleryRef.id, "chapters"));
           const newChapterId = chapterRef.id; // Nuovo ID generato da Firestore
-          
+
           // Memorizza la mappatura tra ID vecchio e nuovo
           chapterIdMap.set(chapter.id, newChapterId);
-          
+
           batch.set(chapterRef, {
             title: chapter.title,
             description: chapter.description || "",
@@ -171,19 +171,19 @@ export default function NewGalleryModal({ isOpen, onClose, onSuccess }: NewGalle
             originalId: chapter.id, // Memorizza l'ID originale per debug
             createdAt: serverTimestamp()
           });
-          
+
           console.log(`Capitolo ${chapter.title} - ID originale: ${chapter.id}, nuovo ID: ${newChapterId}`);
         }
-        
+
         await batch.commit();
         console.log("Capitoli salvati con successo");
       }
-      
+
       // Upload photos if any are selected
       if (selectedFiles.length > 0) {
         try {
           console.log(`Iniziato caricamento di ${selectedFiles.length} foto`);
-          
+
           // Visualizza l'assegnazione dei capitoli alle foto per il debug
           console.log("Associazioni foto-capitoli prima del caricamento:");
           // Utilizziamo Map invece di un oggetto per evitare problemi TypeScript
@@ -195,16 +195,16 @@ export default function NewGalleryModal({ isOpen, onClose, onSuccess }: NewGalle
             }
           }
           console.log("Conteggio foto per capitolo:", Object.fromEntries(chapterCountMap));
-          
+
           setUploadProgress(0);
-          
+
           // Crea un batch Firestore per salvare le foto
           let currentBatch = writeBatch(db);
           let operationsInCurrentBatch = 0;
           const BATCH_LIMIT = 500; // Limite di operazioni per batch
           let totalProcessed = 0;
           let photosCollection = collection(db, "galleries", galleryRef.id, "photos");
-          
+
           // Funzione per gestire il batch quando necessario
           const checkAndCommitBatchIfNeeded = async () => {
             if (operationsInCurrentBatch >= BATCH_LIMIT) {
@@ -222,16 +222,16 @@ export default function NewGalleryModal({ isOpen, onClose, onSuccess }: NewGalle
               }
             }
           };
-          
+
           const totalPhotos = selectedFiles.length;
           console.log(`Elaborazione di ${totalPhotos} foto totali`);
-          
+
           // Carica le foto in batch di 20 per gestire meglio la memoria
           const CHUNK_SIZE = 20;
           for (let i = 0; i < selectedFiles.length; i += CHUNK_SIZE) {
             const chunk = selectedFiles.slice(i, i + CHUNK_SIZE);
             console.log(`Elaborazione chunk ${i / CHUNK_SIZE + 1} (${chunk.length} foto)`);
-            
+
             // Carica ogni foto nel chunk
             for (const photo of chunk) {
               try {
@@ -241,7 +241,7 @@ export default function NewGalleryModal({ isOpen, onClose, onSuccess }: NewGalle
                 const storageRef = ref(storage, `gallery-photos/${galleryRef.id}/${photoUuid}-${photo.name}`);
                 await uploadBytes(storageRef, photo.file);
                 const photoUrl = await getDownloadURL(storageRef);
-                
+
                 // Ottieni l'ID del capitolo mappato se esiste
                 let chapterId = null;
                 if (photo.chapterId && chapterIdMap.has(photo.chapterId)) {
@@ -250,7 +250,7 @@ export default function NewGalleryModal({ isOpen, onClose, onSuccess }: NewGalle
                 } else if (photo.chapterId) {
                   console.warn(`ID capitolo non trovato nella mappa: ${photo.chapterId} per la foto ${photo.name}`);
                 }
-                
+
                 // Salva la foto nel database
                 const photoData = {
                   name: photo.name,
@@ -264,43 +264,43 @@ export default function NewGalleryModal({ isOpen, onClose, onSuccess }: NewGalle
                   createdAt: serverTimestamp(),
                   uuid: photoUuid // Salviamo l'UUID generato in precedenza
                 };
-                
+
                 // Verifica e commit del batch se necessario
                 await checkAndCommitBatchIfNeeded();
-                
+
                 // Usa il batch corrente
                 const newPhotoRef = doc(photosCollection);
                 currentBatch.set(newPhotoRef, photoData);
                 operationsInCurrentBatch++;
-                
+
                 totalProcessed++;
                 const progress = Math.round((totalProcessed / totalPhotos) * 100);
                 setUploadProgress(progress);
-                
+
               } catch (uploadError) {
                 console.error(`Errore durante il caricamento della foto ${photo.name}:`, uploadError);
               }
             }
-            
+
             // Piccola pausa tra un chunk e l'altro per gestire la memoria
             if (i + CHUNK_SIZE < selectedFiles.length) {
               await new Promise(resolve => setTimeout(resolve, 500));
             }
           }
-          
+
           // Commit del batch finale se ci sono operazioni in sospeso
           if (operationsInCurrentBatch > 0) {
             await currentBatch.commit();
           }
-          
+
           // Aggiorna il conteggio delle foto nella galleria
           await updateDoc(doc(db, "galleries", galleryRef.id), {
             photoCount: totalPhotos,
             updatedAt: serverTimestamp()
           });
-          
+
           console.log(`Caricamento completato di ${totalPhotos} foto`);
-          
+
         } catch (uploadError) {
           console.error("Errore durante il caricamento delle foto:", uploadError);
           toast({
@@ -310,20 +310,20 @@ export default function NewGalleryModal({ isOpen, onClose, onSuccess }: NewGalle
           });
         }
       }
-      
+
       toast({
         title: "Successo",
         description: "Galleria creata con successo!",
       });
-      
+
       if (typeof onSuccess === 'function') {
         onSuccess();
       }
       onClose();
-      
+
     } catch (error) {
       console.error("Errore durante la creazione della galleria:", error);
-      
+
       // Mostra dettagli dell'errore per il debug
       let errorMessage = "Si è verificato un errore durante la creazione della galleria";
       if (error instanceof Error) {
@@ -332,7 +332,7 @@ export default function NewGalleryModal({ isOpen, onClose, onSuccess }: NewGalle
       } else {
         console.error("Dettagli errore:", JSON.stringify(error));
       }
-      
+
       toast({
         title: "Errore",
         description: errorMessage,
@@ -360,7 +360,7 @@ export default function NewGalleryModal({ isOpen, onClose, onSuccess }: NewGalle
     setOriginalSize(undefined);
     setCompressedSize(undefined);
     setCompressionRatio(undefined);
-    
+
     onClose();
   };
 
@@ -369,11 +369,11 @@ export default function NewGalleryModal({ isOpen, onClose, onSuccess }: NewGalle
     photosWithChapters: PhotoWithChapter[];
   }) => {
     console.log(`Capitoli estratti: ${result.chapters.length}, foto assegnate: ${result.photosWithChapters.length}`);
-    
+
     // Aggiorna lo stato con i capitoli e le foto
     setChapters(result.chapters);
     setSelectedFiles(result.photosWithChapters);
-    
+
     // Mostra conferma all'utente
     toast({
       title: "Cartelle rilevate",
@@ -383,7 +383,7 @@ export default function NewGalleryModal({ isOpen, onClose, onSuccess }: NewGalle
 
   const handleFilesSelected = (files: File[] | PhotoWithChapter[]) => {
     console.log("File selezionati:", files.length);
-    
+
     // Converti File[] in PhotoWithChapter[] se necessario
     if (files.length > 0 && !(files[0] as PhotoWithChapter).id) {
       const filesWithChapters: PhotoWithChapter[] = (files as File[]).map((file, index) => ({
@@ -427,7 +427,7 @@ export default function NewGalleryModal({ isOpen, onClose, onSuccess }: NewGalle
               Crea una nuova galleria fotografica
             </DialogDescription>
           </DialogHeader>
-          
+
           <form onSubmit={handleSubmit} className="space-y-6 py-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="space-y-4">
@@ -441,7 +441,7 @@ export default function NewGalleryModal({ isOpen, onClose, onSuccess }: NewGalle
                     required
                   />
                 </div>
-                
+
                 <div>
                   <Label htmlFor="date">Data evento</Label>
                   <Popover open={isDatePickerOpen} onOpenChange={setIsDatePickerOpen}>
@@ -470,7 +470,7 @@ export default function NewGalleryModal({ isOpen, onClose, onSuccess }: NewGalle
                     </PopoverContent>
                   </Popover>
                 </div>
-                
+
                 <div>
                   <Label htmlFor="code">Codice galleria*</Label>
                   <Input 
@@ -484,7 +484,7 @@ export default function NewGalleryModal({ isOpen, onClose, onSuccess }: NewGalle
                     Generato automaticamente, puoi modificarlo se necessario
                   </p>
                 </div>
-                
+
                 <div>
                   <Label htmlFor="location">Luogo</Label>
                   <Input 
@@ -494,7 +494,7 @@ export default function NewGalleryModal({ isOpen, onClose, onSuccess }: NewGalle
                     placeholder="Es. Firenze, Italia"
                   />
                 </div>
-                
+
                 <div>
                   <Label htmlFor="password">Password galleria</Label>
                   <Input 
@@ -505,7 +505,7 @@ export default function NewGalleryModal({ isOpen, onClose, onSuccess }: NewGalle
                     placeholder="Password per accedere alla galleria"
                   />
                 </div>
-                
+
                 <div>
                   <Label htmlFor="youtubeUrl">URL Video YouTube</Label>
                   <Input 
@@ -516,7 +516,7 @@ export default function NewGalleryModal({ isOpen, onClose, onSuccess }: NewGalle
                   />
                 </div>
               </div>
-              
+
               <div className="space-y-4">
                 <div>
                   <Label htmlFor="description">Descrizione</Label>
@@ -528,7 +528,7 @@ export default function NewGalleryModal({ isOpen, onClose, onSuccess }: NewGalle
                     rows={3}
                   />
                 </div>
-                
+
                 <div>
                   <Label htmlFor="coverImage">Immagine di copertina</Label>
                   <div className="mt-1 flex flex-col space-y-2">
@@ -547,7 +547,7 @@ export default function NewGalleryModal({ isOpen, onClose, onSuccess }: NewGalle
                     >
                       Seleziona immagine
                     </Button>
-                    
+
                     {isCompressing && (
                       <div className="flex items-center mt-2">
                         <Loader2 className="h-4 w-4 animate-spin mr-2" />
@@ -556,7 +556,7 @@ export default function NewGalleryModal({ isOpen, onClose, onSuccess }: NewGalle
                         </span>
                       </div>
                     )}
-                    
+
                     {coverImageFile && (
                       <ImageCompressionInfo
                         originalSize={originalSize}
@@ -566,7 +566,7 @@ export default function NewGalleryModal({ isOpen, onClose, onSuccess }: NewGalle
                         isCompressing={isCompressing}
                       />
                     )}
-                    
+
                     {coverImageUrl && (
                       <div className="relative mt-2 h-48 rounded-md overflow-hidden">
                         <img
@@ -580,7 +580,7 @@ export default function NewGalleryModal({ isOpen, onClose, onSuccess }: NewGalle
                 </div>
               </div>
             </div>
-            
+
             <div className="space-y-4">
               <Label>Carica foto</Label>
               <FileUpload 
@@ -589,7 +589,7 @@ export default function NewGalleryModal({ isOpen, onClose, onSuccess }: NewGalle
                 enableFolderUpload={true}
                 onChaptersExtracted={handleChaptersExtracted}
               />
-              
+
               {selectedFiles.length > 0 && (
                 <div className="flex flex-wrap items-center gap-2">
                   <p className="text-sm">
@@ -601,7 +601,7 @@ export default function NewGalleryModal({ isOpen, onClose, onSuccess }: NewGalle
                 </div>
               )}
             </div>
-            
+
             {isLoading && uploadProgress > 0 && (
               <div className="space-y-2">
                 <p className="text-sm font-medium">Caricamento in corso: {uploadProgress}%</p>
@@ -613,7 +613,7 @@ export default function NewGalleryModal({ isOpen, onClose, onSuccess }: NewGalle
                 </div>
               </div>
             )}
-            
+
             <div className="flex justify-end space-x-4">
               <Button type="button" variant="outline" onClick={handleClose}>
                 Annulla
@@ -632,7 +632,7 @@ export default function NewGalleryModal({ isOpen, onClose, onSuccess }: NewGalle
           </form>
         </DialogContent>
       </Dialog>
-      
+
       <ChaptersModal
         isOpen={showChaptersModal}
         onClose={() => setShowChaptersModal(false)}

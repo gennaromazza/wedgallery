@@ -43,28 +43,28 @@ export function useGalleryData(galleryCode: string) {
   const [loadingMorePhotos, setLoadingMorePhotos] = useState(false);
   const [photosPerPage, setPhotosPerPage] = useState(20); // Carica 20 foto alla volta
   const { toast } = useToast();
-  
+
   // Funzione per caricare le foto della galleria
   const loadPhotos = async (galleryId: string, galleryData: any) => {
     // Utilizza la collezione gallery-photos per cercare le foto
     const photosRef = collection(db, "gallery-photos");
-    
+
     // Crea una query per ottenere le foto della galleria
     let photosQuery = query(
       photosRef,
       where("galleryId", "==", galleryId),
       limit(photosPerPage)
     );
-    
+
     // Ottieni i documenti
     const photosSnapshot = await getDocs(photosQuery);
-    
+
     // Converti i documenti in oggetti PhotoData
     let photosData = photosSnapshot.docs.map(doc => ({
       id: doc.id,
       ...doc.data(),
     })) as PhotoData[];
-    
+
     // Ordina le foto per capitolo e posizione se la galleria ha capitoli
     if (galleryData.hasChapters && photosData.length > 0) {
       photosData.sort((a, b) => {
@@ -76,24 +76,24 @@ export function useGalleryData(galleryCode: string) {
         return (a.chapterPosition || 0) - (b.chapterPosition || 0);
       });
     }
-    
+
     // Controlla se ci sono altre foto da caricare
     setHasMorePhotos(photosData.length >= photosPerPage);
-    
+
     // Logica di debug e recupero migliorata: se non ci sono foto o ne abbiamo trovate meno di quelle attese
     // proviamo a recuperarle direttamente dallo Storage
     if (photosData.length < galleryData.photoCount || photosData.length === 0) {
       console.log(`Trovate solo ${photosData.length} foto in Firestore, ma photoCount è ${galleryData.photoCount}`);
       console.log("Tentativo di recupero dallo Storage...");
-      
+
       try {
         // Importiamo ciò che serve da firebase/storage
         const { ref, listAll, getDownloadURL, getMetadata } = await import("firebase/storage");
         const { storage } = await import("@/lib/firebase");
-        
+
         // Usa direttamente l'ID della galleria come riferimento principale
         console.log("Tentativo di recupero delle foto per galleryId:", galleryId);
-        
+
         // Usa il percorso corretto per trovare le foto
         const possiblePaths = [
           `gallery-photos/${galleryId}`,
@@ -102,18 +102,18 @@ export function useGalleryData(galleryCode: string) {
           `gallery-photos/${galleryCode}`,
           `gallery-photos/${String(galleryCode).toLowerCase()}`
         ];
-        
+
         let listResult = null;
-        
+
         // Prova tutti i percorsi possibili
         for (const path of possiblePaths) {
           if (listResult && listResult.items.length > 0) break;
-          
+
           try {
             console.log("Verifico percorso Storage:", path);
             const pathRef = ref(storage, path);
             const result = await listAll(pathRef);
-            
+
             if (result.items.length > 0) {
               console.log(`Trovate ${result.items.length} foto nel percorso ${path}`);
               listResult = result;
@@ -123,18 +123,18 @@ export function useGalleryData(galleryCode: string) {
             console.log(`Percorso ${path} non valido:`, e);
           }
         }
-        
+
         // Se non abbiamo ancora trovato foto, termina
         if (!listResult || listResult.items.length === 0) {
           console.log("Nessuna foto trovata dopo tutti i tentativi di percorso");
           return;
         }
-        
+
         // Per ogni file, recupera l'URL di download e i metadati
         const photoPromises = listResult.items.map(async (itemRef) => {
           const url = await getDownloadURL(itemRef);
           const metadata = await getMetadata(itemRef);
-          
+
           // Crea oggetto foto
           return {
             id: itemRef.name, // Usa il nome del file come ID
@@ -145,15 +145,15 @@ export function useGalleryData(galleryCode: string) {
             createdAt: metadata.timeCreated || new Date().toISOString()
           };
         });
-        
+
         // Attendiamo tutte le promise
         const photosFromStorage = await Promise.all(photoPromises);
-        
+
         // Aggiorniamo i dati delle foto
         if (photosFromStorage.length > 0) {
           photosData = photosFromStorage;
           console.log("Recuperate", photosFromStorage.length, "foto dallo Storage");
-          
+
           // Salvare i metadati in Firestore per usi futuri
           console.log("Salvando metadati delle foto in Firestore...");
           photosFromStorage.forEach(async (photo) => {
@@ -177,7 +177,7 @@ export function useGalleryData(galleryCode: string) {
         console.error("Errore nel recupero dallo Storage:", storageError);
       }
     }
-    
+
     setPhotos(photosData);
   };
 
@@ -187,7 +187,7 @@ export function useGalleryData(galleryCode: string) {
       setIsLoading(false);
       return;
     }
-    
+
     async function fetchGallery() {
       setIsLoading(true);
       try {
@@ -195,7 +195,7 @@ export function useGalleryData(galleryCode: string) {
         const galleriesRef = collection(db, "galleries");
         const q = query(galleriesRef, where("code", "==", galleryCode));
         const querySnapshot = await getDocs(q);
-        
+
         if (querySnapshot.empty) {
           toast({
             title: "Galleria non trovata",
@@ -204,7 +204,7 @@ export function useGalleryData(galleryCode: string) {
           });
           return;
         }
-        
+
         const galleryDoc = querySnapshot.docs[0];
         const galleryData = galleryDoc.data();
         setGallery({
@@ -217,14 +217,14 @@ export function useGalleryData(galleryCode: string) {
           youtubeUrl: galleryData.youtubeUrl || "",
           hasChapters: galleryData.hasChapters || false
         });
-        
+
         // Cerchiamo sempre i capitoli, indipendentemente dal flag hasChapters
         console.log("Cerco capitoli per galleria ID:", galleryDoc.id);
         try {
           const chaptersRef = collection(db, "galleries", galleryDoc.id, "chapters");
           const chaptersQuery = query(chaptersRef, orderBy("position", "asc"));
           const chaptersSnapshot = await getDocs(chaptersQuery);
-          
+
           if (!chaptersSnapshot.empty) {
             const chaptersData = chaptersSnapshot.docs.map(doc => {
               const data = doc.data();
@@ -236,11 +236,11 @@ export function useGalleryData(galleryCode: string) {
                 position: data.position || 0
               };
             }) as ChapterData[];
-            
+
             // Aggiorniamo hasChapters nella gallery locale se troviamo capitoli
             if (chaptersData.length > 0 && !galleryData.hasChapters) {
               setGallery(prev => prev ? {...prev, hasChapters: true} : null);
-              
+
               // Aggiorniamo anche il documento in Firestore se necessario
               try {
                 const galleryRef = doc(db, "galleries", galleryDoc.id);
@@ -252,7 +252,7 @@ export function useGalleryData(galleryCode: string) {
                 console.error("Errore nell'aggiornamento di hasChapters:", updateError);
               }
             }
-            
+
             setChapters(chaptersData);
             console.log(`Caricati ${chaptersData.length} capitoli`);
           } else {
@@ -261,7 +261,7 @@ export function useGalleryData(galleryCode: string) {
         } catch (chaptersError) {
           console.error("Errore nel caricamento dei capitoli:", chaptersError);
         }
-        
+
         // Fetch photos for the gallery with pagination
         await loadPhotos(galleryDoc.id, galleryData);
       } catch (error) {
@@ -275,20 +275,20 @@ export function useGalleryData(galleryCode: string) {
         setIsLoading(false);
       }
     }
-    
+
     fetchGallery();
   }, [galleryCode]);
-  
+
   // Funzione per caricare più foto
   const loadMorePhotos = useCallback(async () => {
     if (!gallery || !hasMorePhotos || loadingMorePhotos) return;
-    
+
     setLoadingMorePhotos(true);
     try {
       // Utilizza la collezione gallery-photos direttamente
       const photosRef = collection(db, "gallery-photos");
       let photosQuery;
-      
+
       // Purtroppo Firestore non supporta startAfter con where nella stessa query
       // Quindi dobbiamo utilizzare un approccio alternativo
       photosQuery = query(
@@ -296,31 +296,31 @@ export function useGalleryData(galleryCode: string) {
         where("galleryId", "==", gallery.id),
         limit(photosPerPage + photos.length)
       );
-      
+
       // Otteniamo tutte le foto e prendiamo solo le ultime photosPerPage
       const allPhotosSnapshot = await getDocs(photosQuery);
       const allPhotos = allPhotosSnapshot.docs.map(doc => ({
         id: doc.id,
         ...doc.data()
       })) as PhotoData[];
-      
+
       // Filtra per ottenere solo le nuove foto (non già caricate)
       const existingPhotoIds = new Set(photos.map(p => p.id));
       const newPhotos = allPhotos.filter(p => !existingPhotoIds.has(p.id));
-      
+
       // Limita al numero di foto per pagina
       const photosToAdd = newPhotos.slice(0, photosPerPage);
-      
+
       if (photosToAdd.length > 0) {
         // Aggiungi le nuove foto all'array esistente
         setPhotos(prevPhotos => [...prevPhotos, ...photosToAdd]);
-        
+
         // Verifica se ci sono ancora altre foto da caricare
         setHasMorePhotos(photosToAdd.length >= photosPerPage);
       } else {
         setHasMorePhotos(false);
       }
-      
+
       setLoadingMorePhotos(false);
     } catch (error) {
       console.error("Errore nel caricamento di altre foto:", error);
@@ -333,7 +333,7 @@ export function useGalleryData(galleryCode: string) {
       setLoadingMorePhotos(false);
     }
   }, [gallery, hasMorePhotos, loadingMorePhotos, photos, photosPerPage]);
-  
+
   // Utilizza trackGalleryView per tracciare la visualizzazione della galleria
   useEffect(() => {
     if (gallery) {

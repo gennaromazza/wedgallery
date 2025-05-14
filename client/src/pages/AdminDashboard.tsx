@@ -34,7 +34,7 @@ interface PaginationControlsProps {
 function PaginationControls({ currentPage, totalPages, onPageChange, onPrevious, onNext }: PaginationControlsProps) {
   // Non mostrare controlli se c'è solo una pagina
   if (totalPages <= 1) return null;
-  
+
   return (
     <div className="flex justify-center items-center mt-6 space-x-1">
       <Button 
@@ -45,7 +45,7 @@ function PaginationControls({ currentPage, totalPages, onPageChange, onPrevious,
       >
         <ChevronLeft className="h-4 w-4 mr-1" /> Prec
       </Button>
-      
+
       {totalPages <= 5 ? (
         // Se ci sono 5 o meno pagine, mostra tutti i numeri
         Array.from({ length: totalPages }, (_, i) => (
@@ -71,10 +71,10 @@ function PaginationControls({ currentPage, totalPages, onPageChange, onPrevious,
           >
             1
           </Button>
-          
+
           {/* Ellipsis o pagine vicine all'attuale */}
           {currentPage > 3 && <span className="mx-1">...</span>}
-          
+
           {/* Pagine adiacenti */}
           {currentPage > 2 && (
             <Button
@@ -86,7 +86,7 @@ function PaginationControls({ currentPage, totalPages, onPageChange, onPrevious,
               {currentPage - 1}
             </Button>
           )}
-          
+
           {/* Pagina corrente (se non è la prima o l'ultima) */}
           {currentPage !== 1 && currentPage !== totalPages && (
             <Button
@@ -97,7 +97,7 @@ function PaginationControls({ currentPage, totalPages, onPageChange, onPrevious,
               {currentPage}
             </Button>
           )}
-          
+
           {/* Pagina successiva */}
           {currentPage < totalPages - 1 && (
             <Button
@@ -109,10 +109,10 @@ function PaginationControls({ currentPage, totalPages, onPageChange, onPrevious,
               {currentPage + 1}
             </Button>
           )}
-          
+
           {/* Ellipsis finale */}
           {currentPage < totalPages - 2 && <span className="mx-1">...</span>}
-          
+
           {/* Ultima pagina */}
           <Button
             variant={currentPage === totalPages ? "default" : "outline"}
@@ -124,7 +124,7 @@ function PaginationControls({ currentPage, totalPages, onPageChange, onPrevious,
           </Button>
         </>
       )}
-      
+
       <Button 
         variant="outline" 
         size="sm"
@@ -182,11 +182,11 @@ export default function AdminDashboard() {
   const [isLoading, setIsLoading] = useState(true);
   const [isSettingsLoading, setIsSettingsLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<'galleries' | 'slideshow' | 'requests' | 'settings'>('galleries');
-  
+
   // Stati per la paginazione delle gallerie
   const [currentGalleryPage, setCurrentGalleryPage] = useState(1);
   const [galleriesPerPage] = useState(5); // Numero di gallerie per pagina
-  
+
   // Stati per la paginazione delle richieste password
   const [currentRequestPage, setCurrentRequestPage] = useState(1);
   const [requestsPerPage] = useState(5); // Numero di richieste per pagina
@@ -232,12 +232,12 @@ export default function AdminDashboard() {
     async function loadAllData() {
       // Carica gallerie
       await fetchData();
-      
+
       // Carica richieste password
       try {
         const requestsCollection = collection(db, "passwordRequests");
         const requestsSnapshot = await getDocs(requestsCollection);
-        
+
         const requestsList = requestsSnapshot.docs.map(doc => {
           const data = doc.data();
           return {
@@ -246,22 +246,22 @@ export default function AdminDashboard() {
             timestamp: data.createdAt?.toDate?.() || new Date()
           };
         });
-        
+
         // Sort by creation date, newest first
         requestsList.sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime());
-        
+
         setPasswordRequests(requestsList);
         console.log(`Caricate ${requestsList.length} richieste di password`);
       } catch (error) {
         console.error("Error fetching password requests:", error);
       }
-      
+
       // Carica impostazioni studio
       try {
         setIsSettingsLoading(true);
         const settingsDoc = doc(db, "settings", "studio");
         const settingsSnapshot = await getDoc(settingsDoc);
-        
+
         if (settingsSnapshot.exists()) {
           const settingsData = settingsSnapshot.data() as StudioSettings;
           setStudioSettings(settingsData);
@@ -272,12 +272,12 @@ export default function AdminDashboard() {
         setIsSettingsLoading(false);
       }
     }
-    
+
     if (auth.currentUser) {
       loadAllData();
     }
   }, []);
-  
+
   // Funzione per gestire il cambio di valore nei campi delle impostazioni
   const handleSettingsChange = (
     field: string, 
@@ -299,11 +299,11 @@ export default function AdminDashboard() {
       }));
     }
   };
-  
+
   // Funzione per gestire l'upload del logo
   const handleLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!e.target.files || e.target.files.length === 0) return;
-    
+
     const file = e.target.files[0];
     // Accetta solo immagini
     if (!file.type.startsWith('image/')) {
@@ -314,23 +314,23 @@ export default function AdminDashboard() {
       });
       return;
     }
-    
+
     try {
       // Riferimento allo storage per il logo
       const logoRef = ref(storage, `settings/logo`);
-      
+
       // Upload del file
       await uploadBytes(logoRef, file);
-      
+
       // Ottieni URL di download
       const downloadUrl = await getDownloadURL(logoRef);
-      
+
       // Aggiorna lo stato delle impostazioni
       setStudioSettings(prev => ({
         ...prev,
         logo: downloadUrl
       }));
-      
+
       toast({
         title: "Logo caricato",
         description: "Il logo è stato caricato con successo."
@@ -344,7 +344,7 @@ export default function AdminDashboard() {
       });
     }
   };
-  
+
   // Funzione per effettuare il logout
   const handleLogout = async () => {
     try {
@@ -363,13 +363,13 @@ export default function AdminDashboard() {
       });
     }
   };
-  
+
   // Funzione per salvare le impostazioni dello studio
   const saveStudioSettings = async () => {
     try {
       const settingsRef = doc(db, "settings", "studio");
       await setDoc(settingsRef, studioSettings);
-      
+
       toast({
         title: "Impostazioni salvate",
         description: "Le impostazioni dello studio sono state salvate con successo."
@@ -393,19 +393,19 @@ export default function AdminDashboard() {
     // Refresh the gallery list
     fetchData();
   };
-  
+
   const openEditModal = (gallery: GalleryItem) => {
     setSelectedGallery(gallery);
     setIsEditModalOpen(true);
   };
-  
+
   const closeEditModal = () => {
     setIsEditModalOpen(false);
     setSelectedGallery(null);
     // Refresh the gallery list
     fetchData();
   };
-  
+
   // Funzione di fetch data da usare anche dopo le modifiche
   const fetchData = async () => {
     setIsLoading(true);
@@ -413,21 +413,21 @@ export default function AdminDashboard() {
       // Carica gallerie
       const galleriesCollection = collection(db, "galleries");
       const gallerySnapshot = await getDocs(galleriesCollection);
-      
+
       const galleryList = gallerySnapshot.docs.map(doc => ({
         id: doc.id,
         ...doc.data()
       })) as GalleryItem[];
-      
+
       // Sort by creation date, newest first
       galleryList.sort((a, b) => {
         const dateA = a.createdAt?.toDate?.() || new Date(0);
         const dateB = b.createdAt?.toDate?.() || new Date(0);
         return dateB.getTime() - dateA.getTime();
       });
-      
+
       setGalleries(galleryList);
-      
+
       console.log(`Caricate ${galleryList.length} gallerie dal database`);
       console.log("Elenco gallerie:", galleryList.map(g => g.name).join(", "));
     } catch (error) {
@@ -441,23 +441,23 @@ export default function AdminDashboard() {
       setIsLoading(false);
     }
   };
-  
+
   // Elimina una richiesta di password
   const deletePasswordRequest = async (requestId: string) => {
     if (!requestId) return;
-    
+
     try {
       // Riferimento al documento nella collezione passwordRequests
       const requestRef = doc(db, "passwordRequests", requestId);
-      
+
       // Elimina il documento
       await deleteDoc(requestRef);
-      
+
       // Aggiorna lo stato rimuovendo la richiesta eliminata
       setPasswordRequests(prevRequests => 
         prevRequests.filter(request => request.id !== requestId)
       );
-      
+
       toast({
         title: "Richiesta eliminata",
         description: "La richiesta è stata eliminata con successo.",
@@ -471,7 +471,7 @@ export default function AdminDashboard() {
       });
     }
   };
-  
+
   // Esporta le richieste di password in un file Excel
   const exportPasswordRequests = () => {
     try {
@@ -483,18 +483,18 @@ export default function AdminDashboard() {
         });
         return;
       }
-      
+
       // Formatta i dati per l'export
       const formattedData = formatPasswordRequestsForExcel(passwordRequests);
-      
+
       // Genera nome file con data corrente
       const today = new Date();
       const dateStr = today.toISOString().split('T')[0]; // formato YYYY-MM-DD
       const fileName = `richieste_password_${dateStr}.xlsx`;
-      
+
       // Esporta in Excel
       exportToExcel(formattedData, fileName, "Richieste Password");
-      
+
       toast({
         title: "Esportazione completata",
         description: `Le richieste sono state esportate in ${fileName}`,
@@ -515,12 +515,12 @@ export default function AdminDashboard() {
       await updateDoc(galleryRef, {
         active: !gallery.active
       });
-      
+
       // Update local state
       setGalleries(prev => 
         prev.map(g => g.id === gallery.id ? { ...g, active: !g.active } : g)
       );
-      
+
       toast({
         title: gallery.active ? "Galleria disattivata" : "Galleria attivata",
         description: `La galleria "${gallery.name}" è stata ${gallery.active ? "disattivata" : "attivata"} con successo.`
@@ -539,24 +539,24 @@ export default function AdminDashboard() {
     if (!window.confirm(`Sei sicuro di voler eliminare la galleria "${gallery.name}"? Questa operazione rimuoverà TUTTE le foto e non può essere annullata.`)) {
       return;
     }
-    
+
     try {
       // 1. Elimina le foto dallo Storage (percorso galleries/)
       try {
         // Percorso nella cartella di Storage per questa galleria (percorso vecchio)
-        const storageRef = ref(storage, `galleries/${gallery.id}`);
-        console.log("Eliminazione file dallo storage path:", `galleries/${gallery.id}`);
-        
+        const storageRef = ref(storage, `gallery-photos/${gallery.id}`);
+        console.log("Eliminazione file dallo storage path:", `gallery-photos/${gallery.id}`);
+
         try {
           // Elenca tutti i file nella cartella
           const listResult = await listAll(storageRef);
-          
+
           // Elimina tutti i file uno per uno
           const deletePromises = listResult.items.map(async (itemRef) => {
             console.log("Eliminazione file:", itemRef.fullPath);
             return deleteObject(itemRef);
           });
-          
+
           // Attendi che tutte le eliminazioni siano completate
           await Promise.all(deletePromises);
           console.log(`Eliminati ${deletePromises.length} file dallo storage (percorso galleries/)`);
@@ -567,23 +567,23 @@ export default function AdminDashboard() {
         console.error("Errore durante l'eliminazione dei file dallo storage (galleries/):", storageError);
         // Continuiamo comunque con l'eliminazione del documento
       }
-      
+
       // 1b. Elimina le foto dallo storage nella collezione gallery-photos/
       try {
         // Nuovo percorso delle foto nella collezione gallery-photos/
         const galleryPhotosRef = ref(storage, `gallery-photos/${gallery.id}`);
         console.log("Eliminazione file dallo storage path:", `gallery-photos/${gallery.id}`);
-        
+
         try {
           // Elenca tutti i file nella cartella
           const galleryPhotosResult = await listAll(galleryPhotosRef);
-          
+
           // Elimina tutti i file uno per uno
           const deleteGalleryPhotosPromises = galleryPhotosResult.items.map(async (itemRef) => {
             console.log("Eliminazione file:", itemRef.fullPath);
             return deleteObject(itemRef);
           });
-          
+
           // Attendi che tutte le eliminazioni siano completate
           await Promise.all(deleteGalleryPhotosPromises);
           console.log(`Eliminati ${deleteGalleryPhotosPromises.length} file dallo storage (percorso gallery-photos/)`);
@@ -593,64 +593,64 @@ export default function AdminDashboard() {
       } catch (galleryPhotosError) {
         console.error("Errore durante l'eliminazione dei file dallo storage (gallery-photos/):", galleryPhotosError);
       }
-      
+
       // 2. Elimina eventuali sottocollezioni
       try {
         // Ottieni la sottocollezione 'photos'
         const photosRef = collection(db, "galleries", gallery.id, "photos");
         const photosSnapshot = await getDocs(photosRef);
-        
+
         // Elimina tutti i documenti nella sottocollezione
         const deletePhotoDocsPromises = photosSnapshot.docs.map(photoDoc => 
           deleteDoc(doc(db, "galleries", gallery.id, "photos", photoDoc.id))
         );
-        
+
         await Promise.all(deletePhotoDocsPromises);
         console.log(`Eliminati ${deletePhotoDocsPromises.length} documenti di foto dalla sottocollezione`);
       } catch (subCollectionError) {
         console.error("Errore durante l'eliminazione delle sottocollezioni:", subCollectionError);
         // Continuiamo comunque con l'eliminazione del documento principale
       }
-      
+
       // 2b. Elimina i documenti dalla collezione 'gallery-photos'
       try {
         // Query per trovare tutti i documenti nella collezione principale gallery-photos con il galleryId corrispondente
         const galleryPhotosRef = collection(db, "gallery-photos");
         const q = query(galleryPhotosRef, where("galleryId", "==", gallery.id));
         const galleryPhotosSnapshot = await getDocs(q);
-        
+
         // Elimina tutti i documenti trovati
         const deleteGalleryPhotoDocsPromises = galleryPhotosSnapshot.docs.map(photoDoc => 
           deleteDoc(doc(db, "gallery-photos", photoDoc.id))
         );
-        
+
         await Promise.all(deleteGalleryPhotoDocsPromises);
         console.log(`Eliminati ${deleteGalleryPhotoDocsPromises.length} documenti di foto dalla collezione gallery-photos`);
       } catch (galleryPhotosError) {
         console.error("Errore durante l'eliminazione dei documenti da gallery-photos:", galleryPhotosError);
       }
-      
+
       // 3. Elimina la sottocollezione 'chapters'
       try {
         const chaptersRef = collection(db, "galleries", gallery.id, "chapters");
         const chaptersSnapshot = await getDocs(chaptersRef);
-        
+
         const deleteChaptersPromises = chaptersSnapshot.docs.map(chapterDoc => 
           deleteDoc(doc(db, "galleries", gallery.id, "chapters", chapterDoc.id))
         );
-        
+
         await Promise.all(deleteChaptersPromises);
         console.log(`Eliminati ${deleteChaptersPromises.length} capitoli`);
       } catch (chaptersError) {
         console.error("Errore durante l'eliminazione dei capitoli:", chaptersError);
       }
-      
+
       // 4. Elimina il documento principale della galleria
       await deleteDoc(doc(db, "galleries", gallery.id));
-      
+
       // 5. Aggiorna lo stato locale
       setGalleries(prev => prev.filter(g => g.id !== gallery.id));
-      
+
       toast({
         title: "Galleria eliminata",
         description: `La galleria "${gallery.name}" e tutte le sue foto sono state eliminate con successo.`
@@ -664,7 +664,7 @@ export default function AdminDashboard() {
       });
     }
   };
-  
+
   // Funzione per generare una password casuale
   const generateRandomPassword = (length = 8) => {
     const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
@@ -674,24 +674,24 @@ export default function AdminDashboard() {
     }
     return result;
   };
-  
+
   // Funzione per cambiare rapidamente la password di una galleria
   const changeGalleryPassword = async (galleryId: string, newPassword: string) => {
     const galleryRef = doc(db, "galleries", galleryId);
-    
+
     try {
       await updateDoc(galleryRef, {
         password: newPassword
       });
-      
+
       toast({
         title: "Password aggiornata",
         description: "La password della galleria è stata aggiornata con successo."
       });
-      
+
       // Update local state
       fetchData();
-      
+
       return true;
     } catch (error) {
       console.error("Error changing gallery password:", error);
@@ -700,7 +700,7 @@ export default function AdminDashboard() {
         description: "Si è verificato un errore durante l'aggiornamento della password.",
         variant: "destructive"
       });
-      
+
       return false;
     }
   };
@@ -708,7 +708,7 @@ export default function AdminDashboard() {
   // Filtra le gallerie in base alla query di ricerca
   const filteredGalleries = galleries.filter(gallery => {
     if (!searchQuery) return true;
-    
+
     const query = searchQuery.toLowerCase();
     return (
       gallery.name.toLowerCase().includes(query) || 
@@ -716,45 +716,45 @@ export default function AdminDashboard() {
       gallery.date.toLowerCase().includes(query)
     );
   });
-  
+
   // Calcola gli indici per la paginazione delle gallerie
   const indexOfLastGallery = currentGalleryPage * galleriesPerPage;
   const indexOfFirstGallery = indexOfLastGallery - galleriesPerPage;
   const currentGalleries = filteredGalleries.slice(indexOfFirstGallery, indexOfLastGallery);
   const totalGalleryPages = Math.ceil(filteredGalleries.length / galleriesPerPage);
-  
+
   // Gestione del cambio pagina per le gallerie
   const paginateGalleries = (pageNumber: number) => setCurrentGalleryPage(pageNumber);
-  
+
   // Funzioni per navigare tra le pagine delle gallerie
   const goToNextGalleryPage = () => {
     if (currentGalleryPage < totalGalleryPages) {
       setCurrentGalleryPage(currentGalleryPage + 1);
     }
   };
-  
+
   const goToPreviousGalleryPage = () => {
     if (currentGalleryPage > 1) {
       setCurrentGalleryPage(currentGalleryPage - 1);
     }
   };
-  
+
   // Calcola gli indici per la paginazione delle richieste password
   const indexOfLastRequest = currentRequestPage * requestsPerPage;
   const indexOfFirstRequest = indexOfLastRequest - requestsPerPage;
   const currentRequests = passwordRequests.slice(indexOfFirstRequest, indexOfLastRequest);
   const totalRequestPages = Math.ceil(passwordRequests.length / requestsPerPage);
-  
+
   // Gestione del cambio pagina per le richieste
   const paginateRequests = (pageNumber: number) => setCurrentRequestPage(pageNumber);
-  
+
   // Funzioni per navigare tra le pagine delle richieste
   const goToNextRequestPage = () => {
     if (currentRequestPage < totalRequestPages) {
       setCurrentRequestPage(currentRequestPage + 1);
     }
   };
-  
+
   const goToPreviousRequestPage = () => {
     if (currentRequestPage > 1) {
       setCurrentRequestPage(currentRequestPage - 1);
@@ -807,7 +807,7 @@ export default function AdminDashboard() {
               <TabsTrigger value="requests">Richieste Password</TabsTrigger>
               <TabsTrigger value="settings">Impostazioni</TabsTrigger>
             </TabsList>
-            
+
             {/* Contenuto Tab Gallerie */}
             <TabsContent value="galleries">
               <div className="bg-white shadow sm:rounded-lg p-5">
@@ -833,7 +833,7 @@ export default function AdminDashboard() {
                     </Button>
                   </div>
                 </div>
-                
+
                 {/* Skeleton loader durante il caricamento */}
                 {isLoading ? (
                   <div className="space-y-4">
@@ -872,7 +872,8 @@ export default function AdminDashboard() {
                           <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                             Foto
                           </th>
-                          <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray<replit_final_file>
+-500 uppercase tracking-wider">
                             Stato
                           </th>
                           <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -985,7 +986,7 @@ export default function AdminDashboard() {
                 )}
               </div>
             </TabsContent>
-            
+
             {/* Contenuto Tab Slideshow */}
             <TabsContent value="slideshow">
               <div className="bg-white shadow sm:rounded-lg p-5">
@@ -993,11 +994,11 @@ export default function AdminDashboard() {
                 <p className="text-sm text-muted-foreground mb-6">
                   Seleziona le foto da mostrare nella slideshow della homepage.
                 </p>
-                
+
                 <SlideshowManager />
               </div>
             </TabsContent>
-            
+
             {/* Contenuto Tab Richieste Password */}
             <TabsContent value="requests">
               <div className="bg-white shadow sm:rounded-lg p-5">
@@ -1008,7 +1009,7 @@ export default function AdminDashboard() {
                       Visualizza tutte le richieste di password ricevute.
                     </p>
                   </div>
-                  
+
                   <Button 
                     onClick={exportPasswordRequests}
                     disabled={passwordRequests.length === 0}
@@ -1016,7 +1017,7 @@ export default function AdminDashboard() {
                     <Download className="mr-2 h-4 w-4" /> Esporta in Excel
                   </Button>
                 </div>
-                
+
                 {passwordRequests.length === 0 ? (
                   <div className="p-8 text-center">
                     <p className="text-gray-500">Nessuna richiesta di password ricevuta.</p>
@@ -1083,7 +1084,7 @@ export default function AdminDashboard() {
                 )}
               </div>
             </TabsContent>
-            
+
             {/* Contenuto Tab Impostazioni */}
             <TabsContent value="settings">
               <div className="bg-white shadow sm:rounded-lg p-5">
@@ -1094,12 +1095,12 @@ export default function AdminDashboard() {
                       Modifica le informazioni del tuo studio fotografico.
                     </p>
                   </div>
-                  
+
                   <Button onClick={saveStudioSettings}>
                     Salva impostazioni
                   </Button>
                 </div>
-                
+
                 {isSettingsLoading ? (
                   <div className="space-y-4">
                     {[...Array(6)].map((_, i) => (
@@ -1119,7 +1120,7 @@ export default function AdminDashboard() {
                             placeholder="Nome del tuo studio fotografico"
                           />
                         </div>
-                        
+
                         <div className="space-y-2">
                           <Label htmlFor="studio-slogan">Slogan</Label>
                           <Input
@@ -1129,7 +1130,7 @@ export default function AdminDashboard() {
                             placeholder="Slogan del tuo studio"
                           />
                         </div>
-                        
+
                         <div className="space-y-2">
                           <Label htmlFor="studio-address">Indirizzo</Label>
                           <Input
@@ -1139,7 +1140,7 @@ export default function AdminDashboard() {
                             placeholder="Indirizzo fisico dello studio"
                           />
                         </div>
-                        
+
                         <div className="space-y-2">
                           <Label htmlFor="studio-phone">Telefono</Label>
                           <Input
@@ -1149,7 +1150,7 @@ export default function AdminDashboard() {
                             placeholder="Numero di telefono"
                           />
                         </div>
-                        
+
                         <div className="space-y-2">
                           <Label htmlFor="studio-email">Email</Label>
                           <Input
@@ -1160,7 +1161,7 @@ export default function AdminDashboard() {
                             type="email"
                           />
                         </div>
-                        
+
                         <div className="space-y-2">
                           <Label htmlFor="studio-website">Sito Web</Label>
                           <Input
@@ -1172,7 +1173,7 @@ export default function AdminDashboard() {
                           />
                         </div>
                       </div>
-                      
+
                       <div className="space-y-4">
                         <div>
                           <Label>Logo</Label>
@@ -1186,7 +1187,7 @@ export default function AdminDashboard() {
                                 />
                               </div>
                             ) : null}
-                            
+
                             <Label
                               htmlFor="logo-upload"
                               className="cursor-pointer inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700"
@@ -1202,7 +1203,7 @@ export default function AdminDashboard() {
                             />
                           </div>
                         </div>
-                        
+
                         <div className="space-y-2">
                           <Label htmlFor="studio-about">Descrizione Studio</Label>
                           <Textarea
@@ -1213,10 +1214,10 @@ export default function AdminDashboard() {
                             rows={4}
                           />
                         </div>
-                        
+
                         <div className="space-y-4">
                           <Label>Social Media</Label>
-                          
+
                           <div className="space-y-2">
                             <Label htmlFor="social-instagram">Instagram (solo username)</Label>
                             <Input
@@ -1226,7 +1227,7 @@ export default function AdminDashboard() {
                               placeholder="username (senza @)"
                             />
                           </div>
-                          
+
                           <div className="space-y-2">
                             <Label htmlFor="social-facebook">Facebook (solo username)</Label>
                             <Input
@@ -1239,10 +1240,10 @@ export default function AdminDashboard() {
                         </div>
                       </div>
                     </div>
-                    
+
                     <div className="border-t pt-6 mt-6">
                       <h3 className="text-lg font-medium mb-4">Testi personalizzabili</h3>
-                      
+
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div>
                           <h4 className="font-medium mb-3">Sezione Hero</h4>
@@ -1256,7 +1257,7 @@ export default function AdminDashboard() {
                                 placeholder="Titolo principale della pagina"
                               />
                             </div>
-                            
+
                             <div className="space-y-2">
                               <Label htmlFor="hero-subtitle">Sottotitolo</Label>
                               <Input
@@ -1266,7 +1267,7 @@ export default function AdminDashboard() {
                                 placeholder="Sottotitolo della pagina"
                               />
                             </div>
-                            
+
                             <div className="space-y-2">
                               <Label htmlFor="hero-button">Testo pulsante</Label>
                               <Input
@@ -1278,7 +1279,7 @@ export default function AdminDashboard() {
                             </div>
                           </div>
                         </div>
-                        
+
                         <div>
                           <h4 className="font-medium mb-3">Sezione WhatsApp</h4>
                           <div className="space-y-3">
@@ -1291,7 +1292,7 @@ export default function AdminDashboard() {
                                 placeholder="Titolo sezione WhatsApp"
                               />
                             </div>
-                            
+
                             <div className="space-y-2">
                               <Label htmlFor="whatsapp-subtitle">Sottotitolo</Label>
                               <Input
@@ -1301,7 +1302,7 @@ export default function AdminDashboard() {
                                 placeholder="Sottotitolo sezione WhatsApp"
                               />
                             </div>
-                            
+
                             <div className="space-y-2">
                               <Label htmlFor="whatsapp-text">Testo descrittivo</Label>
                               <Textarea
@@ -1312,7 +1313,7 @@ export default function AdminDashboard() {
                                 rows={2}
                               />
                             </div>
-                            
+
                             <div className="space-y-2">
                               <Label htmlFor="whatsapp-button">Testo pulsante</Label>
                               <Input
@@ -1333,10 +1334,10 @@ export default function AdminDashboard() {
           </Tabs>
         </div>
       </main>
-      
+
       {/* Finestra modale per creare una nuova galleria */}
       <NewGalleryModal isOpen={isModalOpen} onClose={closeModal} />
-      
+
       {/* Finestra modale per modificare una galleria esistente */}
       {selectedGallery && (
         <EditGalleryModal 
