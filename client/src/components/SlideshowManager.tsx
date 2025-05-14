@@ -12,6 +12,7 @@ import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { Switch } from "@/components/ui/switch";
 import FileUpload from "@/components/ui/file-upload";
+import { PhotoWithChapter } from "@/components/ChaptersManager";
 
 interface SlideshowImage {
   id: string;

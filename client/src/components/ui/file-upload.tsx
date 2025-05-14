@@ -383,124 +383,77 @@ export default function FileUpload({
             
             // Secondo passaggio: crea capitoli per ogni cartella
             updateProgress(40, 'Creazione capitoli...', newFiles.length, processedFiles);
-            let position = 0;
+            let chapterIndex = 0;
             
-            Array.from(folderMap.entries()).forEach(([folderName, files], idx) => {
-              // Crea un capitolo per questa cartella
-              const chapterId = `chapter-${Date.now()}-${idx}`;
+            for (const [folderName, files] of folderMap) {
+              const chapterId = `folder-chapter-${Date.now()}-${chapterIndex}`;
+              
+              // Crea il capitolo
               chapters.push({
                 id: chapterId,
                 title: folderName,
                 description: `Foto dalla cartella "${folderName}"`,
-                position: idx
+                position: chapterIndex
               });
               
-              // Assegna tutti i file a questo capitolo
-              files.forEach((file, fileIdx) => {
+              // Crea le anteprime per ogni file nel capitolo
+              for (let i = 0; i < files.length; i++) {
+                const file = files[i];
                 photosWithChapters.push({
-                  id: `photo-${Date.now()}-${position}`,
+                  id: `folder-photo-${Date.now()}-${chapterIndex}-${i}`,
                   file,
                   url: URL.createObjectURL(file),
                   name: file.name,
-                  chapterId,
-                  position: position++
+                  chapterId: chapterId,
+                  position: i,
+                  folderPath: (file as any).webkitRelativePath
                 });
-              });
-              
-              console.log(`Capitolo "${folderName}" creato con ${files.length} foto`);
-            });
-            
-            // Terzo passaggio: gestisci i file che non hanno percorsi relativi
-            const otherFiles = newFiles.filter(file => !webkitFilesWithPaths.includes(file));
-            
-            if (otherFiles.length > 0) {
-              // Crea un capitolo "Altre foto" per i file senza percorso
-              const chapterId = `chapter-${Date.now()}-other`;
-              chapters.push({
-                id: chapterId,
-                title: "Altre foto",
-                description: "Foto senza categoria specifica",
-                position: chapters.length
-              });
-              
-              // Assegna i file rimanenti a questo capitolo
-              otherFiles.forEach((file, idx) => {
-                photosWithChapters.push({
-                  id: `photo-${Date.now()}-${position}`,
-                  file,
-                  url: URL.createObjectURL(file),
-                  name: file.name,
-                  chapterId,
-                  position: position++
-                });
-              });
-              
-              console.log(`Capitolo "Altre foto" creato con ${otherFiles.length} foto`);
-            }
-            
-            updateProgress(70, 'Preparazione per caricamento...', newFiles.length, newFiles.length);
-            
-            // Notifica i capitoli creati
-            if (chapters.length > 0) {
-              console.log(`Creati ${chapters.length} capitoli con ${photosWithChapters.length} foto totali`);
-              
-              onChaptersExtracted({
-                chapters,
-                photosWithChapters
-              });
-              
-              // Procedi con la compressione e il caricamento
-              updateProgress(80, 'Compressione e caricamento foto...', newFiles.length, newFiles.length);
-              await processFiles(newFiles);
-              
-              // Operazione completata
-              updateProgress(100, 'Elaborazione cartelle completata!', newFiles.length, newFiles.length);
-              setTimeout(() => setIsProcessingFolders(false), 1000);
-            } else {
-              console.log("Nessun capitolo creato, uso metodo tradizionale");
-              
-              // Fallback al metodo tradizionale
-              updateProgress(60, 'Nessun capitolo rilevato, provo metodo alternativo...', newFiles.length, newFiles.length);
-              const result = extractChaptersFromFolders(newFiles);
-              
-              if (result.chapters.length > 0) {
-                onChaptersExtracted(result);
-                await processFiles(result.photosWithChapters.map(p => p.file));
-              } else {
-                await processFiles(newFiles);
               }
               
-              setIsProcessingFolders(false);
+              chapterIndex++;
             }
-          } catch (error: any) {
-            console.error("Errore durante l'elaborazione delle cartelle:", error);
-            setProcessingStatus(`Errore: ${error.message || 'Errore sconosciuto'}`);
             
-            // Tenta comunque il metodo tradizionale
+            // Invia i capitoli e le foto con capitoli
+            updateProgress(70, 'Capitoli creati, preparazione foto...', newFiles.length, newFiles.length);
+            
+            onChaptersExtracted({
+              chapters,
+              photosWithChapters
+            });
+            
+            // Procedi con il processamento standard
+            await processFiles(newFiles);
+            
+            // Nascondi l'indicatore di progresso
+            updateProgress(100, 'Elaborazione completata!', newFiles.length, newFiles.length);
+            setTimeout(() => setIsProcessingFolders(false), 1000);
+            
+          } catch (error: any) {
+            console.error("Errore durante la creazione dei capitoli da webkitRelativePath:", error);
+            setProcessingStatus(`Errore: ${error.message || 'Errore sconosciuto'}`);
+            // Continua con il metodo standard
             setTimeout(() => {
               setIsProcessingFolders(false);
-              processFiles(newFiles).catch(console.error);
+              // Procedi con il processamento standard
+              processFiles(newFiles);
             }, 2000);
           }
         } else {
-          // Processo standard per i file senza supporto cartelle
-          console.log("Upload standard senza capitoli");
+          // Processo standard per file senza percorsi
           await processFiles(newFiles);
         }
-      } catch (error: any) {
-        console.error("Errore durante l'elaborazione dei file selezionati:", error);
-        // In caso di errore, tenta comunque l'upload standard
-        await processFiles(Array.from(e.target.files));
-      } finally {
-        // Reset dell'input file per permettere di selezionare lo stesso file più volte
+        
+        // Reset del campo input per consentire il ricaricamento dello stesso file
         if (fileInputRef.current) {
           fileInputRef.current.value = '';
         }
+      } catch (error) {
+        console.error("Errore durante l'elaborazione dei file:", error);
       }
     }
   };
 
-  // Apre il file picker quando si clicca sulla drop area
+  // Simula il click sull'input file quando si clicca sull'area di drop
   const handleClick = () => {
     if (fileInputRef.current) {
       fileInputRef.current.click();
@@ -602,111 +555,133 @@ export default function FileUpload({
       />
 
       {/* Informazioni sulla compressione e anteprima */}
-      {(currentFiles.length > 0 || previews.length > 0 || compressingFiles.length > 0) && (
+      {!isProcessingFolders && (
         <>
-          {/* Informazioni sulla compressione */}
-          {enableCompression && (currentFiles.length > 0 || compressingFiles.length > 0) && (
+          {/* File in compressione */}
+          {compressingFiles.length > 0 && (
             <div className="mt-4 mb-4">
-              <h4 className="text-sm font-medium mb-2 text-blue-gray">Informazioni compressione</h4>
+              <p className="text-sm font-medium mb-2">Compressione in corso...</p>
               <div className="space-y-2">
-                {/* File in fase di compressione */}
-                {compressingFiles.map((fileName, idx) => (
-                  <ImageCompressionInfo
-                    key={`compressing-${fileName}-${idx}`}
-                    fileName={fileName}
-                    isCompressing={true}
-                    originalSize={undefined}
-                    compressedSize={undefined}
-                  />
+                {compressingFiles.map((fileName, index) => (
+                  <div key={`compressing-${fileName}-${index}`} className="flex items-center text-sm">
+                    <div className="animate-spin mr-2">
+                      <div className="h-4 w-4 border-2 border-primary border-t-transparent rounded-full" />
+                    </div>
+                    <span className="truncate">{fileName}</span>
+                  </div>
                 ))}
-                
-                {/* File con compressione completata */}
-                {currentFiles.map((file, index) => {
-                  const compressionInfo = compressionData[file.name];
-                  return compressionInfo ? (
-                    <ImageCompressionInfo
-                      key={`compressed-${file.name}-${index}`}
-                      fileName={file.name}
-                      isCompressing={false}
-                      originalSize={compressionInfo.originalSize}
-                      compressedSize={compressionInfo.compressedSize}
-                      compressionRatio={compressionInfo.compressionRatio}
-                    />
-                  ) : file.type.startsWith('image/') ? (
-                    <ImageCompressionInfo
-                      key={`file-${file.name}-${index}`}
-                      fileName={file.name}
-                      isCompressing={false}
-                      originalSize={file.size}
-                      compressedSize={file.size}
-                      compressionRatio={1}
-                    />
-                  ) : null;
-                }).filter(Boolean)}
               </div>
             </div>
           )}
           
-          {/* Anteprima dei file selezionati */}
-          <div className="mt-4 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
-            {currentFiles.map((file, index) => (
-              <div key={`file-upload-${file.name}-${index}`} className="relative group">
-                <div className="relative aspect-square rounded-md overflow-hidden border bg-background">
-                  <img
-                    src={URL.createObjectURL(file)}
-                    alt={`Preview ${index}`}
-                    className="object-cover w-full h-full"
-                  />
-                  {onRemoveFile && (
-                    <Button
-                      type="button"
-                      variant="destructive"
-                      size="icon"
-                      className="absolute top-1 right-1 h-6 w-6 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        // Rimuovi anche i dati di compressione
-                        setCompressionData(prev => {
-                          const newData = {...prev};
-                          delete newData[file.name];
-                          return newData;
-                        });
-                        onRemoveFile(index);
-                      }}
-                    >
-                      <X className="h-3 w-3" />
-                    </Button>
-                  )}
-                </div>
-                <p className="text-xs mt-1 truncate">{file.name}</p>
+          {/* Riepilogo file selezionati */}
+          {(currentFiles.length > 0 || previews.length > 0) && (
+            <div className="mt-4 bg-muted/50 p-4 rounded-lg border">
+              <div className="flex flex-wrap items-center justify-between mb-3">
+                <h3 className="font-medium text-sm">
+                  {currentFiles.length + previews.length} file selezionati
+                </h3>
+                {currentFiles.length > 12 && (
+                  <p className="text-xs text-muted-foreground">
+                    Mostrando 12 di {currentFiles.length} file
+                  </p>
+                )}
               </div>
-            ))}
-            {previews.map((preview, index) => (
-              <div key={`preview-${index}`} className="relative group">
-                <div className="relative aspect-square rounded-md overflow-hidden border bg-background">
-                  <img
-                    src={preview}
-                    alt={`Existing preview ${index}`}
-                    className="object-cover w-full h-full"
-                  />
-                  {onRemoveFile && (
-                    <Button
-                      type="button"
-                      variant="destructive"
-                      size="icon"
-                      className="absolute top-1 right-1 h-6 w-6 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        onRemoveFile(index + currentFiles.length);
-                      }}
-                    >
-                      <X className="h-3 w-3" />
-                    </Button>
-                  )}
+              
+              {/* Statistiche sui file */}
+              {currentFiles.length > 0 && (
+                <div className="text-xs text-muted-foreground mb-3 grid grid-cols-1 sm:grid-cols-3 gap-2">
+                  <div>
+                    <span className="font-medium">Tipo immagine:</span> {Object.entries(
+                      currentFiles.reduce((acc, file) => {
+                        const type = file.type.split('/')[1] || 'altro';
+                        acc[type] = (acc[type] || 0) + 1;
+                        return acc;
+                      }, {} as Record<string, number>)
+                    ).map(([type, count]) => `${type} (${count})`).join(', ')}
+                  </div>
+                  <div>
+                    <span className="font-medium">Dimensione totale:</span> {
+                      (currentFiles.reduce((acc, file) => acc + file.size, 0) / (1024 * 1024)).toFixed(2)
+                    } MB
+                  </div>
+                  <div>
+                    <span className="font-medium">Media dimensione:</span> {
+                      (currentFiles.reduce((acc, file) => acc + file.size, 0) / (1024 * 1024 * currentFiles.length)).toFixed(2)
+                    } MB
+                  </div>
                 </div>
+              )}
+              
+              {/* Anteprime dei file (max 12) */}
+              <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-2">
+                {currentFiles.slice(0, 12).map((file, index) => (
+                  <div key={`file-upload-${file.name}-${index}`} className="relative group">
+                    <div className="relative aspect-square rounded-md overflow-hidden border bg-background">
+                      <img
+                        src={URL.createObjectURL(file)}
+                        alt={`Preview ${index}`}
+                        className="object-cover w-full h-full"
+                      />
+                      {onRemoveFile && (
+                        <Button
+                          type="button"
+                          variant="destructive"
+                          size="icon"
+                          className="absolute top-1 right-1 h-5 w-5 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            // Rimuovi anche i dati di compressione
+                            setCompressionData(prev => {
+                              const newData = {...prev};
+                              delete newData[file.name];
+                              return newData;
+                            });
+                            onRemoveFile(index);
+                          }}
+                        >
+                          <X className="h-3 w-3" />
+                        </Button>
+                      )}
+                    </div>
+                  </div>
+                ))}
+                
+                {previews.slice(0, Math.max(0, 12 - currentFiles.length)).map((preview, index) => (
+                  <div key={`preview-${index}`} className="relative group">
+                    <div className="relative aspect-square rounded-md overflow-hidden border bg-background">
+                      <img
+                        src={preview}
+                        alt={`Existing preview ${index}`}
+                        className="object-cover w-full h-full"
+                      />
+                      {onRemoveFile && (
+                        <Button
+                          type="button"
+                          variant="destructive"
+                          size="icon"
+                          className="absolute top-1 right-1 h-5 w-5 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onRemoveFile(index + currentFiles.length);
+                          }}
+                        >
+                          <X className="h-3 w-3" />
+                        </Button>
+                      )}
+                    </div>
+                  </div>
+                ))}
               </div>
-            ))}
-          </div>
+              
+              {/* Messaggio per file non mostrati */}
+              {(currentFiles.length + previews.length > 12) && (
+                <p className="text-xs text-muted-foreground mt-3 text-center">
+                  {currentFiles.length + previews.length - 12} file aggiuntivi non mostrati
+                </p>
+              )}
+            </div>
+          )}
         </>
       )}
     </div>
