@@ -451,7 +451,7 @@ export default function NewGalleryModal({ isOpen, onClose }: NewGalleryModalProp
                               setPreviews(prevPreviews => [...prevPreviews, ...newPreviews]);
                             }}
                             multiple={true}
-                            maxFiles={100}
+                            maxFiles={1000}
                             accept="image/*"
                             currentFiles={selectedFiles}
                             previews={previews}
@@ -468,6 +468,32 @@ export default function NewGalleryModal({ isOpen, onClose }: NewGalleryModalProp
                               }
                             }}
                             enableCompression={true}
+                            enableFolderUpload={true}
+                            onChaptersExtracted={(result) => {
+                              console.log("Capitoli estratti dalle cartelle:", result.chapters);
+                              
+                              // Prepara le foto con informazioni sui capitoli
+                              const photos: PhotoWithChapter[] = result.photosWithChapters.map((item, index) => ({
+                                id: `temp-${index}`,
+                                file: item.file,
+                                url: URL.createObjectURL(item.file),
+                                name: item.file.name,
+                                chapterId: item.chapterId,
+                                position: item.position
+                              }));
+                              
+                              // Imposta i capitoli estratti
+                              setChapters(result.chapters);
+                              
+                              // Imposta le foto con i capitoli assegnati
+                              setPhotosWithChapters(photos);
+                              
+                              // Mostra un toast di conferma
+                              toast({
+                                title: "Capitoli rilevati",
+                                description: `${result.chapters.length} capitoli estratti automaticamente dalle cartelle.`,
+                              });
+                            }}
                           />
                         </div>
                       </div>
