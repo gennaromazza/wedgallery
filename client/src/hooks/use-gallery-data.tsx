@@ -67,11 +67,20 @@ export function useGalleryData(galleryCode: string) {
 
     // Ordina le foto per capitolo e posizione se la galleria ha capitoli
     if (galleryData.hasChapters && photosData.length > 0) {
+      // Ottieni l'ordine dei capitoli
+      const chaptersRef = collection(db, "galleries", galleryDoc.id, "chapters");
+      const chaptersQuery = query(chaptersRef, orderBy("position", "asc"));
+      const chaptersSnapshot = await getDocs(chaptersQuery);
+      const chapterOrder = new Map(
+        chaptersSnapshot.docs.map((doc, index) => [doc.id, index])
+      );
+
       photosData.sort((a, b) => {
-        // Prima ordina per ID del capitolo
-        if (a.chapterId !== b.chapterId) {
-          return a.chapterId ? (b.chapterId ? a.chapterId.localeCompare(b.chapterId) : -1) : 1;
-        }
+        // Prima ordina per posizione del capitolo
+        const posA = chapterOrder.get(a.chapterId || '') ?? Number.MAX_VALUE;
+        const posB = chapterOrder.get(b.chapterId || '') ?? Number.MAX_VALUE;
+        if (posA !== posB) return posA - posB;
+        
         // Poi per posizione nel capitolo
         return (a.chapterPosition || 0) - (b.chapterPosition || 0);
       });
