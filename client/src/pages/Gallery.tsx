@@ -11,6 +11,7 @@ import LoadMoreButton from "@/components/gallery/LoadMoreButton";
 import ChaptersManager from "@/components/ChaptersManager";
 import GalleryFooter from "@/components/gallery/GalleryFooter";
 import { useGalleryData } from "@/hooks/use-gallery-data";
+import TabsChapters from "@/components/gallery/TabsChapters";
 
 export default function Gallery() {
   const { id } = useParams();
@@ -19,7 +20,7 @@ export default function Gallery() {
   const [currentPhotoIndex, setCurrentPhotoIndex] = useState(0);
   const [isAdmin, setIsAdmin] = useState(false);
   const { studioSettings } = useStudio();
-  
+
   // Carica dati galleria usando il custom hook
   const { 
     gallery, 
@@ -37,10 +38,10 @@ export default function Gallery() {
       const admin = localStorage.getItem('isAdmin') === 'true';
       setIsAdmin(admin);
     };
-    
+
     checkAdmin();
   }, []);
-  
+
   // Verifica autenticazione
   useEffect(() => {
     const checkAuth = () => {
@@ -50,7 +51,7 @@ export default function Gallery() {
         return;
       }
     };
-    
+
     if (id) {
       checkAuth();
     }
@@ -69,9 +70,9 @@ export default function Gallery() {
         loadMorePhotos();
       }
     };
-    
+
     window.addEventListener('scroll', handleScroll);
-    
+
     return () => {
       window.removeEventListener('scroll', handleScroll);
     };
@@ -99,7 +100,7 @@ export default function Gallery() {
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <Skeleton className="h-10 w-80 mb-2" />
             <Skeleton className="h-6 w-60 mb-8" />
-            
+
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8">
               {[...Array(9)].map((_, i) => (
                 <Skeleton key={i} className="w-full h-60 rounded-md" />
@@ -131,7 +132,7 @@ export default function Gallery() {
   return (
     <div className="min-h-screen bg-off-white">
       <Navigation galleryOwner={gallery.name} />
-      
+
       <div>
         {/* Intestazione galleria */}
         <GalleryHeader 
@@ -141,10 +142,10 @@ export default function Gallery() {
           description={gallery.description}
           coverImageUrl={gallery.coverImageUrl}
         />
-        
+
         {/* Video YouTube se presente */}
         <YouTubeEmbed videoUrl={gallery.youtubeUrl || ""} />
-        
+
         <main>
           <div className="max-w-7xl mx-auto sm:px-6 lg:px-8">
             <div className="px-4 py-4">
@@ -163,15 +164,10 @@ export default function Gallery() {
                 <>
                   {/* Visualizzazione con tab o semplice griglia di foto in base alla presenza di capitoli */}
                   {chapters.length > 0 ? (
-                    <ChaptersManager 
+                    <TabsChapters
                       chapters={chapters}
-                      photos={photos.map(p => ({
-                        ...p,
-                        file: {} as File,
-                        position: 0
-                      }))}
-                      onPhotosUpdate={() => {}}
-                      onChaptersUpdate={() => {}}
+                      photos={photos}
+                      openLightbox={openLightbox}
                     />
                   ) : (
                     <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2 sm:gap-4 lg:gap-6">
@@ -199,7 +195,7 @@ export default function Gallery() {
                       ))}
                     </div>
                   )}
-                  
+
                   {/* Pulsante "Carica altre foto" */}
                   <LoadMoreButton 
                     onClick={loadMorePhotos}
@@ -212,10 +208,10 @@ export default function Gallery() {
           </div>
         </main>
       </div>
-      
+
       {/* Instagram Call to Action e Footer */}
       <GalleryFooter studioSettings={studioSettings} />
-      
+
       {/* Photo Lightbox */}
       <ImageLightbox
         isOpen={lightboxOpen}
