@@ -52,8 +52,6 @@ Chapter organization structure:
 ## Environment Variables
 
 ### Server Configuration
-- `DATABASE_URL`: PostgreSQL connection string
-- `SENDGRID_API_KEY`: SendGrid API key for email notifications
 - `NODE_ENV`: Application environment (development/production)
 
 ### Firebase Configuration
