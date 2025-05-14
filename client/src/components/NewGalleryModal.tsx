@@ -444,57 +444,88 @@ export default function NewGalleryModal({ isOpen, onClose }: NewGalleryModalProp
                       <div>
                         <Label>Carica Foto</Label>
                         <div className="mt-2">
-                          <FileUpload
-                            onFilesSelected={(files: File[]) => {
-                              setSelectedFiles(prevFiles => [...prevFiles, ...files]);
-                              const newPreviews = files.map(file => URL.createObjectURL(file));
-                              setPreviews(prevPreviews => [...prevPreviews, ...newPreviews]);
-                            }}
-                            multiple={true}
-                            maxFiles={1000}
-                            accept="image/*"
-                            currentFiles={selectedFiles}
-                            previews={previews}
-                            onRemoveFile={(index: number) => {
-                              if (index < selectedFiles.length) {
-                                const newFiles = [...selectedFiles];
-                                newFiles.splice(index, 1);
-                                setSelectedFiles(newFiles);
-                                
-                                const newPreviews = [...previews];
-                                URL.revokeObjectURL(newPreviews[index]);
-                                newPreviews.splice(index, 1);
-                                setPreviews(newPreviews);
-                              }
-                            }}
-                            enableCompression={true}
-                            enableFolderUpload={true}
-                            onChaptersExtracted={(result) => {
-                              console.log("Capitoli estratti dalle cartelle:", result.chapters);
-                              
-                              // Prepara le foto con informazioni sui capitoli
-                              const photos: PhotoWithChapter[] = result.photosWithChapters.map((item, index) => ({
-                                id: `temp-${index}`,
-                                file: item.file,
-                                url: URL.createObjectURL(item.file),
-                                name: item.file.name,
-                                chapterId: item.chapterId,
-                                position: item.position
-                              }));
-                              
-                              // Imposta i capitoli estratti
-                              setChapters(result.chapters);
-                              
-                              // Imposta le foto con i capitoli assegnati
-                              setPhotosWithChapters(photos);
-                              
-                              // Mostra un toast di conferma
-                              toast({
-                                title: "Capitoli rilevati",
-                                description: `${result.chapters.length} capitoli estratti automaticamente dalle cartelle.`,
-                              });
-                            }}
-                          />
+                          <div className="flex flex-col space-y-2">
+                            <div className="flex items-center space-x-2">
+                              <div className="flex-1">
+                                <FileUpload
+                                  onFilesSelected={(files: File[]) => {
+                                    setSelectedFiles(prevFiles => [...prevFiles, ...files]);
+                                    const newPreviews = files.map(file => URL.createObjectURL(file));
+                                    setPreviews(prevPreviews => [...prevPreviews, ...newPreviews]);
+                                  }}
+                                  multiple={true}
+                                  maxFiles={1000}
+                                  accept="image/*"
+                                  currentFiles={selectedFiles}
+                                  previews={previews}
+                                  onRemoveFile={(index: number) => {
+                                    if (index < selectedFiles.length) {
+                                      const newFiles = [...selectedFiles];
+                                      newFiles.splice(index, 1);
+                                      setSelectedFiles(newFiles);
+                                      
+                                      const newPreviews = [...previews];
+                                      URL.revokeObjectURL(newPreviews[index]);
+                                      newPreviews.splice(index, 1);
+                                      setPreviews(newPreviews);
+                                    }
+                                  }}
+                                  enableCompression={true}
+                                  enableFolderUpload={true}
+                                  onChaptersExtracted={(result) => {
+                                    console.log("Capitoli estratti dalle cartelle:", result.chapters);
+                                    
+                                    // Prepara le foto con informazioni sui capitoli
+                                    const photos: PhotoWithChapter[] = result.photosWithChapters.map((item, index) => ({
+                                      id: `temp-${index}`,
+                                      file: item.file,
+                                      url: URL.createObjectURL(item.file),
+                                      name: item.file.name,
+                                      chapterId: item.chapterId,
+                                      position: item.position
+                                    }));
+                                    
+                                    // Imposta i capitoli estratti
+                                    setChapters(result.chapters);
+                                    
+                                    // Imposta le foto con i capitoli assegnati
+                                    setPhotosWithChapters(photos);
+                                    
+                                    // Imposta anche i file selezionati e previews
+                                    setSelectedFiles(result.photosWithChapters.map(p => p.file));
+                                    
+                                    // Crea le anteprime
+                                    const newPreviews = photos.map(p => p.url);
+                                    setPreviews(newPreviews);
+                                    
+                                    // Mostra un toast di conferma
+                                    toast({
+                                      title: "Capitoli rilevati",
+                                      description: `${result.chapters.length} capitoli estratti automaticamente dalle cartelle.`,
+                                    });
+                                  }}
+                                />
+                              </div>
+                            </div>
+                            
+                            {chapters.length > 0 && (
+                              <div className="p-3 bg-green-50 border border-green-200 rounded-md">
+                                <p className="text-sm text-green-700 flex items-center">
+                                  <div className="mr-2">✓</div>
+                                  <span>
+                                    <strong>{chapters.length} capitoli</strong> creati automaticamente dalle cartelle:
+                                  </span>
+                                </p>
+                                <div className="mt-2 flex flex-wrap gap-2">
+                                  {chapters.map(chapter => (
+                                    <span key={chapter.id} className="bg-green-100 text-green-800 text-xs px-2 py-1 rounded">
+                                      {chapter.title}
+                                    </span>
+                                  ))}
+                                </div>
+                              </div>
+                            )}
+                          </div>
                         </div>
                       </div>
                     </div>
