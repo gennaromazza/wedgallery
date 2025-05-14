@@ -65,6 +65,67 @@ export function FileUpload({
     setIsDragging(false);
   };
 
+  // Processa i file (compressione e callback)
+  const processFiles = async (files: File[]) => {
+    try {
+      // Comprime le immagini se l'opzione è abilitata
+      if (enableCompression) {
+        // Imposta lo stato di compressione per mostrare il caricamento
+        const fileNames = files.map(file => file.name);
+        setCompressingFiles([...compressingFiles, ...fileNames]);
+        
+        // Memorizza le dimensioni originali
+        const originalSizes: {[filename: string]: number} = {};
+        files.forEach(file => {
+          originalSizes[file.name] = file.size;
+        });
+        
+        // Comprime le immagini
+        const compressedFiles = await Promise.all(files.map(async (file) => {
+          // Per ogni file, se è un'immagine comprimi, altrimenti mantieni originale
+          if (file.type.startsWith('image/')) {
+            try {
+              // Usa il metodo di compressione singolo per avere più controllo
+              const compressedFile = await import('@/lib/imageCompression').then(
+                module => module.compressImage(file, compressionOptions)
+              );
+              
+              // Memorizza le informazioni sulla compressione
+              setCompressionData(prev => ({
+                ...prev,
+                [file.name]: {
+                  originalSize: file.size,
+                  compressedSize: compressedFile.size,
+                  compressionRatio: file.size / compressedFile.size
+                }
+              }));
+              
+              return compressedFile;
+            } catch (error) {
+              console.error(`Errore durante la compressione di ${file.name}:`, error);
+              return file;
+            }
+          } else {
+            return file;
+          }
+        }));
+        
+        // Rimuovi lo stato di compressione
+        setCompressingFiles(prev => prev.filter(name => !fileNames.includes(name)));
+        
+        onFilesSelected(compressedFiles);
+      } else {
+        onFilesSelected(files);
+      }
+    } catch (error) {
+      console.error("Errore durante la compressione delle immagini:", error);
+      // Rimuovi lo stato di compressione in caso di errore
+      setCompressingFiles([]);
+      // Fallback ai file originali in caso di errore
+      onFilesSelected(files);
+    }
+  };
+
   // Gestisce l'evento di drop
   const handleDrop = async (e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
@@ -81,63 +142,42 @@ export function FileUpload({
         return;
       }
       
-      try {
-        // Comprime le immagini se l'opzione è abilitata
-        if (enableCompression) {
-          // Imposta lo stato di compressione per mostrare il caricamento
-          const fileNames = newFiles.map(file => file.name);
-          setCompressingFiles([...compressingFiles, ...fileNames]);
-          
-          // Memorizza le dimensioni originali
-          const originalSizes: {[filename: string]: number} = {};
-          newFiles.forEach(file => {
-            originalSizes[file.name] = file.size;
-          });
-          
-          // Comprime le immagini
-          const compressedFiles = await Promise.all(newFiles.map(async (file) => {
-            // Per ogni file, se è un'immagine comprimi, altrimenti mantieni originale
-            if (file.type.startsWith('image/')) {
-              try {
-                // Usa il metodo di compressione singolo per avere più controllo
-                const compressedFile = await import('@/lib/imageCompression').then(
-                  module => module.compressImage(file, compressionOptions)
-                );
-                
-                // Memorizza le informazioni sulla compressione
-                setCompressionData(prev => ({
-                  ...prev,
-                  [file.name]: {
-                    originalSize: file.size,
-                    compressedSize: compressedFile.size,
-                    compressionRatio: file.size / compressedFile.size
-                  }
-                }));
-                
-                return compressedFile;
-              } catch (error) {
-                console.error(`Errore durante la compressione di ${file.name}:`, error);
-                return file;
-              }
-            } else {
-              return file;
-            }
-          }));
-          
-          // Rimuovi lo stato di compressione
-          setCompressingFiles(prev => prev.filter(name => !fileNames.includes(name)));
-          
-          onFilesSelected(compressedFiles);
-        } else {
-          onFilesSelected(newFiles);
+      // Verifica se sono state rilasciate cartelle
+      let hasDirectories = false;
+      if (e.dataTransfer.items) {
+        for (let i = 0; i < e.dataTransfer.items.length; i++) {
+          const item = e.dataTransfer.items[i];
+          if (item.webkitGetAsEntry && item.webkitGetAsEntry()?.isDirectory) {
+            hasDirectories = true;
+            break;
+          }
         }
-      } catch (error) {
-        console.error("Errore durante la compressione delle immagini:", error);
-        // Rimuovi lo stato di compressione in caso di errore
-        setCompressingFiles([]);
-        // Fallback ai file originali in caso di errore
-        onFilesSelected(newFiles);
       }
+      
+      // Se abbiamo cartelle e il supporto è abilitato, processa le cartelle per estrarre capitoli
+      if (enableFolderUpload && hasDirectories && onChaptersExtracted) {
+        console.log("Rilevata cartella, estrazione capitoli in corso...");
+        try {
+          const result = extractChaptersFromFolders(newFiles);
+          console.log("Capitoli estratti:", result.chapters);
+          
+          // Notifica i capitoli estratti attraverso il callback
+          onChaptersExtracted(result);
+          
+          // Prepara l'elenco di tutti i file per la compressione e l'upload
+          const allFilesToProcess = result.photosWithChapters.map(p => p.file);
+          
+          // Procedi con la compressione e l'upload come per i file normali
+          await processFiles(allFilesToProcess);
+          return;
+        } catch (error) {
+          console.error("Errore durante l'estrazione dei capitoli:", error);
+          // Continua con il normale upload dei file
+        }
+      }
+      
+      // Processo standard per i file
+      await processFiles(newFiles);
     }
   };
 
@@ -146,64 +186,32 @@ export function FileUpload({
     if (e.target.files && e.target.files.length > 0) {
       const newFiles = Array.from(e.target.files);
       
-      // Nessun controllo sul numero massimo di file
+      // Controlla se abbiamo un input di tipo directory
+      const hasWebkitRelativePaths = newFiles.some(file => 'webkitRelativePath' in file && file.webkitRelativePath);
       
-      try {
-        // Comprime le immagini se l'opzione è abilitata
-        if (enableCompression) {
-          // Imposta lo stato di compressione per mostrare il caricamento
-          const fileNames = newFiles.map(file => file.name);
-          setCompressingFiles([...compressingFiles, ...fileNames]);
+      // Se abbiamo percorsi relativi e il supporto per cartelle è abilitato, elabora come cartelle
+      if (enableFolderUpload && hasWebkitRelativePaths && onChaptersExtracted) {
+        console.log("Rilevata selezione di cartella, estrazione capitoli in corso...");
+        try {
+          const result = extractChaptersFromFolders(newFiles);
+          console.log("Capitoli estratti:", result.chapters);
           
-          // Memorizza le dimensioni originali
-          const originalSizes: {[filename: string]: number} = {};
-          newFiles.forEach(file => {
-            originalSizes[file.name] = file.size;
-          });
+          // Notifica i capitoli estratti attraverso il callback
+          onChaptersExtracted(result);
           
-          // Comprime le immagini
-          const compressedFiles = await Promise.all(newFiles.map(async (file) => {
-            // Per ogni file, se è un'immagine comprimi, altrimenti mantieni originale
-            if (file.type.startsWith('image/')) {
-              try {
-                // Usa il metodo di compressione singolo per avere più controllo
-                const compressedFile = await import('@/lib/imageCompression').then(
-                  module => module.compressImage(file, compressionOptions)
-                );
-                
-                // Memorizza le informazioni sulla compressione
-                setCompressionData(prev => ({
-                  ...prev,
-                  [file.name]: {
-                    originalSize: file.size,
-                    compressedSize: compressedFile.size,
-                    compressionRatio: file.size / compressedFile.size
-                  }
-                }));
-                
-                return compressedFile;
-              } catch (error) {
-                console.error(`Errore durante la compressione di ${file.name}:`, error);
-                return file;
-              }
-            } else {
-              return file;
-            }
-          }));
+          // Prepara l'elenco di tutti i file per la compressione e l'upload
+          const allFilesToProcess = result.photosWithChapters.map(p => p.file);
           
-          // Rimuovi lo stato di compressione
-          setCompressingFiles(prev => prev.filter(name => !fileNames.includes(name)));
-          
-          onFilesSelected(compressedFiles);
-        } else {
-          onFilesSelected(newFiles);
+          // Procedi con la compressione e l'upload come per i file normali
+          await processFiles(allFilesToProcess);
+        } catch (error) {
+          console.error("Errore durante l'estrazione dei capitoli:", error);
+          // Continua con il normale upload dei file
+          await processFiles(newFiles);
         }
-      } catch (error) {
-        console.error("Errore durante la compressione delle immagini:", error);
-        // Rimuovi lo stato di compressione in caso di errore
-        setCompressingFiles([]);
-        // Fallback ai file originali in caso di errore
-        onFilesSelected(newFiles);
+      } else {
+        // Processo standard per i file
+        await processFiles(newFiles);
       }
       
       // Reset dell'input file per permettere di selezionare lo stesso file più volte
@@ -237,23 +245,37 @@ export function FileUpload({
         onDrop={handleDrop}
         onClick={handleClick}
       >
-        <Upload className="h-10 w-10 text-muted-foreground" />
+        {enableFolderUpload ? <Folder className="h-10 w-10 text-muted-foreground" /> : <Upload className="h-10 w-10 text-muted-foreground" />}
         <p className="text-sm font-medium">
-          Trascina le foto qui o{" "}
-          <span className="text-primary">selezionane dal computer</span>
+          {enableFolderUpload ? (
+            <>Trascina le cartelle qui o <span className="text-primary">selezionane dal computer</span></>
+          ) : (
+            <>Trascina le foto qui o <span className="text-primary">selezionane dal computer</span></>
+          )}
         </p>
         <div className="text-xs text-muted-foreground space-y-1">
-          <p>
-            {multiple 
-              ? "Carica quante immagini desideri" 
-              : "Puoi caricare una sola immagine"}
-          </p>
+          {enableFolderUpload ? (
+            <p className="font-medium text-green-600">
+              Carica intere cartelle per creare automaticamente i capitoli
+            </p>
+          ) : (
+            <p>
+              {multiple 
+                ? "Carica quante immagini desideri" 
+                : "Puoi caricare una sola immagine"}
+            </p>
+          )}
           <p className="text-xs">
             Formato consigliato: max 2000px di lato lungo, max 5MB, 72-300 DPI
           </p>
           <p className="text-xs">
             Immagini più grandi saranno compresse automaticamente
           </p>
+          {enableFolderUpload && (
+            <p className="text-xs font-medium text-blue-500">
+              I nomi delle cartelle ("Sposo", "Sposa", "Cerimonia", ecc.) verranno usati come capitoli
+            </p>
+          )}
         </div>
       </div>
 
@@ -265,6 +287,7 @@ export function FileUpload({
         multiple={multiple}
         accept={accept}
         className="hidden"
+        {...(enableFolderUpload ? { webkitdirectory: "", directory: "" } : {})}
       />
 
       {/* Informazioni sulla compressione e anteprima */}
