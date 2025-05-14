@@ -98,7 +98,7 @@ export default function GalleryTabs({
   return (
     <Tabs defaultValue="all" value={activeTab} onValueChange={setActiveTab} className="w-full mb-8">
       <div className="mb-8 border-b border-sage/20">
-        <TabsList className="relative mb-0 flex overflow-x-auto pb-0 bg-transparent gap-2 scrollbar-thin scrollbar-thumb-sage/20 scrollbar-track-transparent">
+        <TabsList className="relative flex overflow-x-auto pb-2 bg-transparent gap-2 border-b border-sage/20 w-full scrollbar-thin scrollbar-thumb-sage/20 scrollbar-track-transparent">
           <TabsTrigger 
             value="all" 
             className="flex-shrink-0 text-blue-gray/70 bg-sage/5 data-[state=active]:bg-sage/10 data-[state=active]:text-sage-700 hover:text-sage-700 rounded-t-lg border-b-2 border-transparent data-[state=active]:border-sage-500 transition-all px-6 py-2.5 font-medium"
@@ -181,7 +181,7 @@ export default function GalleryTabs({
       </TabsContent>
       
       {chapters.map(chapter => (
-        <TabsContent key={chapter.id} value={chapter.id} className="space-y-4">
+        <TabsContent key={chapter.id} value={chapter.id} className="mt-6">
           {chapter.description && (
             <p className="text-blue-gray italic mb-4 md:mb-6 text-sm md:text-base">{chapter.description}</p>
           )}
@@ -190,16 +190,16 @@ export default function GalleryTabs({
             {photos.filter(p => p.chapterId === chapter.id).map((photo, index) => (
               <div
                 key={photo.id}
-                className="gallery-image h-40 sm:h-52 lg:h-64"
+                className="gallery-image h-40 sm:h-52 lg:h-64 relative overflow-hidden rounded-md shadow-sm transition-transform duration-300 hover:scale-[1.02] hover:shadow-md"
                 onClick={() => openLightbox(photos.findIndex(p => p.id === photo.id))}
               >
+                <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent opacity-0 hover:opacity-100 transition-opacity z-10 pointer-events-none"></div>
                 <img
                   src={photo.url}
                   alt={photo.name || `Foto ${index + 1}`}
-                  className="w-full h-full object-cover transition-opacity duration-300 opacity-0 hover:opacity-95"
+                  className="w-full h-full object-cover transition-all duration-300 opacity-0"
                   loading="lazy"
                   onLoad={(e) => {
-                    // Imposta l'opacità a 1 quando l'immagine è caricata
                     (e.target as HTMLImageElement).classList.replace('opacity-0', 'opacity-100');
                   }}
                   style={{ 
