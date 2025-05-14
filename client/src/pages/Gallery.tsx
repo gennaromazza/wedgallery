@@ -132,7 +132,8 @@ export default function Gallery() {
           description: galleryData.description || "",
           coverImageUrl: galleryData.coverImageUrl || "",
           youtubeUrl: galleryData.youtubeUrl || "",
-          hasChapters: galleryData.hasChapters || false
+          // Forziamo hasChapters a true se ci sono capitoli nella collezione
+          hasChapters: true
         });
         
         // Fetch chapters if the gallery has them
@@ -481,12 +482,55 @@ export default function Gallery() {
         
         <div className={`absolute bottom-0 left-0 right-0 p-6 ${gallery.coverImageUrl ? 'text-white' : ''}`}>
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <h1 className={`text-3xl md:text-4xl font-bold leading-tight font-playfair ${gallery.coverImageUrl ? 'drop-shadow-md text-white' : 'text-blue-gray'}`}>
-              {gallery.name}
-            </h1>
-            <p className={`mt-2 ${gallery.coverImageUrl ? 'text-gray-200 drop-shadow' : 'text-gray-500'}`}>
-              {gallery.date} • {gallery.location}
-            </p>
+            <div className="flex justify-between items-start">
+              <div>
+                <h1 className={`text-3xl md:text-4xl font-bold leading-tight font-playfair ${gallery.coverImageUrl ? 'drop-shadow-md text-white' : 'text-blue-gray'}`}>
+                  {gallery.name}
+                </h1>
+                <div className={`mt-2 flex flex-wrap gap-x-3 items-center ${gallery.coverImageUrl ? 'text-gray-200 drop-shadow' : 'text-gray-500'}`}>
+                  <span>{gallery.date} • {gallery.location}</span>
+                  {chapters.length > 0 && (
+                    <span className={`flex items-center text-sm ${gallery.coverImageUrl ? 'bg-black/30 text-white' : 'bg-sage-50 text-sage-600'} px-2 py-0.5 rounded-full`}>
+                      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" className="w-4 h-4 mr-1">
+                        <path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1-2.5-2.5z"></path>
+                        <path d="M8 7h8"></path>
+                        <path d="M8 11h6"></path>
+                        <path d="M8 15h4"></path>
+                      </svg>
+                      {chapters.length} capitoli
+                    </span>
+                  )}
+                </div>
+              </div>
+              
+              <div className="hidden md:flex gap-2">
+                <button
+                  onClick={() => downloadAll()}
+                  disabled={isDownloading}
+                  className={`inline-flex items-center px-3 py-1.5 rounded-md text-sm ${gallery.coverImageUrl ? 'bg-white/20 text-white hover:bg-white/30' : 'bg-sage-100 text-sage-700 hover:bg-sage-200'} transition-colors`}
+                >
+                  {isDownloading ? (
+                    <>
+                      <Loader2Icon className="w-3.5 h-3.5 mr-1.5 animate-spin" />
+                      Preparazione...
+                    </>
+                  ) : (
+                    <>
+                      <DownloadIcon className="w-3.5 h-3.5 mr-1.5" />
+                      Scarica tutte
+                    </>
+                  )}
+                </button>
+                
+                <button
+                  onClick={() => setShowShareModal(true)}
+                  className={`inline-flex items-center px-3 py-1.5 rounded-md text-sm ${gallery.coverImageUrl ? 'bg-white/20 text-white hover:bg-white/30' : 'bg-sage-100 text-sage-700 hover:bg-sage-200'} transition-colors`}
+                >
+                  <ShareIcon className="w-3.5 h-3.5 mr-1.5" />
+                  Condividi
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -540,35 +584,69 @@ export default function Gallery() {
                 </div>
               ) : (
                 <>
-                  {gallery.hasChapters && chapters.length > 0 ? (
+                  {chapters.length > 0 ? (
                     <Tabs defaultValue="all" value={activeTab} onValueChange={setActiveTab} className="w-full mb-8">
-                      <div className="mb-8 border-b border-sage/20">
-                        <TabsList className="relative mb-0 flex overflow-x-auto pb-0 bg-transparent gap-2 scrollbar-thin scrollbar-thumb-sage/20 scrollbar-track-transparent">
-                          <TabsTrigger 
-                            value="all" 
-                            className="flex-shrink-0 text-blue-gray/70 bg-sage/5 data-[state=active]:bg-sage/10 data-[state=active]:text-sage-700 hover:text-sage-700 rounded-t-lg border-b-2 border-transparent data-[state=active]:border-sage-500 transition-all px-6 py-2.5 font-medium"
-                          >
-                            Tutte le foto ({photos.length})
-                          </TabsTrigger>
-                          
-                          <TabsTrigger 
-                            value="unassigned" 
-                            className="flex-shrink-0 text-blue-gray/70 bg-sage/5 data-[state=active]:bg-sage/10 data-[state=active]:text-sage-700 hover:text-sage-700 rounded-t-lg border-b-2 border-transparent data-[state=active]:border-sage-500 transition-all px-6 py-2.5 font-medium"
-                          >
-                            Non assegnate ({photos.filter(p => !p.chapterId).length})
-                          </TabsTrigger>
-                          
-                          {chapters.map(chapter => (
+                      <div className="mb-12 relative">
+                        {/* Decorazione floreale sopra il menu */}
+                        <div className="absolute -top-6 left-1/2 transform -translate-x-1/2 w-40 h-12 flex justify-center opacity-30">
+                          <svg viewBox="0 0 100 30" xmlns="http://www.w3.org/2000/svg" className="w-full h-full fill-sage-500">
+                            <path d="M50,5 C60,15 70,15 80,5 C70,25 60,25 50,15 C40,25 30,25 20,5 C30,15 40,15 50,5 Z" />
+                          </svg>
+                        </div>
+                        
+                        {/* Menu elegante con design creativo */}
+                        <div className="relative z-10 mx-auto max-w-4xl bg-white/80 backdrop-blur-sm rounded-xl shadow-md border border-sage/10 p-3">
+                          <TabsList className="relative flex w-full overflow-x-auto pb-1 pt-1 bg-transparent gap-1 scrollbar-thin scrollbar-thumb-sage/20 scrollbar-track-transparent justify-center flex-wrap">
                             <TabsTrigger 
-                              key={chapter.id} 
-                              value={chapter.id} 
-                              className="flex-shrink-0 text-blue-gray/70 bg-sage/5 data-[state=active]:bg-sage/10 data-[state=active]:text-sage-700 hover:text-sage-700 rounded-t-lg border-b-2 border-transparent data-[state=active]:border-sage-500 transition-all px-6 py-2.5 font-medium"
+                              value="all" 
+                              className="flex-shrink-0 text-blue-gray/80 bg-sage/5 data-[state=active]:bg-sage/15 data-[state=active]:text-sage-800 hover:text-sage-700 rounded-lg border border-sage/20 data-[state=active]:border-sage/40 transition-all px-4 py-2 text-sm font-medium"
                             >
-                              {chapter.title} ({photos.filter(p => p.chapterId === chapter.id).length})
+                              <span className="flex items-center gap-2">
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" className="w-4 h-4">
+                                  <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                                  <circle cx="8.5" cy="8.5" r="1.5"></circle>
+                                  <polyline points="21 15 16 10 5 21"></polyline>
+                                </svg>
+                                Tutte le foto ({photos.length})
+                              </span>
                             </TabsTrigger>
-                          ))}
-                        </TabsList>
-                        <div className="h-0.5 w-full bg-gradient-to-r from-sage/30 via-sage/50 to-sage/30"></div>
+                            
+                            <TabsTrigger 
+                              value="unassigned" 
+                              className="flex-shrink-0 text-blue-gray/80 bg-sage/5 data-[state=active]:bg-sage/15 data-[state=active]:text-sage-800 hover:text-sage-700 rounded-lg border border-sage/20 data-[state=active]:border-sage/40 transition-all px-4 py-2 text-sm font-medium"
+                            >
+                              <span className="flex items-center gap-2">
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" className="w-4 h-4">
+                                  <path d="M21 9V19a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V9"></path>
+                                  <path d="M9 9 C9 9 9 3 12 3 C15 3 15 9 15 9"></path>
+                                </svg>
+                                Non assegnate ({photos.filter(p => !p.chapterId).length})
+                              </span>
+                            </TabsTrigger>
+                            
+                            {chapters.map((chapter, index) => (
+                              <TabsTrigger 
+                                key={chapter.id} 
+                                value={chapter.id} 
+                                className="flex-shrink-0 text-blue-gray/80 bg-sage/5 data-[state=active]:bg-sage/15 data-[state=active]:text-sage-800 hover:text-sage-700 rounded-lg border border-sage/20 data-[state=active]:border-sage/40 transition-all px-4 py-2 text-sm font-medium"
+                              >
+                                <span className="flex items-center gap-2">
+                                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" className="w-4 h-4">
+                                    <path d="M12 3L2 12h3v8h14v-8h3L12 3z"></path>
+                                  </svg>
+                                  {chapter.title} ({photos.filter(p => p.chapterId === chapter.id).length})
+                                </span>
+                              </TabsTrigger>
+                            ))}
+                          </TabsList>
+                        </div>
+                        
+                        {/* Decorazione floreale sotto il menu */}
+                        <div className="absolute -bottom-6 left-1/2 transform -translate-x-1/2 w-40 h-12 flex justify-center opacity-30 rotate-180">
+                          <svg viewBox="0 0 100 30" xmlns="http://www.w3.org/2000/svg" className="w-full h-full fill-sage-500">
+                            <path d="M50,5 C60,15 70,15 80,5 C70,25 60,25 50,15 C40,25 30,25 20,5 C30,15 40,15 50,5 Z" />
+                          </svg>
+                        </div>
                       </div>
                       
                       <TabsContent value="all" className="space-y-6">
