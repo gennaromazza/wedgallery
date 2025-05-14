@@ -1,9 +1,10 @@
 import React, { useState, useRef } from 'react';
-import { Upload, X, Image as ImageIcon } from 'lucide-react';
+import { Upload, X, Image as ImageIcon, Folder } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from './button';
 import { compressImages } from '@/lib/imageCompression';
 import ImageCompressionInfo from '@/components/ImageCompressionInfo';
+import { extractChaptersFromFolders } from '@/lib/folderChapterMapper';
 
 interface FileUploadProps {
   onFilesSelected: (files: File[]) => void;
@@ -19,6 +20,11 @@ interface FileUploadProps {
     maxSizeMB?: number;
     maxWidthOrHeight?: number;
   };
+  enableFolderUpload?: boolean;
+  onChaptersExtracted?: (result: { 
+    chapters: any[]; 
+    photosWithChapters: any[];
+  }) => void;
 }
 
 export function FileUpload({
@@ -31,7 +37,9 @@ export function FileUpload({
   previews = [],
   onRemoveFile,
   enableCompression = true,
-  compressionOptions = { maxSizeMB: 1, maxWidthOrHeight: 1920 }
+  compressionOptions = { maxSizeMB: 1, maxWidthOrHeight: 1920 },
+  enableFolderUpload = false,
+  onChaptersExtracted
 }: FileUploadProps) {
   const [isDragging, setIsDragging] = useState(false);
   const [compressingFiles, setCompressingFiles] = useState<string[]>([]);
