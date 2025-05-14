@@ -931,8 +931,8 @@ export default function Gallery() {
                           </svg>
                         </div>
                       </div>
-
-                      <TabsContent value="all" className="space-y-6">
+                      <div>
+                        <TabsContent value="all" className="space-y-6">
                         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2 sm:gap-4 lg:gap-6">
                           {photos.map((photo, index) => (
                             <div
@@ -958,6 +958,7 @@ export default function Gallery() {
                           ))}
                         </div>
                       </TabsContent>
+                      </div>
 
                       <TabsContent value="unassigned" className="space-y-6">
                         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2 sm:gap-4 lg:gap-6">
