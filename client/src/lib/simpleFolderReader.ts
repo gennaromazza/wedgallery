@@ -281,36 +281,92 @@ export async function processFilesFromFolders(
     }
   }
   
-  // Se ci sono file nella radice, aggiungili al capitolo predefinito
-  if (rootFiles.length > 0) {
-    // Aggiungi il capitolo predefinito
+  // Raccogli file non assegnati (sia nella root che nelle cartelle senza corrispondenza)
+  const unassignedFiles = [...rootFiles];
+  
+  // Cerca file in cartelle che non hanno trovato corrispondenza con capitoli
+  for (const folderName of folderNames) {
+    const chapterId = folderNameToChapterId.get(folderName);
+    // Se non c'è un chapterId, questi file non sono stati assegnati
+    if (!chapterId) {
+      const filesInFolder = folderFiles.get(folderName) || [];
+      if (filesInFolder.length > 0) {
+        console.log(`⚠️ Cartella "${folderName}" non ha corrispondenza con capitoli. Aggiungendo ${filesInFolder.length} file al capitolo predefinito.`);
+        unassignedFiles.push(...filesInFolder);
+      }
+    }
+  }
+  
+  // Se ci sono file non assegnati, creaiamo un capitolo predefinito
+  if (unassignedFiles.length > 0) {
+    console.log(`Trovati ${unassignedFiles.length} file non assegnati a capitoli specifici`);
+    
+    // Aggiungi il capitolo predefinito solo se ci sono file da assegnare
     chapters.push(defaultChapter);
     
-    // Assegna i file della radice al capitolo predefinito
-    for (let i = 0; i < rootFiles.length; i++) {
-      const file = rootFiles[i];
+    // Assegna tutti i file non assegnati al capitolo predefinito
+    for (let i = 0; i < unassignedFiles.length; i++) {
+      const file = unassignedFiles[i];
+      
+      // Generiamo ID univoci per evitare sovrapposizioni
+      const uniqueTimestamp = Date.now() + i;
+      
       photosWithChapters.push({
-        id: `photo-${Date.now()}-${position}`,
+        id: `photo-${uniqueTimestamp}-${position}`,
         file,
         url: URL.createObjectURL(file),
         name: file.name,
         chapterId: defaultChapterId,
-        position: position++
+        position: position++,
+        folderPath: file.webkitRelativePath 
+          ? file.webkitRelativePath.split('/').slice(0, -1).join('/') 
+          : 'root'
       });
       
       assignedCount++;
+      
+      // Aggiorna il progresso ogni 20 file
+      if (i % 20 === 0) {
+        updateProgress(
+          90 + Math.min(5, (i / Math.max(unassignedFiles.length, 1)) * 5),
+          `Assegnazione file al capitolo predefinito (${i}/${unassignedFiles.length})...`,
+          totalProcessed,
+          assignedCount
+        );
+      }
     }
   }
   
   updateProgress(95, 'Completamento elaborazione...', totalProcessed, totalProcessed);
   
-  // Statistiche
+  // Statistiche dettagliate
   const chapterStats = new Map<string, number>();
-  chapters.forEach(chapter => {
-    const count = photosWithChapters.filter(p => p.chapterId === chapter.id).length;
-    chapterStats.set(chapter.id, count);
-    console.log(`Capitolo "${chapter.title}": ${count} foto`);
-  });
+  const totalChapters = chapters.length;
+  const totalAssignedPhotos = photosWithChapters.length;
+  
+  console.log(`\n===== STATISTICHE ELABORAZIONE CARTELLE =====`);
+  console.log(`File totali trovati: ${allFiles.length}`);
+  console.log(`Cartelle trovate: ${folderNames.length}`);
+  console.log(`Capitoli creati: ${totalChapters}`);
+  console.log(`Foto totali elaborate: ${totalAssignedPhotos}`);
+  
+  if (totalChapters > 0) {
+    console.log(`\nDistribuzione per capitolo:`);
+    chapters.forEach(chapter => {
+      const count = photosWithChapters.filter(p => p.chapterId === chapter.id).length;
+      chapterStats.set(chapter.id, count);
+      const percentage = Math.round((count / totalAssignedPhotos) * 100);
+      console.log(`- Capitolo "${chapter.title}": ${count} foto (${percentage}%)`);
+    });
+  }
+  
+  // Verifica se ci sono file che non sono stati assegnati a nessun capitolo (non dovrebbero esserci)
+  const unassignedInFinal = photosWithChapters.filter(p => !p.chapterId).length;
+  if (unassignedInFinal > 0) {
+    console.warn(`⚠️ Attenzione: ${unassignedInFinal} foto non hanno un capitolo assegnato!`);
+  }
+  
+  console.log(`============================================\n`);
   
   updateProgress(100, 'Elaborazione completata!', totalProcessed, totalProcessed);
   

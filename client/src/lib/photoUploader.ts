@@ -310,6 +310,8 @@ export const uploadPhotos = async (
         .then(photoData => {
           uploadedPhotos.push(photoData);
           activeUploads.delete(file.name);
+          // Incrementa il contatore dei successi
+          successfulUploads++;
           return photoData;
         })
         .catch(error => {
@@ -322,6 +324,8 @@ export const uploadPhotos = async (
             totalBytes: file.size
           }, fileIndex);
           activeUploads.delete(file.name);
+          // Incrementa il contatore degli errori
+          failedUploads++;
           // Non blocchiamo il processo complessivo per errori su singoli file
           return null;
         });

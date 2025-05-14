@@ -178,49 +178,102 @@ export function extractChaptersFromFolders(
     });
   }
   
-  // Terzo passaggio: assegna le foto ai capitoli
+  // Terzo passaggio: assegna le foto ai capitoli con posizionamento ottimizzato
   const photosWithChapters: PhotoWithChapter[] = [];
-  let globalPhotoPosition = 0;
   
-  // Aggiungi le foto dalle cartelle
-  foldersMap.forEach((data, folderName) => {
-    // Trova il capitolo corrispondente
-    const chapter = chapters.find(c => 
-      c.title === (folderNameMapping[folderName] || folderName.replace(/_/g, ' '))
-    );
+  // Crea un indice per tenere traccia della posizione iniziale di ogni capitolo
+  const chapterPositions: Record<string, number> = {};
+  let currentPosition = 0;
+  
+  // Prima assegniamo le posizioni iniziali per ogni capitolo
+  chapters.forEach((chapter) => {
+    chapterPositions[chapter.id] = currentPosition;
     
-    if (chapter) {
-      // Aggiungi le foto al capitolo
-      data.files.forEach(file => {
-        photosWithChapters.push({
-          id: `photo-${Date.now()}-${globalPhotoPosition}`,
-          file,
-          url: URL.createObjectURL(file),
-          name: file.name,
-          chapterId: chapter.id,
-          position: globalPhotoPosition++
-        });
-      });
+    // Trova le files per questo capitolo
+    const folderName = Object.keys(folderNameMapping).find(
+      key => folderNameMapping[key] === chapter.title
+    ) || chapter.title.replace(/ /g, '_');
+    
+    const folderData = foldersMap.get(folderName);
+    if (folderData) {
+      currentPosition += folderData.files.length;
+    } else if (chapter.title === 'Altre Foto') {
+      currentPosition += rootFiles.length;
     }
   });
   
-  // Aggiungi le foto senza cartella
-  if (rootFiles.length > 0) {
-    const rootChapter = chapters.find(c => c.title === 'Altre Foto');
+  // Ora assegniamo le foto ai capitoli, mantenendo l'ordine corretto
+  chapters.forEach((chapter) => {
+    // Trova il nome della cartella per questo capitolo
+    const folderName = Object.keys(folderNameMapping).find(
+      key => folderNameMapping[key] === chapter.title
+    ) || chapter.title.replace(/ /g, '_');
     
-    if (rootChapter) {
-      rootFiles.forEach(file => {
-        photosWithChapters.push({
-          id: `photo-${Date.now()}-${globalPhotoPosition}`,
-          file,
-          url: URL.createObjectURL(file),
-          name: file.name,
-          chapterId: rootChapter.id,
-          position: globalPhotoPosition++
-        });
-      });
+    // Ottieni i file per questa cartella
+    let filesToAdd: File[] = [];
+    if (chapter.title === 'Altre Foto') {
+      filesToAdd = rootFiles;
+    } else {
+      const folderData = foldersMap.get(folderName);
+      if (folderData) {
+        filesToAdd = folderData.files;
+      }
     }
+    
+    // Aggiungi le foto al capitolo
+    let chapterPosition = chapterPositions[chapter.id];
+    filesToAdd.forEach((file, index) => {
+      // Generiamo un ID univoco basato su timestamp e posizione
+      const uniqueTimestamp = Date.now() + index;
+      const uniqueId = `photo-${uniqueTimestamp}-${chapterPosition}`;
+      
+      // Crea metadati aggiuntivi per la foto
+      const filePathParts = (file as any).webkitRelativePath?.split('/') || [];
+      const filePathInfo = filePathParts.length > 1 
+        ? { folderPath: filePathParts.slice(0, -1).join('/') } 
+        : {};
+      
+      photosWithChapters.push({
+        id: uniqueId,
+        file,
+        url: URL.createObjectURL(file),
+        name: file.name,
+        chapterId: chapter.id,
+        position: chapterPosition++,
+        ...(filePathInfo as any)
+      });
+    });
+    
+    // Aggiorna la posizione per il prossimo capitolo
+    chapterPositions[chapter.id] = chapterPosition;
+  });
+  
+  // Log per debug
+  const totalAssignedPhotos = photosWithChapters.length;
+  
+  // Statistiche dettagliate
+  console.log(`\n===== STATISTICHE ELABORAZIONE CARTELLE =====`);
+  console.log(`File totali trovati: ${files.length}`);
+  console.log(`Cartelle trovate: ${foldersMap.size}`);
+  console.log(`Capitoli creati: ${chapters.length}`);
+  console.log(`Foto totali elaborate: ${totalAssignedPhotos}`);
+  
+  if (chapters.length > 0) {
+    console.log(`\nDistribuzione per capitolo:`);
+    chapters.forEach(chapter => {
+      const count = photosWithChapters.filter(p => p.chapterId === chapter.id).length;
+      const percentage = Math.round((count / totalAssignedPhotos) * 100);
+      console.log(`- Capitolo "${chapter.title}": ${count} foto (${percentage}%)`);
+    });
   }
+  
+  // Verifica se ci sono foto non assegnate a nessun capitolo
+  const unassignedInFinal = photosWithChapters.filter(p => !p.chapterId).length;
+  if (unassignedInFinal > 0) {
+    console.warn(`⚠️ Attenzione: ${unassignedInFinal} foto non hanno un capitolo assegnato!`);
+  }
+  
+  console.log(`============================================\n`);
   
   return { chapters, photosWithChapters };
 }
