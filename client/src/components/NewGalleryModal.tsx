@@ -474,22 +474,40 @@ export default function NewGalleryModal({ isOpen, onClose }: NewGalleryModalProp
                                   enableFolderUpload={true}
                                   onChaptersExtracted={(result) => {
                                     console.log("Capitoli estratti dalle cartelle:", result.chapters);
+                                    console.log("Foto con capitoli:", result.photosWithChapters.slice(0, 3), `...e altre ${result.photosWithChapters.length - 3}`);
                                     
-                                    // Prepara le foto con informazioni sui capitoli
-                                    const photos: PhotoWithChapter[] = result.photosWithChapters.map((item, index) => ({
-                                      id: `temp-${index}`,
-                                      file: item.file,
-                                      url: URL.createObjectURL(item.file),
-                                      name: item.file.name,
-                                      chapterId: item.chapterId,
-                                      position: item.position
-                                    }));
+                                    // Verifica che i capitoli e le foto siano associati correttamente
+                                    const chapterCounts = {};
+                                    result.chapters.forEach(chapter => {
+                                      chapterCounts[chapter.id] = result.photosWithChapters.filter(p => p.chapterId === chapter.id).length;
+                                    });
+                                    console.log("Foto per capitolo:", chapterCounts);
+                                    
+                                    // Prepara le foto con informazioni sui capitoli, mantenendo il chapterId originale
+                                    const photos: PhotoWithChapter[] = result.photosWithChapters.map((item, index) => {
+                                      // Verifica che il chapterId sia definito e valido
+                                      const validChapter = item.chapterId && result.chapters.some(c => c.id === item.chapterId);
+                                      
+                                      return {
+                                        id: `temp-${index}`,
+                                        file: item.file,
+                                        url: URL.createObjectURL(item.file),
+                                        name: item.file.name,
+                                        chapterId: validChapter ? item.chapterId : undefined,
+                                        position: item.position
+                                      };
+                                    });
                                     
                                     // Imposta i capitoli estratti
                                     setChapters(result.chapters);
                                     
                                     // Imposta le foto con i capitoli assegnati
                                     setPhotosWithChapters(photos);
+                                    
+                                    // Log per debug
+                                    console.log(`PhotosWithChapters dopo l'assegnazione: ${photos.length} foto totali`);
+                                    console.log(`- Foto con capitolo assegnato: ${photos.filter(p => p.chapterId).length}`);
+                                    console.log(`- Foto senza capitolo assegnato: ${photos.filter(p => !p.chapterId).length}`);
                                     
                                     // Imposta anche i file selezionati e previews
                                     setSelectedFiles(result.photosWithChapters.map(p => p.file));
