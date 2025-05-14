@@ -313,9 +313,22 @@ export default function NewGalleryModal({ isOpen, onClose, onSuccess }: NewGalle
     onClose();
   };
 
-  const handleFilesSelected = (files: PhotoWithChapter[]) => {
+  const handleFilesSelected = (files: File[] | PhotoWithChapter[]) => {
     console.log("File selezionati:", files.length);
-    setSelectedFiles(files);
+    
+    // Converti File[] in PhotoWithChapter[] se necessario
+    if (files.length > 0 && !(files[0] as PhotoWithChapter).id) {
+      const filesWithChapters: PhotoWithChapter[] = (files as File[]).map((file, index) => ({
+        id: `photo-${Date.now()}-${index}`,
+        file: file,
+        url: URL.createObjectURL(file),
+        name: file.name,
+        position: index,
+      }));
+      setSelectedFiles(filesWithChapters);
+    } else {
+      setSelectedFiles(files as PhotoWithChapter[]);
+    }
   };
 
   const handleOpenChaptersModal = () => {

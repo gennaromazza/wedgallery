@@ -11,7 +11,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { Switch } from "@/components/ui/switch";
-import { FileUpload } from "@/components/ui/file-upload";
+import FileUpload from "@/components/ui/file-upload";
 
 interface SlideshowImage {
   id: string;
@@ -86,9 +86,15 @@ export default function SlideshowManager() {
     }
   };
   
-  const handleFilesSelected = (files: File[]) => {
+  const handleFilesSelected = (files: File[] | PhotoWithChapter[]) => {
     if (files.length > 0) {
-      setFile(files[0]);
+      if ('file' in files[0]) {
+        // Se è un PhotoWithChapter, estrai il file
+        setFile((files[0] as PhotoWithChapter).file);
+      } else {
+        // Altrimenti è un File diretto
+        setFile(files[0] as File);
+      }
     }
   };
 

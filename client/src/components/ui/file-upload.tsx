@@ -9,8 +9,11 @@ import { Chapter, PhotoWithChapter } from '@/components/ChaptersManager';
 // Importa il nuovo lettore di cartelle semplificato
 import { processFilesFromFolders } from '@/lib/simpleFolderReader';
 
+// Esportiamo l'interfaccia PhotoWithChapter per compatibilità
+export type { PhotoWithChapter } from '@/components/ChaptersManager';
+
 interface FileUploadProps {
-  onFilesSelected: (files: File[]) => void;
+  onFilesSelected: (files: File[] | PhotoWithChapter[]) => void;
   multiple?: boolean;
   maxFiles?: number;
   accept?: string;
