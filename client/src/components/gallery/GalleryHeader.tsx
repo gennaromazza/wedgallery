@@ -1,6 +1,6 @@
 import React from 'react';
-import { format, parseISO } from 'date-fns';
-import { it } from 'date-fns/locale';
+import { format } from 'date-fns';
+import { it } from 'date-fns/locale/it';
 import { FloralCorner, BackgroundDecoration } from '@/components/WeddingIllustrations';
 import GoogleMap from '@/components/GoogleMap';
 
@@ -22,7 +22,7 @@ export default function GalleryHeader({
   // Formatta la data in italiano
   const formatDate = (dateString: string) => {
     try {
-      const date = parseISO(dateString);
+      const date = new Date(dateString);
       return format(date, "d MMMM yyyy", { locale: it });
     } catch (error) {
       console.error("Errore nella formattazione della data:", error);
