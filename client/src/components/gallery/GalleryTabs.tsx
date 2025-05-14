@@ -1,7 +1,7 @@
+
 import React, { useState, useEffect } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { WeddingImage } from '@/components/WeddingImages';
-import { FloralDivider, BackgroundDecoration } from '@/components/WeddingIllustrations';
 
 interface ChapterData {
   id: string;
@@ -65,22 +65,19 @@ export default function GalleryTabs({
     return (
       <div className="relative">
         <div className="absolute inset-0 bg-gradient-to-b from-sage/5 to-transparent opacity-50 pointer-events-none"></div>
-        
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2 sm:gap-4 lg:gap-6">
           {photos.map((photo, index) => (
             <div
-              key={photo.id}
+              key={`photo-${photo.id}-${index}`}
               className="gallery-image h-40 sm:h-52 lg:h-64 relative overflow-hidden rounded-md shadow-sm transition-transform duration-300 hover:scale-[1.02] hover:shadow-md"
               onClick={() => openLightbox(index)}
             >
-              <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent opacity-0 hover:opacity-100 transition-opacity z-10 pointer-events-none"></div>
               <img
                 src={photo.url}
                 alt={photo.name || `Foto ${index + 1}`}
-                className="w-full h-full object-cover transition-all duration-300 opacity-0 hover:brightness-105"
+                className="w-full h-full object-cover transition-opacity duration-300 opacity-0"
                 loading="lazy"
                 onLoad={(e) => {
-                  // Imposta l'opacità a 1 quando l'immagine è caricata
                   (e.target as HTMLImageElement).classList.replace('opacity-0', 'opacity-100');
                 }}
                 style={{ 
@@ -94,6 +91,9 @@ export default function GalleryTabs({
       </div>
     );
   }
+
+  // Ordina i capitoli per posizione
+  const sortedChapters = [...chapters].sort((a, b) => a.position - b.position);
 
   return (
     <Tabs defaultValue="all" value={activeTab} onValueChange={setActiveTab} className="w-full mb-8">
@@ -113,13 +113,13 @@ export default function GalleryTabs({
             Non assegnate ({photos.filter(p => !p.chapterId).length})
           </TabsTrigger>
           
-          {chapters.map(chapter => (
+          {sortedChapters.map(chapter => (
             <TabsTrigger 
               key={chapter.id} 
               value={chapter.id} 
               className="flex-shrink-0 text-blue-gray/70 bg-sage/5 data-[state=active]:bg-sage/10 data-[state=active]:text-sage-700 hover:text-sage-700 rounded-t-lg border-b-2 border-transparent data-[state=active]:border-sage-500 transition-all px-6 py-2.5 font-medium"
             >
-              {chapter.title} ({photos.filter(p => p.chapterId === chapter.id).length}) <span className="hidden">{chapter.id}</span>
+              {chapter.title} ({photos.filter(p => p.chapterId === chapter.id).length})
             </TabsTrigger>
           ))}
         </TabsList>
@@ -140,7 +140,6 @@ export default function GalleryTabs({
                 className="w-full h-full object-cover transition-opacity duration-300 opacity-0 hover:opacity-95"
                 loading="lazy"
                 onLoad={(e) => {
-                  // Imposta l'opacità a 1 quando l'immagine è caricata
                   (e.target as HTMLImageElement).classList.replace('opacity-0', 'opacity-100');
                 }}
                 style={{ 
@@ -167,7 +166,6 @@ export default function GalleryTabs({
                 className="w-full h-full object-cover transition-opacity duration-300 opacity-0 hover:opacity-95"
                 loading="lazy"
                 onLoad={(e) => {
-                  // Imposta l'opacità a 1 quando l'immagine è caricata
                   (e.target as HTMLImageElement).classList.replace('opacity-0', 'opacity-100');
                 }}
                 style={{ 
@@ -180,35 +178,37 @@ export default function GalleryTabs({
         </div>
       </TabsContent>
       
-      {chapters.map(chapter => (
+      {sortedChapters.map(chapter => (
         <TabsContent key={chapter.id} value={chapter.id} className="mt-6">
           {chapter.description && (
             <p className="text-blue-gray italic mb-4 md:mb-6 text-sm md:text-base">{chapter.description}</p>
           )}
           
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2 sm:gap-4 lg:gap-6">
-            {photos.filter(p => p.chapterId === chapter.id).map((photo, index) => (
-              <div
-                key={`chapter-${chapter.id}-${photo.id}-${index}`}
-                className="gallery-image h-40 sm:h-52 lg:h-64 relative overflow-hidden rounded-md shadow-sm transition-transform duration-300 hover:scale-[1.02] hover:shadow-md"
-                onClick={() => openLightbox(photos.findIndex(p => p.id === photo.id))}
-              >
-                <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent opacity-0 hover:opacity-100 transition-opacity z-10 pointer-events-none"></div>
-                <img
-                  src={photo.url}
-                  alt={photo.name || `Foto ${index + 1}`}
-                  className="w-full h-full object-cover transition-all duration-300 opacity-0"
-                  loading="lazy"
-                  onLoad={(e) => {
-                    (e.target as HTMLImageElement).classList.replace('opacity-0', 'opacity-100');
-                  }}
-                  style={{ 
-                    backgroundColor: '#f3f4f6',
-                    objectFit: 'cover',
-                  }}
-                />
-              </div>
-            ))}
+            {photos.filter(p => p.chapterId === chapter.id)
+              .sort((a, b) => (a.chapterPosition || 0) - (b.chapterPosition || 0))
+              .map((photo, index) => (
+                <div
+                  key={`chapter-${chapter.id}-${photo.id}-${index}`}
+                  className="gallery-image h-40 sm:h-52 lg:h-64 relative overflow-hidden rounded-md shadow-sm transition-transform duration-300 hover:scale-[1.02] hover:shadow-md"
+                  onClick={() => openLightbox(photos.findIndex(p => p.id === photo.id))}
+                >
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent opacity-0 hover:opacity-100 transition-opacity z-10 pointer-events-none"></div>
+                  <img
+                    src={photo.url}
+                    alt={photo.name || `Foto ${index + 1}`}
+                    className="w-full h-full object-cover transition-all duration-300 opacity-0"
+                    loading="lazy"
+                    onLoad={(e) => {
+                      (e.target as HTMLImageElement).classList.replace('opacity-0', 'opacity-100');
+                    }}
+                    style={{ 
+                      backgroundColor: '#f3f4f6',
+                      objectFit: 'cover',
+                    }}
+                  />
+                </div>
+              ))}
           </div>
           
           {photos.filter(p => p.chapterId === chapter.id).length === 0 && (
