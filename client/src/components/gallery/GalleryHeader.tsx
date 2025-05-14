@@ -2,7 +2,6 @@ import React from 'react';
 import { format } from 'date-fns';
 import { it } from 'date-fns/locale/it';
 import { FloralCorner, BackgroundDecoration } from '@/components/WeddingIllustrations';
-import GoogleMap from '@/components/GoogleMap';
 
 interface GalleryHeaderProps {
   name: string;
@@ -67,25 +66,12 @@ export default function GalleryHeader({
           </div>
         )}
         
-        {/* Mappa e descrizione */}
-        {(location || description) && (
-          <div className="px-4 flex flex-col md:flex-row gap-8 mb-8">
-            {location && (
-              <div className="w-full md:w-1/2 h-60 md:h-auto rounded-lg overflow-hidden shadow-sm">
-                <GoogleMap 
-                  address={location} 
-                  className="w-full h-full min-h-[200px]" 
-                />
-              </div>
-            )}
-            
-            {description && description.trim() !== "" && (
-              <div className={`w-full ${location ? 'md:w-1/2' : ''} flex items-center`}>
-                <div className="bg-white p-6 rounded-lg shadow-sm w-full">
-                  <p className="text-gray-700 italic">{description}</p>
-                </div>
-              </div>
-            )}
+        {/* Descrizione */}
+        {description && description.trim() !== "" && (
+          <div className="px-4 mb-8">
+            <div className="max-w-4xl mx-auto bg-white p-6 rounded-lg shadow-sm">
+              <p className="text-gray-700 italic">{description}</p>
+            </div>
           </div>
         )}
       </div>
