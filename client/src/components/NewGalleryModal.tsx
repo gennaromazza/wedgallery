@@ -510,12 +510,12 @@ export default function NewGalleryModal({ isOpen, onClose }: NewGalleryModalProp
                             
                             {chapters.length > 0 && (
                               <div className="p-3 bg-green-50 border border-green-200 rounded-md">
-                                <p className="text-sm text-green-700 flex items-center">
-                                  <div className="mr-2">✓</div>
+                                <div className="text-sm text-green-700 flex items-center">
+                                  <span className="mr-2">✓</span>
                                   <span>
                                     <strong>{chapters.length} capitoli</strong> creati automaticamente dalle cartelle:
                                   </span>
-                                </p>
+                                </div>
                                 <div className="mt-2 flex flex-wrap gap-2">
                                   {chapters.map(chapter => (
                                     <span key={chapter.id} className="bg-green-100 text-green-800 text-xs px-2 py-1 rounded">

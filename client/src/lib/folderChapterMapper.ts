@@ -8,18 +8,38 @@ import { Chapter, PhotoWithChapter } from '@/components/ChaptersManager';
 export function extractChaptersFromFolders(
   files: File[]
 ): { chapters: Chapter[]; photosWithChapters: PhotoWithChapter[] } {
+  console.log(`Analisi di ${files.length} file per estrazione capitoli...`);
+  
   // Mappa per tracciare le cartelle uniche
   const foldersMap: Map<string, { files: File[]; position: number }> = new Map();
   // Array dei file che non hanno una cartella specifica
   const rootFiles: File[] = [];
   
-  // Primo passaggio: identifica le cartelle e assegna i file
-  files.forEach(file => {
+  // Tenta di identificare la struttura delle cartelle dal nome del file
+  // Possibili modi in cui le cartelle possono apparire:
+  // 1. webkitRelativePath: "folder/file.jpg"
+  // 2. Nome file include un percorso: "folder/file.jpg"
+  // 3. Nome file include un prefisso di capitolo: "01_Sposo_file.jpg"
+  
+  // Per debug: controlla cosa riceviamo nei file
+  let foundAtLeastOneFolder = false;
+  
+  files.forEach((file, index) => {
+    if (index < 3) {
+      console.log(`Esempio file ${index}:`, {
+        name: file.name,
+        type: file.type,
+        size: file.size,
+        webkitRelativePath: (file as any).webkitRelativePath || 'N/A'
+      });
+    }
+    
     // Ottieni il percorso relativo
-    const path = file.webkitRelativePath || '';
+    const path = (file as any).webkitRelativePath || '';
     
     if (path && path.includes('/')) {
-      // Se il file ha un percorso relativo con cartelle
+      // Se il file ha un percorso relativo con cartelle (metodo 1)
+      foundAtLeastOneFolder = true;
       const folderPath = path.split('/')[0]; // Prendiamo solo il primo livello di cartelle
       
       if (folderPath) {
@@ -29,8 +49,45 @@ export function extractChaptersFromFolders(
             files: [file],
             position: foldersMap.size
           });
+          console.log(`Aggiunta nuova cartella: ${folderPath}`);
         } else {
           // Aggiunge il file alla cartella esistente
+          foldersMap.get(folderPath)!.files.push(file);
+        }
+        return;
+      }
+    } else if (file.name.includes('/')) {
+      // Se il nome del file include un separatore di percorso (metodo 2)
+      foundAtLeastOneFolder = true;
+      const folderPath = file.name.split('/')[0];
+      
+      if (folderPath) {
+        if (!foldersMap.has(folderPath)) {
+          foldersMap.set(folderPath, {
+            files: [file],
+            position: foldersMap.size
+          });
+          console.log(`Cartella da nome file con /: ${folderPath}`);
+        } else {
+          foldersMap.get(folderPath)!.files.push(file);
+        }
+        return;
+      }
+    } else {
+      // Prova a riconoscere capitoli dal nome del file con pattern comune (metodo 3)
+      // Es. "01_Sposo_file.jpg" -> capitolo "Sposo"
+      const match = file.name.match(/^(\d+)_([^_]+)_.*$/);
+      if (match) {
+        foundAtLeastOneFolder = true;
+        const folderPath = match[2]; // Il nome del capitolo
+        
+        if (!foldersMap.has(folderPath)) {
+          foldersMap.set(folderPath, {
+            files: [file],
+            position: parseInt(match[1], 10) || foldersMap.size
+          });
+          console.log(`Cartella da pattern numerato: ${folderPath}`);
+        } else {
           foldersMap.get(folderPath)!.files.push(file);
         }
         return;
@@ -40,6 +97,30 @@ export function extractChaptersFromFolders(
     // Se il file non ha un percorso relativo o è alla radice
     rootFiles.push(file);
   });
+  
+  console.log(`Analisi completata. Cartelle trovate: ${foldersMap.size}, file alla radice: ${rootFiles.length}`);
+  console.log(`Rilevamento cartelle dalla struttura: ${foundAtLeastOneFolder ? 'Sì' : 'No'}`);
+  
+  // Se non abbiamo trovato cartelle ma abbiamo molti file, proviamo a creare capitoli automatici
+  // basati su gruppi di foto (ad es. dividere in gruppi di 20-30 per capitolo)
+  if (foldersMap.size === 0 && files.length > 30) {
+    console.log("Creazione capitoli automatici basati su gruppi di file...");
+    const PHOTOS_PER_CHAPTER = 25;
+    const numChapters = Math.ceil(files.length / PHOTOS_PER_CHAPTER);
+    
+    for (let i = 0; i < numChapters; i++) {
+      const startIdx = i * PHOTOS_PER_CHAPTER;
+      const endIdx = Math.min(startIdx + PHOTOS_PER_CHAPTER, files.length);
+      const chapterFiles = files.slice(startIdx, endIdx);
+      
+      foldersMap.set(`Gruppo ${i+1}`, {
+        files: chapterFiles,
+        position: i
+      });
+    }
+    
+    rootFiles.length = 0; // Svuotiamo i file della radice perché li abbiamo tutti assegnati
+  }
   
   // Secondo passaggio: crea i capitoli dalle cartelle
   const chapters: Chapter[] = [];

@@ -5,6 +5,7 @@ import { Button } from './button';
 import { compressImages } from '@/lib/imageCompression';
 import ImageCompressionInfo from '@/components/ImageCompressionInfo';
 import { extractChaptersFromFolders } from '@/lib/folderChapterMapper';
+import { Chapter, PhotoWithChapter } from '@/components/ChaptersManager';
 
 interface FileUploadProps {
   onFilesSelected: (files: File[]) => void;
@@ -144,32 +145,91 @@ export function FileUpload({
       
       // Verifica se sono state rilasciate cartelle
       let hasDirectories = false;
+      const dirNames: string[] = [];
+      
       if (e.dataTransfer.items) {
         for (let i = 0; i < e.dataTransfer.items.length; i++) {
           const item = e.dataTransfer.items[i];
-          if (item.webkitGetAsEntry && item.webkitGetAsEntry()?.isDirectory) {
+          const entry = item.webkitGetAsEntry && item.webkitGetAsEntry();
+          
+          if (entry?.isDirectory) {
             hasDirectories = true;
-            break;
+            dirNames.push(entry.name);
+            console.log("Rilevata cartella:", entry.name);
           }
         }
       }
       
+      console.log(`Risultato verifica cartelle: ${hasDirectories ? 'Sì' : 'No'}, cartelle rilevate: ${dirNames.length}`);
+      if (dirNames.length > 0) {
+        console.log("Nomi cartelle:", dirNames.join(", "));
+      }
+      
       // Se abbiamo cartelle e il supporto è abilitato, processa le cartelle per estrarre capitoli
-      if (enableFolderUpload && hasDirectories && onChaptersExtracted) {
-        console.log("Rilevata cartella, estrazione capitoli in corso...");
+      if (enableFolderUpload && (hasDirectories || newFiles.length > 30) && onChaptersExtracted) {
+        console.log("Estrazione capitoli in corso...");
         try {
+          // Per consentire il rilevamento in Firefox e altri browser che non supportano webkitGetAsEntry
+          // se abbiamo un elenco di nomi di cartelle, possiamo usarlo per forzare la creazione di capitoli
           const result = extractChaptersFromFolders(newFiles);
           console.log("Capitoli estratti:", result.chapters);
           
-          // Notifica i capitoli estratti attraverso il callback
-          onChaptersExtracted(result);
+          if (result.chapters.length <= 1 && dirNames.length > 0) {
+            // Se non abbiamo rilevato abbastanza capitoli ma sappiamo che ci sono cartelle,
+            // proviamo manualmente a creare capitoli basati sui nomi delle cartelle che abbiamo rilevato
+            console.log("Creazione manuale capitoli dalle cartelle rilevate:", dirNames);
+            
+            // Dividiamo i file in gruppi basati sui nomi delle cartelle se possibile
+            const manualChapters: Chapter[] = dirNames.map((dirName, idx) => ({
+              id: `chapter-${Date.now()}-${idx}`,
+              title: dirName,
+              description: `Foto dalla cartella "${dirName}"`,
+              position: idx
+            }));
+            
+            // Dividi i file in modo equo tra i capitoli (soluzione imperfetta ma meglio di niente)
+            const filesPerChapter = Math.ceil(newFiles.length / dirNames.length);
+            const manualPhotosWithChapters: PhotoWithChapter[] = [];
+            
+            newFiles.forEach((file, idx) => {
+              const chapterIdx = Math.min(Math.floor(idx / filesPerChapter), dirNames.length - 1);
+              manualPhotosWithChapters.push({
+                id: `photo-${Date.now()}-${idx}`,
+                file,
+                url: URL.createObjectURL(file),
+                name: file.name,
+                chapterId: manualChapters[chapterIdx].id,
+                position: idx
+              });
+            });
+            
+            // Usa questi capitoli invece di quelli rilevati automaticamente
+            if (manualChapters.length > 1) {
+              const manualResult = {
+                chapters: manualChapters,
+                photosWithChapters: manualPhotosWithChapters
+              };
+              
+              console.log("Capitoli creati manualmente:", manualChapters);
+              onChaptersExtracted(manualResult);
+              
+              // Prepara l'elenco di tutti i file per la compressione e l'upload
+              const allFilesToProcess = manualPhotosWithChapters.map(p => p.file);
+              await processFiles(allFilesToProcess);
+              return;
+            }
+          }
           
-          // Prepara l'elenco di tutti i file per la compressione e l'upload
-          const allFilesToProcess = result.photosWithChapters.map(p => p.file);
-          
-          // Procedi con la compressione e l'upload come per i file normali
-          await processFiles(allFilesToProcess);
-          return;
+          // Continua con il risultato normale se abbiamo trovato più di un capitolo
+          // o se la creazione manuale non ha funzionato
+          if (result.chapters.length > 0) {
+            onChaptersExtracted(result);
+            
+            // Prepara l'elenco di tutti i file per la compressione e l'upload
+            const allFilesToProcess = result.photosWithChapters.map(p => p.file);
+            await processFiles(allFilesToProcess);
+            return;
+          }
         } catch (error) {
           console.error("Errore durante l'estrazione dei capitoli:", error);
           // Continua con il normale upload dei file
