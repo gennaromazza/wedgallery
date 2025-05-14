@@ -295,15 +295,46 @@ export default function NewGalleryModal({ isOpen, onClose }: NewGalleryModalProp
             setProgress(Math.round((currentBatchNumber / totalBatches) * 100));
             
             currentBatch.forEach((photo, index) => {
-              // Per trovare il capitolo corretto, cerchiamo prima per nome file esatto
-              // e poi per nome file senza percorso (in caso di errori con i percorsi relativi)
+              // Implementiamo una strategia di corrispondenza migliorata per trovare il capitolo corretto
+              // 1. Cerca per nome file esatto
+              // 2. Cerca per nome file senza percorso 
+              // 3. Cerca per nome file normalizzato (senza spazi, case insensitive)
+              // 4. Cerca per somiglianza del nome
+              
               let photoWithChapter = photosWithChapters.find(p => p.name === photo.name);
               
-              // Se non troviamo una corrispondenza esatta, proviamo con il nome del file senza percorso
               if (!photoWithChapter) {
                 // Estrai solo il nome del file senza percorso
                 const fileName = photo.name.split('/').pop() || photo.name;
-                photoWithChapter = photosWithChapters.find(p => p.name.endsWith(fileName));
+                
+                // Prova a cercare per nome file senza percorso
+                photoWithChapter = photosWithChapters.find(p => {
+                  const pFileName = p.name.split('/').pop() || p.name;
+                  return pFileName === fileName;
+                });
+                
+                // Se ancora non trovato, prova con normalizzazione (senza spazi, minuscolo)
+                if (!photoWithChapter) {
+                  const normalizedFileName = fileName.toLowerCase().replace(/\s+/g, '');
+                  photoWithChapter = photosWithChapters.find(p => {
+                    const pFileName = (p.name.split('/').pop() || p.name).toLowerCase().replace(/\s+/g, '');
+                    return pFileName === normalizedFileName;
+                  });
+                  
+                  // Ultima risorsa: cerca per similitudine (il nome termina con)
+                  if (!photoWithChapter) {
+                    photoWithChapter = photosWithChapters.find(p => p.name.endsWith(fileName));
+                  }
+                }
+              }
+              
+              // Logging per debug
+              if (index === 0 || index === currentBatch.length - 1) {
+                if (photoWithChapter) {
+                  console.log(`Foto ${photo.name} associata al capitolo ${photoWithChapter.chapterId}`);
+                } else {
+                  console.log(`⚠️ Foto ${photo.name} non ha trovato corrispondenza`);
+                }
               }
               
               const docRef = doc(photosCollectionRef);
@@ -311,7 +342,8 @@ export default function NewGalleryModal({ isOpen, onClose }: NewGalleryModalProp
               batch.set(docRef, {
                 ...photo,
                 chapterId: photoWithChapter?.chapterId || null,
-                chapterPosition: photoWithChapter?.position || (i + index)
+                chapterPosition: photoWithChapter?.position || (i + index),
+                folderPath: photoWithChapter?.folderPath || null
               });
             });
             

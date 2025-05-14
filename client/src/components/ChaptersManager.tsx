@@ -23,6 +23,7 @@ export interface PhotoWithChapter {
   name: string;
   chapterId?: string; // ID del capitolo a cui appartiene la foto
   position: number; // Posizione all'interno del capitolo
+  folderPath?: string; // Percorso della cartella (per migliore tracciabilità)
 }
 
 interface ChaptersManagerProps {

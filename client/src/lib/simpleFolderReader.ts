@@ -214,6 +214,23 @@ export async function processFilesFromFolders(
   // Iterazione manuale attraverso la mappa
   const folderNames = Array.from(folderFiles.keys());
   
+  // Crea un indice per tenere traccia della posizione iniziale di ogni capitolo
+  const chapterPositions: Record<string, number> = {};
+  let currentPosition = 0;
+  
+  // Prima assegniamo le posizioni iniziali per ogni capitolo
+  folderNames.forEach((folderName, index) => {
+    const chapterId = folderNameToChapterId.get(folderName);
+    if (chapterId) {
+      chapterPositions[chapterId] = currentPosition;
+      const files = folderFiles.get(folderName) || [];
+      currentPosition += files.length;
+    }
+  });
+  
+  console.log("Posizioni iniziali per capitolo:", chapterPositions);
+  
+  // Ora assegniamo i file ai capitoli, mantenendo l'ordine corretto
   for (const folderName of folderNames) {
     const files = folderFiles.get(folderName) || [];
     const chapterId = folderNameToChapterId.get(folderName);
@@ -221,15 +238,31 @@ export async function processFilesFromFolders(
     if (chapterId) {
       console.log(`Assegnando ${files.length} file al capitolo "${folderName}" (ID: ${chapterId})`);
       
+      // Partiamo dalla posizione iniziale per questo capitolo
+      let chapterPosition = chapterPositions[chapterId];
+      
       for (let j = 0; j < files.length; j++) {
         const file = files[j];
+        
+        // Generiamo un ID univoco basato su timestamp e posizione
+        // Ma evitiamo di usare Date.now() per ogni file per evitare duplicati
+        const uniqueTimestamp = Date.now() + j;
+        const uniqueId = `photo-${uniqueTimestamp}-${chapterPosition}`;
+        
+        // Creiamo più metadati della foto per identificazione
+        const filePathParts = file.webkitRelativePath?.split('/') || [];
+        const filePathInfo = filePathParts.length > 1 
+          ? { folderPath: filePathParts.slice(0, -1).join('/') } 
+          : {};
+        
         photosWithChapters.push({
-          id: `photo-${Date.now()}-${position}`,
+          id: uniqueId,
           file,
           url: URL.createObjectURL(file),
           name: file.name,
-          chapterId: chapterId, // Usiamo l'ID corretto dalla mappa
-          position: position++
+          chapterId: chapterId,
+          position: chapterPosition++,
+          ...filePathInfo
         });
         
         assignedCount++;
@@ -242,6 +275,9 @@ export async function processFilesFromFolders(
           );
         }
       }
+      
+      // Aggiorna la posizione per il prossimo capitolo
+      chapterPositions[chapterId] = chapterPosition;
     }
   }
   

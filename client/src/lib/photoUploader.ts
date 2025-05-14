@@ -34,8 +34,8 @@ export interface UploadSummary {
 // Costanti per la configurazione
 const MAX_RETRY_ATTEMPTS = 3;
 const RETRY_DELAY_MS = 2000;
-const DEFAULT_CONCURRENCY = 6; // Aumentato per gestire grandi volumi
-const CHUNK_SIZE = 150; // Numero di file da processare in un chunk
+const DEFAULT_CONCURRENCY = 6; // Upload paralleli
+const CHUNK_SIZE = 200; // Numero di file da processare in un chunk (aumentato per gestire gallery di 800+ foto)
 
 /**
  * Carica un singolo file su Firebase Storage con supporto per i ritentativi automatici
@@ -224,10 +224,20 @@ export const uploadPhotos = async (
   progressCallback?: (info: { [filename: string]: UploadProgressInfo }) => void,
   summaryCallback?: (summary: UploadSummary) => void
 ): Promise<UploadedPhoto[]> => {
-  console.log(`Avvio caricamento di ${files.length} foto con concorrenza ${concurrency}`);
+  // Adatta la concorrenza in base al numero di file
+  const adaptiveConcurrency = files.length > 400 
+    ? Math.min(8, concurrency) // Aumenta per volumi elevati
+    : files.length > 200 
+      ? concurrency 
+      : Math.max(3, concurrency - 2); // Riduce per piccoli volumi
+  
+  console.log(`Avvio caricamento di ${files.length} foto con concorrenza adattiva ${adaptiveConcurrency} (richiesta: ${concurrency})`);
   
   // Per tenere traccia del progresso di tutti i file
   const progressMap: { [filename: string]: UploadProgressInfo } = {};
+  
+  // Timestamp di inizio per statistiche
+  const startTime = Date.now();
   
   // Inizializza il progress map
   files.forEach((file, index) => {
@@ -260,6 +270,11 @@ export const uploadPhotos = async (
   const uploadedPhotos: UploadedPhoto[] = [];
   const totalFiles = files.length;
   
+  // Statistiche per monitorare le prestazioni
+  let totalUploadTime = 0;
+  let successfulUploads = 0;
+  let failedUploads = 0;
+  
   // Elabora i file in chunk per gestire meglio la memoria
   for (let chunkStart = 0; chunkStart < totalFiles; chunkStart += CHUNK_SIZE) {
     const chunkEnd = Math.min(chunkStart + CHUNK_SIZE, totalFiles);
@@ -269,9 +284,12 @@ export const uploadPhotos = async (
     const queue = [...fileChunk];
     const activeUploads = new Map();
     
+    // Timestamp di inizio per questo chunk
+    const chunkStartTime = Date.now();
+    
     while (queue.length > 0 || activeUploads.size > 0) {
       // Avvia nuovi upload fino al limite di concorrenza
-      while (queue.length > 0 && activeUploads.size < concurrency) {
+      while (queue.length > 0 && activeUploads.size < adaptiveConcurrency) {
         const file = queue.shift()!;
         const fileIndex = chunkStart + fileChunk.indexOf(file);
         
@@ -317,12 +335,37 @@ export const uploadPhotos = async (
       }
     }
     
+    // Calcola le statistiche per questo chunk
+    const chunkEndTime = Date.now();
+    const chunkDuration = chunkEndTime - chunkStartTime;
+    totalUploadTime += chunkDuration;
+    
+    // Calcola la velocità di upload per questo chunk
+    const chunkFiles = fileChunk.length;
+    const filesPerSecond = (chunkFiles / (chunkDuration / 1000)).toFixed(2);
+    
+    console.log(`Chunk ${chunkStart}-${chunkEnd-1} completato in ${chunkDuration/1000}s (${filesPerSecond} files/s)`);
+    
     // Libera memoria dopo ogni chunk
     if (chunkEnd < totalFiles) {
-      console.log(`Chunk ${chunkStart}-${chunkEnd-1} completato, pausa per gestione memoria...`);
+      console.log(`Pausa per gestione memoria...`);
       await new Promise(resolve => setTimeout(resolve, 500));
     }
   }
+  
+  // Calcola le statistiche finali
+  const endTime = Date.now();
+  const totalDuration = (endTime - startTime) / 1000; // in secondi
+  const averageSpeed = (successfulUploads / totalDuration).toFixed(2);
+  
+  console.log(`=== Statistiche di upload ===`);
+  console.log(`File totali: ${totalFiles}`);
+  console.log(`Upload completati: ${successfulUploads}`);
+  console.log(`Upload falliti: ${failedUploads}`);
+  console.log(`Tempo totale: ${totalDuration}s`);
+  console.log(`Velocità media: ${averageSpeed} files/s`);
+  console.log(`Concorrenza utilizzata: ${adaptiveConcurrency}`);
+  console.log(`===========================`);
   
   // Filtra eventuali null (file che hanno fallito l'upload)
   return uploadedPhotos.filter(Boolean) as UploadedPhoto[];
