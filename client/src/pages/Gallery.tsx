@@ -19,6 +19,7 @@ export default function Gallery() {
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [currentPhotoIndex, setCurrentPhotoIndex] = useState(0);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [activeTab, setActiveTab] = useState("all");
   const { studioSettings } = useStudio();
 
   // Carica dati galleria usando il custom hook
@@ -168,6 +169,8 @@ export default function Gallery() {
                       chapters={chapters}
                       photos={photos}
                       openLightbox={openLightbox}
+                      activeTab={activeTab}
+                      setActiveTab={setActiveTab}
                     />
                   ) : (
                     <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2 sm:gap-4 lg:gap-6">
