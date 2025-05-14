@@ -34,7 +34,7 @@ export interface ChapterData {
   position: number;
 }
 
-export function useGalleryData(galleryId: string) {
+export function useGalleryData(galleryCode: string) {
   const [gallery, setGallery] = useState<GalleryData | null>(null);
   const [photos, setPhotos] = useState<PhotoData[]>([]);
   const [chapters, setChapters] = useState<ChapterData[]>([]);
@@ -46,12 +46,17 @@ export function useGalleryData(galleryId: string) {
 
   // Carica i dati della galleria
   useEffect(() => {
+    if (!galleryCode) {
+      setIsLoading(false);
+      return;
+    }
+    
     async function fetchGallery() {
       setIsLoading(true);
       try {
         // Fetch gallery
         const galleriesRef = collection(db, "galleries");
-        const q = query(galleriesRef, where("code", "==", galleryId));
+        const q = query(galleriesRef, where("code", "==", galleryCode));
         const querySnapshot = await getDocs(q);
         
         if (querySnapshot.empty) {
@@ -129,7 +134,7 @@ export function useGalleryData(galleryId: string) {
     }
     
     fetchGallery();
-  }, [galleryId]);
+  }, [galleryCode]);
   
   // Carica le foto della galleria
   const loadPhotos = async (galleryId: string, galleryData: any) => {
