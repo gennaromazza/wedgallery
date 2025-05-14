@@ -78,31 +78,59 @@ export default function GalleryTabs({
   return (
     <Tabs defaultValue="all" value={activeTab} onValueChange={setActiveTab} className="w-full mb-8">
       <div className="mb-8 border-b border-sage/20">
-        <TabsList className="relative flex overflow-x-auto pb-2 bg-transparent gap-2 border-b border-sage/20 w-full scrollbar-thin scrollbar-thumb-sage/20 scrollbar-track-transparent">
+        <div className="relative bg-white/80 backdrop-blur-sm rounded-xl shadow-md border border-sage/10 p-3 mb-6">
+        <TabsList className="relative flex flex-wrap justify-center gap-2 bg-transparent">
           <TabsTrigger 
             value="all" 
-            className="flex-shrink-0 text-blue-gray/70 bg-sage/5 data-[state=active]:bg-sage/10 data-[state=active]:text-sage-700 hover:text-sage-700 rounded-t-lg border-b-2 border-transparent data-[state=active]:border-sage-500 transition-all px-6 py-2.5 font-medium"
+            className="flex-shrink-0 text-blue-gray/80 bg-sage/5 data-[state=active]:bg-sage/15 data-[state=active]:text-sage-800 hover:text-sage-700 rounded-lg border border-sage/20 data-[state=active]:border-sage/40 transition-all px-4 py-2 text-sm font-medium"
           >
-            Tutte le foto ({photos.length})
+            <span className="flex items-center gap-2">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" className="w-4 h-4">
+                <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                <circle cx="8.5" cy="8.5" r="1.5"></circle>
+                <polyline points="21 15 16 10 5 21"></polyline>
+              </svg>
+              Tutte le foto ({photos.length})
+            </span>
           </TabsTrigger>
           
           <TabsTrigger 
             value="unassigned" 
-            className="flex-shrink-0 text-blue-gray/70 bg-sage/5 data-[state=active]:bg-sage/10 data-[state=active]:text-sage-700 hover:text-sage-700 rounded-t-lg border-b-2 border-transparent data-[state=active]:border-sage-500 transition-all px-6 py-2.5 font-medium"
+            className="flex-shrink-0 text-blue-gray/80 bg-sage/5 data-[state=active]:bg-sage/15 data-[state=active]:text-sage-800 hover:text-sage-700 rounded-lg border border-sage/20 data-[state=active]:border-sage/40 transition-all px-4 py-2 text-sm font-medium"
           >
-            Non assegnate ({photos.filter(p => !p.chapterId).length})
+            <span className="flex items-center gap-2">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" className="w-4 h-4">
+                <path d="M21 9v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h7"></path>
+                <path d="M16 2v6h6"></path>
+                <line x1="12" y1="12" x2="12" y2="12"></line>
+              </svg>
+              Non assegnate ({photos.filter(p => !p.chapterId).length})
+            </span>
           </TabsTrigger>
           
           {sortedChapters.map(chapter => (
             <TabsTrigger 
               key={`tab-${chapter.id}`}
               value={chapter.id} 
-              className="flex-shrink-0 text-blue-gray/70 bg-sage/5 data-[state=active]:bg-sage/10 data-[state=active]:text-sage-700 hover:text-sage-700 rounded-t-lg border-b-2 border-transparent data-[state=active]:border-sage-500 transition-all px-6 py-2.5 font-medium"
+              className="flex-shrink-0 text-blue-gray/80 bg-sage/5 data-[state=active]:bg-sage/15 data-[state=active]:text-sage-800 hover:text-sage-700 rounded-lg border border-sage/20 data-[state=active]:border-sage/40 transition-all px-4 py-2 text-sm font-medium"
             >
-              {chapter.title} ({photos.filter(p => p.chapterId === chapter.id).length})
+              <span className="flex items-center gap-2">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" className="w-4 h-4">
+                  <path d="M12 3L2 12h3v8h14v-8h3L12 3z"></path>
+                </svg>
+                {chapter.title} ({photos.filter(p => p.chapterId === chapter.id).length})
+              </span>
             </TabsTrigger>
           ))}
         </TabsList>
+        
+        {/* Decorative element */}
+        <div className="absolute -bottom-3 left-1/2 transform -translate-x-1/2 w-32 h-6 flex justify-center opacity-30">
+          <svg viewBox="0 0 100 30" xmlns="http://www.w3.org/2000/svg" className="w-full h-full fill-sage-500">
+            <path d="M50,5 C60,15 70,15 80,5 C70,25 60,25 50,15 C40,25 30,25 20,5 C30,15 40,15 50,5 Z" />
+          </svg>
+        </div>
+      </div>
       </div>
 
       <TabsContent value="all" className="space-y-6">
