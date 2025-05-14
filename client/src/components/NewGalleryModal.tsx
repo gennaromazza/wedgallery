@@ -148,6 +148,10 @@ export default function NewGalleryModal({ isOpen, onClose, onSuccess }: NewGalle
       
       if (chapters.length > 0) {
         console.log("Salvataggio capitoli nel database:", chapters);
+        
+        // Visualizza i chapterIds originali per il debug
+        console.log("IDs originali dei capitoli:", chapters.map(c => c.id).join(", "));
+        
         const batch = writeBatch(db);
         
         // Salva i capitoli
@@ -175,6 +179,17 @@ export default function NewGalleryModal({ isOpen, onClose, onSuccess }: NewGalle
       if (selectedFiles.length > 0) {
         try {
           console.log(`Iniziato caricamento di ${selectedFiles.length} foto`);
+          
+          // Visualizza l'assegnazione dei capitoli alle foto per il debug
+          console.log("Associazioni foto-capitoli prima del caricamento:");
+          const chaptersCount = {};
+          for (const photo of selectedFiles) {
+            if (photo.chapterId) {
+              chaptersCount[photo.chapterId] = (chaptersCount[photo.chapterId] || 0) + 1;
+            }
+          }
+          console.log("Conteggio foto per capitolo:", chaptersCount);
+          
           setUploadProgress(0);
           
           // Crea un batch Firestore per salvare le foto

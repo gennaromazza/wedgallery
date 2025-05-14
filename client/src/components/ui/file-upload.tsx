@@ -389,7 +389,7 @@ export default function FileUpload({
             const folderEntries = Array.from(folderMap.entries());
             for (let i = 0; i < folderEntries.length; i++) {
               const [folderName, files] = folderEntries[i];
-              const chapterId = `folder-chapter-${Date.now()}-${chapterIndex}`;
+              const chapterId = `chapter-${Date.now()}-${chapterIndex}`;
               
               // Crea il capitolo
               chapters.push({
@@ -405,7 +405,7 @@ export default function FileUpload({
               for (let j = 0; j < files.length; j++) {
                 const file = files[j];
                 photosWithChapters.push({
-                  id: `folder-photo-${Date.now()}-${chapterIndex}-${j}`,
+                  id: `photo-${Date.now()}-${chapterIndex}-${j}`,
                   file,
                   url: URL.createObjectURL(file),
                   name: file.name,
