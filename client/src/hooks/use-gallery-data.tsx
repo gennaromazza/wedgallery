@@ -68,7 +68,7 @@ export function useGalleryData(galleryCode: string) {
     // Ordina le foto per capitolo e posizione se la galleria ha capitoli
     if (galleryData.hasChapters && photosData.length > 0) {
       // Ottieni l'ordine dei capitoli
-      const chaptersRef = collection(db, "galleries", galleryDoc.id, "chapters");
+      const chaptersRef = collection(db, "galleries", galleryId, "chapters");
       const chaptersQuery = query(chaptersRef, orderBy("position", "asc"));
       const chaptersSnapshot = await getDocs(chaptersQuery);
       const chapterOrder = new Map(
