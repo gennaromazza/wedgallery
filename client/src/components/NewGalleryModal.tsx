@@ -259,8 +259,10 @@ export default function NewGalleryModal({ isOpen, onClose, onSuccess }: NewGalle
                   contentType: photo.file.type,
                   position: photo.position,
                   chapterId: chapterId,
+                  chapterPosition: photo.position, // Aggiungiamo una posizione anche nel capitolo
                   folderPath: photo.folderPath || "",
-                  createdAt: serverTimestamp()
+                  createdAt: serverTimestamp(),
+                  uuid: photoUuid // Salviamo l'UUID generato in precedenza
                 };
                 
                 // Verifica e commit del batch se necessario
