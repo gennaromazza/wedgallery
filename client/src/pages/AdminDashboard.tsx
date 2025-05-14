@@ -541,27 +541,57 @@ export default function AdminDashboard() {
     }
     
     try {
-      // 1. Elimina le foto dallo Storage
+      // 1. Elimina le foto dallo Storage (percorso galleries/)
       try {
-        // Percorso nella cartella di Storage per questa galleria
+        // Percorso nella cartella di Storage per questa galleria (percorso vecchio)
         const storageRef = ref(storage, `galleries/${gallery.id}`);
         console.log("Eliminazione file dallo storage path:", `galleries/${gallery.id}`);
         
-        // Elenca tutti i file nella cartella
-        const listResult = await listAll(storageRef);
-        
-        // Elimina tutti i file uno per uno
-        const deletePromises = listResult.items.map(async (itemRef) => {
-          console.log("Eliminazione file:", itemRef.fullPath);
-          return deleteObject(itemRef);
-        });
-        
-        // Attendi che tutte le eliminazioni siano completate
-        await Promise.all(deletePromises);
-        console.log(`Eliminati ${deletePromises.length} file dallo storage`);
+        try {
+          // Elenca tutti i file nella cartella
+          const listResult = await listAll(storageRef);
+          
+          // Elimina tutti i file uno per uno
+          const deletePromises = listResult.items.map(async (itemRef) => {
+            console.log("Eliminazione file:", itemRef.fullPath);
+            return deleteObject(itemRef);
+          });
+          
+          // Attendi che tutte le eliminazioni siano completate
+          await Promise.all(deletePromises);
+          console.log(`Eliminati ${deletePromises.length} file dallo storage (percorso galleries/)`);
+        } catch (listError) {
+          console.log("Nessun file trovato nel percorso galleries/", listError);
+        }
       } catch (storageError) {
-        console.error("Errore durante l'eliminazione dei file dallo storage:", storageError);
+        console.error("Errore durante l'eliminazione dei file dallo storage (galleries/):", storageError);
         // Continuiamo comunque con l'eliminazione del documento
+      }
+      
+      // 1b. Elimina le foto dallo storage nella collezione gallery-photos/
+      try {
+        // Nuovo percorso delle foto nella collezione gallery-photos/
+        const galleryPhotosRef = ref(storage, `gallery-photos/${gallery.id}`);
+        console.log("Eliminazione file dallo storage path:", `gallery-photos/${gallery.id}`);
+        
+        try {
+          // Elenca tutti i file nella cartella
+          const galleryPhotosResult = await listAll(galleryPhotosRef);
+          
+          // Elimina tutti i file uno per uno
+          const deleteGalleryPhotosPromises = galleryPhotosResult.items.map(async (itemRef) => {
+            console.log("Eliminazione file:", itemRef.fullPath);
+            return deleteObject(itemRef);
+          });
+          
+          // Attendi che tutte le eliminazioni siano completate
+          await Promise.all(deleteGalleryPhotosPromises);
+          console.log(`Eliminati ${deleteGalleryPhotosPromises.length} file dallo storage (percorso gallery-photos/)`);
+        } catch (listError) {
+          console.log("Nessun file trovato nel percorso gallery-photos/", listError);
+        }
+      } catch (galleryPhotosError) {
+        console.error("Errore durante l'eliminazione dei file dallo storage (gallery-photos/):", galleryPhotosError);
       }
       
       // 2. Elimina eventuali sottocollezioni
@@ -576,16 +606,49 @@ export default function AdminDashboard() {
         );
         
         await Promise.all(deletePhotoDocsPromises);
-        console.log(`Eliminati ${deletePhotoDocsPromises.length} documenti di foto`);
+        console.log(`Eliminati ${deletePhotoDocsPromises.length} documenti di foto dalla sottocollezione`);
       } catch (subCollectionError) {
         console.error("Errore durante l'eliminazione delle sottocollezioni:", subCollectionError);
         // Continuiamo comunque con l'eliminazione del documento principale
       }
       
-      // 3. Elimina il documento principale della galleria
+      // 2b. Elimina i documenti dalla collezione 'gallery-photos'
+      try {
+        // Query per trovare tutti i documenti nella collezione principale gallery-photos con il galleryId corrispondente
+        const galleryPhotosRef = collection(db, "gallery-photos");
+        const q = query(galleryPhotosRef, where("galleryId", "==", gallery.id));
+        const galleryPhotosSnapshot = await getDocs(q);
+        
+        // Elimina tutti i documenti trovati
+        const deleteGalleryPhotoDocsPromises = galleryPhotosSnapshot.docs.map(photoDoc => 
+          deleteDoc(doc(db, "gallery-photos", photoDoc.id))
+        );
+        
+        await Promise.all(deleteGalleryPhotoDocsPromises);
+        console.log(`Eliminati ${deleteGalleryPhotoDocsPromises.length} documenti di foto dalla collezione gallery-photos`);
+      } catch (galleryPhotosError) {
+        console.error("Errore durante l'eliminazione dei documenti da gallery-photos:", galleryPhotosError);
+      }
+      
+      // 3. Elimina la sottocollezione 'chapters'
+      try {
+        const chaptersRef = collection(db, "galleries", gallery.id, "chapters");
+        const chaptersSnapshot = await getDocs(chaptersRef);
+        
+        const deleteChaptersPromises = chaptersSnapshot.docs.map(chapterDoc => 
+          deleteDoc(doc(db, "galleries", gallery.id, "chapters", chapterDoc.id))
+        );
+        
+        await Promise.all(deleteChaptersPromises);
+        console.log(`Eliminati ${deleteChaptersPromises.length} capitoli`);
+      } catch (chaptersError) {
+        console.error("Errore durante l'eliminazione dei capitoli:", chaptersError);
+      }
+      
+      // 4. Elimina il documento principale della galleria
       await deleteDoc(doc(db, "galleries", gallery.id));
       
-      // 4. Aggiorna lo stato locale
+      // 5. Aggiorna lo stato locale
       setGalleries(prev => prev.filter(g => g.id !== gallery.id));
       
       toast({
