@@ -265,22 +265,38 @@ export default function NewGalleryModal({ isOpen, onClose }: NewGalleryModalProp
       
       // Upload photos if any are selected
       if (selectedFiles.length > 0) {
-        // Usiamo il vecchio metodo di upload ma aggiorniamo i documenti con info sui capitoli
+        // Usiamo il metodo ottimizzato di upload
         const uploadedPhotos = await uploadPhotos(galleryRef.id, selectedFiles);
         
         // Add photos to the photos subcollection with chapter info
         const photosCollectionRef = collection(db, "galleries", galleryRef.id, "photos");
         
-        for (let i = 0; i < uploadedPhotos.length; i++) {
-          const photo = uploadedPhotos[i];
-          const photoWithChapter = photosWithChapters.find(p => p.name === photo.name);
+        // Usa batching per migliorare le prestazioni di scrittura database
+        const BATCH_SIZE = 500; // Firestore ha un limite di 500 operazioni per batch
+        
+        console.log(`Scrivendo ${uploadedPhotos.length} documenti foto nel database in batch`);
+        
+        // Suddividi le foto in batch di massimo 500
+        for (let i = 0; i < uploadedPhotos.length; i += BATCH_SIZE) {
+          const batch = writeBatch(db);
+          const currentBatch = uploadedPhotos.slice(i, i + BATCH_SIZE);
           
-          await addDoc(photosCollectionRef, {
-            ...photo,
-            chapterId: photoWithChapter?.chapterId || null,
-            chapterPosition: photoWithChapter?.position || i
+          currentBatch.forEach((photo, index) => {
+            const photoWithChapter = photosWithChapters.find(p => p.name === photo.name);
+            const docRef = doc(photosCollectionRef);
+            
+            batch.set(docRef, {
+              ...photo,
+              chapterId: photoWithChapter?.chapterId || null,
+              chapterPosition: photoWithChapter?.position || (i + index)
+            });
           });
+          
+          console.log(`Committando batch ${Math.floor(i/BATCH_SIZE) + 1} (${currentBatch.length} foto)`);
+          await batch.commit();
         }
+        
+        console.log("Tutti i batch di foto sono stati caricati con successo");
       }
       
       toast({
