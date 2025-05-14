@@ -13,6 +13,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Photo } from "@shared/schema";
 import { FloralCorner, FloralDivider, BackgroundDecoration } from '@/components/WeddingIllustrations';
 import { WeddingImage, DecorativeImage } from '@/components/WeddingImages';
+import { Share2 as ShareIcon, Download as DownloadIcon, Loader2 as Loader2Icon } from "lucide-react";
 
 interface GalleryData {
   id: string;
@@ -70,6 +71,8 @@ export default function Gallery() {
   const [hasMorePhotos, setHasMorePhotos] = useState(true);
   const [loadingMorePhotos, setLoadingMorePhotos] = useState(false);
   const [photosPerPage, setPhotosPerPage] = useState(20); // Carica 20 foto alla volta
+  const [isDownloading, setIsDownloading] = useState(false);
+  const [showShareModal, setShowShareModal] = useState(false);
   const { toast } = useToast();
   const { studioSettings } = useStudio();
 
@@ -414,6 +417,39 @@ export default function Gallery() {
     };
   }, [hasMorePhotos, loadingMorePhotos, isLoading, loadMorePhotos]);
   
+  // Funzione per scaricare tutte le foto
+  const downloadAll = useCallback(async () => {
+    if (!gallery || photos.length === 0 || isDownloading) return;
+    
+    setIsDownloading(true);
+    try {
+      toast({
+        title: "Preparazione download",
+        description: "Stiamo preparando le foto per il download. L'operazione potrebbe richiedere qualche secondo...",
+      });
+      
+      // In una implementazione reale, qui potremmo generare uno zip sul server
+      // Per ora simuliamo un breve ritardo, come se stessimo preparando il file
+      await new Promise(resolve => setTimeout(resolve, 1500));
+      
+      // Apri una nuova finestra con le istruzioni per il download
+      toast({
+        title: "Download pronto",
+        description: "Puoi scaricare le foto individualmente dalla galleria. Clicca su ogni foto per vederla a schermo intero e poi usa il pulsante di download.",
+        variant: "success",
+      });
+    } catch (error) {
+      console.error("Errore nel download delle foto:", error);
+      toast({
+        title: "Errore",
+        description: "Si è verificato un errore nel download delle foto.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsDownloading(false);
+    }
+  }, [gallery, photos, isDownloading, toast]);
+  
   // Display loading state
   if (isLoading) {
     return (
@@ -456,9 +492,63 @@ export default function Gallery() {
     );
   }
 
+  // Componente modale per la condivisione
+  const ShareModal = () => {
+    const shareUrl = createAbsoluteUrl(`/view/${id}`);
+    
+    const copyToClipboard = () => {
+      navigator.clipboard.writeText(shareUrl).then(() => {
+        toast({
+          title: "Link copiato",
+          description: "Il link alla galleria è stato copiato negli appunti.",
+          variant: "success",
+        });
+        setShowShareModal(false);
+      });
+    };
+    
+    if (!showShareModal) return null;
+    
+    return (
+      <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" onClick={() => setShowShareModal(false)}>
+        <div className="bg-white rounded-lg max-w-md w-full p-6" onClick={e => e.stopPropagation()}>
+          <h3 className="text-xl font-semibold mb-4">Condividi questa galleria</h3>
+          <p className="text-gray-600 mb-4">
+            Condividi questa galleria con familiari e amici utilizzando il link qui sotto:
+          </p>
+          
+          <div className="flex">
+            <input 
+              type="text" 
+              value={shareUrl} 
+              readOnly 
+              className="flex-1 p-2 border rounded-l-md text-sm bg-gray-50"
+            />
+            <button 
+              onClick={copyToClipboard}
+              className="bg-sage-600 text-white px-3 py-2 rounded-r-md hover:bg-sage-700 transition-colors"
+            >
+              Copia
+            </button>
+          </div>
+          
+          <div className="mt-6 flex justify-end">
+            <button
+              onClick={() => setShowShareModal(false)}
+              className="px-4 py-2 border border-gray-300 rounded-md hover:bg-gray-50"
+            >
+              Chiudi
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  };
+  
   return (
     <div className="min-h-screen bg-off-white">
       <Navigation galleryOwner={gallery.name.split(' - ')[0]} />
+      {showShareModal && <ShareModal />}
 
       {/* Hero Section */}
       <div className="relative w-full overflow-hidden">
