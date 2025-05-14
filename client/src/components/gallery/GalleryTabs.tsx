@@ -34,14 +34,10 @@ export default function GalleryTabs({
 }: GalleryTabsProps) {
   const [activeTab, setActiveTab] = useState<string>("all");
 
-  // Impostiamo 'all' come tab di default quando i capitoli cambiano
-  useEffect(() => {
-    if (chapters.length > 0 && (!activeTab || activeTab === '')) {
-      setActiveTab('all');
-    }
-  }, [chapters, activeTab]);
+  // Ordina i capitoli per posizione
+  const sortedChapters = [...chapters].sort((a, b) => a.position - b.position);
 
-  // Se non ci sono foto, mostriamo un messaggio
+  // Se non ci sono foto, mostra un messaggio
   if (photos.length === 0) {
     return (
       <div className="text-center py-12">
@@ -60,40 +56,24 @@ export default function GalleryTabs({
     );
   }
 
-  // Se ci sono foto ma non ci sono capitoli, mostriamo solo la griglia di foto
+  // Se non ci sono capitoli, mostra solo la griglia di foto
   if (chapters.length === 0) {
     return (
       <div className="relative">
         <div className="absolute inset-0 bg-gradient-to-b from-sage/5 to-transparent opacity-50 pointer-events-none"></div>
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2 sm:gap-4 lg:gap-6">
           {photos.map((photo, index) => (
-            <div
+            <PhotoGridItem
               key={`photo-${photo.id}-${index}`}
-              className="gallery-image h-40 sm:h-52 lg:h-64 relative overflow-hidden rounded-md shadow-sm transition-transform duration-300 hover:scale-[1.02] hover:shadow-md"
-              onClick={() => openLightbox(index)}
-            >
-              <img
-                src={photo.url}
-                alt={photo.name || `Foto ${index + 1}`}
-                className="w-full h-full object-cover transition-opacity duration-300 opacity-0"
-                loading="lazy"
-                onLoad={(e) => {
-                  (e.target as HTMLImageElement).classList.replace('opacity-0', 'opacity-100');
-                }}
-                style={{ 
-                  backgroundColor: '#f3f4f6',
-                  objectFit: 'cover',
-                }}
-              />
-            </div>
+              photo={photo}
+              index={index}
+              openLightbox={openLightbox}
+            />
           ))}
         </div>
       </div>
     );
   }
-
-  // Ordina i capitoli per posizione
-  const sortedChapters = [...chapters].sort((a, b) => a.position - b.position);
 
   return (
     <Tabs defaultValue="all" value={activeTab} onValueChange={setActiveTab} className="w-full mb-8">
@@ -115,7 +95,7 @@ export default function GalleryTabs({
           
           {sortedChapters.map(chapter => (
             <TabsTrigger 
-              key={chapter.id} 
+              key={`tab-${chapter.id}`}
               value={chapter.id} 
               className="flex-shrink-0 text-blue-gray/70 bg-sage/5 data-[state=active]:bg-sage/10 data-[state=active]:text-sage-700 hover:text-sage-700 rounded-t-lg border-b-2 border-transparent data-[state=active]:border-sage-500 transition-all px-6 py-2.5 font-medium"
             >
@@ -123,106 +103,106 @@ export default function GalleryTabs({
             </TabsTrigger>
           ))}
         </TabsList>
-        <div className="h-0.5 w-full bg-gradient-to-r from-sage/30 via-sage/50 to-sage/30"></div>
       </div>
-      
+
       <TabsContent value="all" className="space-y-6">
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2 sm:gap-4 lg:gap-6">
           {photos.map((photo, index) => (
-            <div
+            <PhotoGridItem
               key={`all-${photo.id}-${index}`}
-              className="gallery-image h-40 sm:h-52 lg:h-64"
-              onClick={() => openLightbox(photos.findIndex(p => p.id === photo.id))}
-            >
-              <img
-                src={photo.url}
-                alt={photo.name || `Foto ${index + 1}`}
-                className="w-full h-full object-cover transition-opacity duration-300 opacity-0 hover:opacity-95"
-                loading="lazy"
-                onLoad={(e) => {
-                  (e.target as HTMLImageElement).classList.replace('opacity-0', 'opacity-100');
-                }}
-                style={{ 
-                  backgroundColor: '#f3f4f6',
-                  objectFit: 'cover',
-                }}
-              />
-            </div>
+              photo={photo}
+              index={index}
+              openLightbox={openLightbox}
+            />
           ))}
         </div>
       </TabsContent>
-      
+
       <TabsContent value="unassigned" className="space-y-6">
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2 sm:gap-4 lg:gap-6">
-          {photos.filter(p => !p.chapterId).map((photo, index) => (
-            <div
-              key={`unassigned-${photo.id}-${index}`}
-              className="gallery-image h-40 sm:h-52 lg:h-64"
-              onClick={() => openLightbox(photos.findIndex(p => p.id === photo.id))}
-            >
-              <img
-                src={photo.url}
-                alt={photo.name || `Foto ${index + 1}`}
-                className="w-full h-full object-cover transition-opacity duration-300 opacity-0 hover:opacity-95"
-                loading="lazy"
-                onLoad={(e) => {
-                  (e.target as HTMLImageElement).classList.replace('opacity-0', 'opacity-100');
-                }}
-                style={{ 
-                  backgroundColor: '#f3f4f6',
-                  objectFit: 'cover',
-                }}
+          {photos
+            .filter(p => !p.chapterId)
+            .map((photo, index) => (
+              <PhotoGridItem
+                key={`unassigned-${photo.id}-${index}`}
+                photo={photo}
+                index={index}
+                openLightbox={openLightbox}
               />
-            </div>
-          ))}
+            ))}
         </div>
       </TabsContent>
-      
+
       {sortedChapters.map(chapter => (
-        <TabsContent key={chapter.id} value={chapter.id} className="mt-6">
+        <TabsContent key={`content-${chapter.id}`} value={chapter.id} className="mt-6">
           {chapter.description && (
-            <p className="text-blue-gray italic mb-4 md:mb-6 text-sm md:text-base">{chapter.description}</p>
+            <p className="text-blue-gray italic mb-4 md:mb-6 text-sm md:text-base">
+              {chapter.description}
+            </p>
           )}
           
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2 sm:gap-4 lg:gap-6">
-            {photos.filter(p => p.chapterId === chapter.id)
+            {photos
+              .filter(p => p.chapterId === chapter.id)
               .sort((a, b) => (a.chapterPosition || 0) - (b.chapterPosition || 0))
               .map((photo, index) => (
-                <div
+                <PhotoGridItem
                   key={`chapter-${chapter.id}-${photo.id}-${index}`}
-                  className="gallery-image h-40 sm:h-52 lg:h-64 relative overflow-hidden rounded-md shadow-sm transition-transform duration-300 hover:scale-[1.02] hover:shadow-md"
-                  onClick={() => openLightbox(photos.findIndex(p => p.id === photo.id))}
-                >
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent opacity-0 hover:opacity-100 transition-opacity z-10 pointer-events-none"></div>
-                  <img
-                    src={photo.url}
-                    alt={photo.name || `Foto ${index + 1}`}
-                    className="w-full h-full object-cover transition-all duration-300 opacity-0"
-                    loading="lazy"
-                    onLoad={(e) => {
-                      (e.target as HTMLImageElement).classList.replace('opacity-0', 'opacity-100');
-                    }}
-                    style={{ 
-                      backgroundColor: '#f3f4f6',
-                      objectFit: 'cover',
-                    }}
-                  />
-                </div>
+                  photo={photo}
+                  index={photos.findIndex(p => p.id === photo.id)}
+                  openLightbox={openLightbox}
+                />
               ))}
           </div>
-          
+
           {photos.filter(p => p.chapterId === chapter.id).length === 0 && (
-            <div className="text-center py-8">
-              <div className="flex flex-col items-center">
-                <div className="w-32 h-32 mb-4">
-                  <WeddingImage type="wedding-cake" alt="Immagine decorativa torta nuziale" className="w-full h-auto opacity-30" />
-                </div>
-                <p className="text-gray-500 italic">Nessuna foto in questo capitolo</p>
-              </div>
-            </div>
+            <EmptyChapterMessage />
           )}
         </TabsContent>
       ))}
     </Tabs>
+  );
+}
+
+// Componente per il singolo elemento della griglia di foto
+function PhotoGridItem({ photo, index, openLightbox }: { 
+  photo: PhotoData; 
+  index: number;
+  openLightbox: (index: number) => void;
+}) {
+  return (
+    <div
+      className="gallery-image h-40 sm:h-52 lg:h-64 relative overflow-hidden rounded-md shadow-sm transition-transform duration-300 hover:scale-[1.02] hover:shadow-md"
+      onClick={() => openLightbox(index)}
+    >
+      <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent opacity-0 hover:opacity-100 transition-opacity z-10 pointer-events-none"></div>
+      <img
+        src={photo.url}
+        alt={photo.name || `Foto ${index + 1}`}
+        className="w-full h-full object-cover transition-all duration-300 opacity-0"
+        loading="lazy"
+        onLoad={(e) => {
+          (e.target as HTMLImageElement).classList.replace('opacity-0', 'opacity-100');
+        }}
+        style={{ 
+          backgroundColor: '#f3f4f6',
+          objectFit: 'cover',
+        }}
+      />
+    </div>
+  );
+}
+
+// Componente per il messaggio di capitolo vuoto
+function EmptyChapterMessage() {
+  return (
+    <div className="text-center py-8">
+      <div className="flex flex-col items-center">
+        <div className="w-32 h-32 mb-4">
+          <WeddingImage type="wedding-cake" alt="Immagine decorativa torta nuziale" className="w-full h-auto opacity-30" />
+        </div>
+        <p className="text-gray-500 italic">Nessuna foto in questo capitolo</p>
+      </div>
+    </div>
   );
 }
