@@ -157,13 +157,35 @@ export default function ChaptersManager({
   
   // Assegna una foto a un capitolo
   const assignPhotoToChapter = (photoId: string, chapterId: string | undefined) => {
+    console.log(`Assegnando foto ${photoId} al capitolo ${chapterId || 'nessuno'}`);
+    
+    const photoToUpdate = photos.find(p => p.id === photoId);
+    if (photoToUpdate) {
+      console.log(`Foto trovata: ${photoToUpdate.name}, capitolo attuale: ${photoToUpdate.chapterId || 'nessuno'}`);
+    }
+    
     const updatedPhotos = photos.map(photo => 
       photo.id === photoId 
         ? { ...photo, chapterId } 
         : photo
     );
     
+    // Verifica che l'aggiornamento sia avvenuto correttamente
+    const updatedPhoto = updatedPhotos.find(p => p.id === photoId);
+    if (updatedPhoto) {
+      console.log(`Dopo l'aggiornamento: ${updatedPhoto.name}, nuovo capitolo: ${updatedPhoto.chapterId || 'nessuno'}`);
+    }
+    
     onPhotosUpdate(updatedPhotos);
+    
+    // Statistiche post-aggiornamento
+    setTimeout(() => {
+      const chapterStats: Record<string, number> = {};
+      chapters.forEach(chapter => {
+        chapterStats[chapter.title] = updatedPhotos.filter(p => p.chapterId === chapter.id).length;
+      });
+      console.log("Distribuzione foto per capitolo:", chapterStats);
+    }, 50);
   };
   
   // Assegna più foto a un capitolo

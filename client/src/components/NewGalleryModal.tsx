@@ -11,11 +11,13 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { Progress } from "@/components/ui/progress";
 import { useQueryClient } from "@tanstack/react-query";
 import { FileUpload } from "@/components/ui/file-upload";
 import ChaptersModal from "@/components/ChaptersModal";
 import { Chapter, PhotoWithChapter } from "@/components/ChaptersManager";
 import { uploadPhotos as uploadPhotosOptimized, UploadSummary } from "@/lib/photoUploader";
+import { LoaderCircle } from "lucide-react";
 
 interface NewGalleryModalProps {
   isOpen: boolean;
@@ -265,38 +267,68 @@ export default function NewGalleryModal({ isOpen, onClose }: NewGalleryModalProp
       
       // Upload photos if any are selected
       if (selectedFiles.length > 0) {
-        // Usiamo il metodo ottimizzato di upload
-        const uploadedPhotos = await uploadPhotos(galleryRef.id, selectedFiles);
-        
-        // Add photos to the photos subcollection with chapter info
-        const photosCollectionRef = collection(db, "galleries", galleryRef.id, "photos");
-        
-        // Usa batching per migliorare le prestazioni di scrittura database
-        const BATCH_SIZE = 500; // Firestore ha un limite di 500 operazioni per batch
-        
-        console.log(`Scrivendo ${uploadedPhotos.length} documenti foto nel database in batch`);
-        
-        // Suddividi le foto in batch di massimo 500
-        for (let i = 0; i < uploadedPhotos.length; i += BATCH_SIZE) {
-          const batch = writeBatch(db);
-          const currentBatch = uploadedPhotos.slice(i, i + BATCH_SIZE);
+        try {
+          // Usiamo il metodo ottimizzato di upload
+          const uploadedPhotos = await uploadPhotos(galleryRef.id, selectedFiles);
           
-          currentBatch.forEach((photo, index) => {
-            const photoWithChapter = photosWithChapters.find(p => p.name === photo.name);
-            const docRef = doc(photosCollectionRef);
+          // Cambio stato a finalizzazione
+          setCreationStep("complete");
+          setProgress(0); // Reset progresso per la fase di scrittura dati
+          
+          // Add photos to the photos subcollection with chapter info
+          const photosCollectionRef = collection(db, "galleries", galleryRef.id, "photos");
+          
+          // Usa batching per migliorare le prestazioni di scrittura database
+          const BATCH_SIZE = 500; // Firestore ha un limite di 500 operazioni per batch
+          
+          console.log(`Scrivendo ${uploadedPhotos.length} documenti foto nel database in batch`);
+          
+          // Suddividi le foto in batch di massimo 500
+          const totalBatches = Math.ceil(uploadedPhotos.length / BATCH_SIZE);
+          
+          for (let i = 0; i < uploadedPhotos.length; i += BATCH_SIZE) {
+            const batch = writeBatch(db);
+            const currentBatch = uploadedPhotos.slice(i, i + BATCH_SIZE);
+            const currentBatchNumber = Math.floor(i/BATCH_SIZE) + 1;
             
-            batch.set(docRef, {
-              ...photo,
-              chapterId: photoWithChapter?.chapterId || null,
-              chapterPosition: photoWithChapter?.position || (i + index)
+            // Aggiorna progresso di scrittura
+            setProgress(Math.round((currentBatchNumber / totalBatches) * 100));
+            
+            currentBatch.forEach((photo, index) => {
+              // Per trovare il capitolo corretto, cerchiamo prima per nome file esatto
+              // e poi per nome file senza percorso (in caso di errori con i percorsi relativi)
+              let photoWithChapter = photosWithChapters.find(p => p.name === photo.name);
+              
+              // Se non troviamo una corrispondenza esatta, proviamo con il nome del file senza percorso
+              if (!photoWithChapter) {
+                // Estrai solo il nome del file senza percorso
+                const fileName = photo.name.split('/').pop() || photo.name;
+                photoWithChapter = photosWithChapters.find(p => p.name.endsWith(fileName));
+              }
+              
+              const docRef = doc(photosCollectionRef);
+              
+              batch.set(docRef, {
+                ...photo,
+                chapterId: photoWithChapter?.chapterId || null,
+                chapterPosition: photoWithChapter?.position || (i + index)
+              });
             });
-          });
+            
+            console.log(`Committando batch ${currentBatchNumber}/${totalBatches} (${currentBatch.length} foto)`);
+            await batch.commit();
+          }
           
-          console.log(`Committando batch ${Math.floor(i/BATCH_SIZE) + 1} (${currentBatch.length} foto)`);
-          await batch.commit();
+          console.log("Tutti i batch di foto sono stati caricati con successo");
+        } catch (error) {
+          console.error("Errore durante il processo di caricamento o salvataggio delle foto:", error);
+          toast({
+            title: "Errore di salvataggio",
+            description: "Si è verificato un errore durante il salvataggio della galleria. Riprova.",
+            variant: "destructive",
+          });
+          throw error;
         }
-        
-        console.log("Tutti i batch di foto sono stati caricati con successo");
       }
       
       toast({
@@ -564,6 +596,42 @@ export default function NewGalleryModal({ isOpen, onClose }: NewGalleryModalProp
                         </div>
                       </div>
                     </div>
+                    
+                    {/* Indicatore di progresso caricamento */}
+                    {uploading && (
+                      <div className="mt-5 p-4 bg-gray-50 rounded-lg border border-gray-200">
+                        <div className="flex items-center justify-between mb-2">
+                          <div className="flex items-center space-x-2">
+                            <LoaderCircle className="h-4 w-4 animate-spin text-primary" />
+                            <span className="text-sm font-medium">
+                              {creationStep === "uploading" 
+                                ? `Caricamento foto (${progress}%)` 
+                                : "Finalizzazione galleria..."}
+                            </span>
+                          </div>
+                          {uploadProgress && (
+                            <span className="text-xs text-muted-foreground">
+                              {uploadProgress.completed}/{uploadProgress.total} foto
+                            </span>
+                          )}
+                        </div>
+                        
+                        <Progress value={progress} className="h-2 w-full" />
+                        
+                        {uploadProgress && (
+                          <div className="mt-2 flex justify-between text-xs text-muted-foreground">
+                            <span>
+                              {Math.round(uploadProgress.uploadedSize / 1024 / 1024)} / {Math.round(uploadProgress.totalSize / 1024 / 1024)} MB
+                            </span>
+                            <span>
+                              {uploadProgress.failed > 0 && (
+                                <span className="text-red-500">{uploadProgress.failed} errori</span>
+                              )}
+                            </span>
+                          </div>
+                        )}
+                      </div>
+                    )}
                     
                     <div className="mt-5 sm:mt-6 sm:grid sm:grid-cols-2 sm:gap-3 sm:grid-flow-row-dense">
                       <Button
