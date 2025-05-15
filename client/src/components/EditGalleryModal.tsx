@@ -252,8 +252,23 @@ export default function EditGalleryModal({ isOpen, onClose, gallery }: EditGalle
     
     setIsUploading(true);
     try {
+      // Crea una mappa per tenere traccia della posizione originale e del capitolo di ogni file
+      const fileMetadataMap = new Map<string, { chapterId?: string, position: number }>();
+      
       // Estrai i File reali dall'array di PhotoWithChapter per uploadPhotos
-      const filesToUpload = selectedFiles.map(photoWithChapter => photoWithChapter.file);
+      // e popola la mappa con i metadati dei capitoli
+      const filesToUpload = selectedFiles.map((photoWithChapter, index) => {
+        // Crea una chiave univoca basata su nome e timestamp per tracciare il file
+        const fileKey = `${index}-${photoWithChapter.file.name}`;
+        
+        // Salva i metadati del capitolo nella mappa
+        fileMetadataMap.set(fileKey, {
+          chapterId: photoWithChapter.chapterId,
+          position: photoWithChapter.position
+        });
+        
+        return photoWithChapter.file;
+      });
       
       // Carica le foto su Firebase Storage usando il nuovo percorso (gallery-photos)
       const uploadedPhotos = await uploadPhotos(
@@ -269,10 +284,11 @@ export default function EditGalleryModal({ isOpen, onClose, gallery }: EditGalle
       // Salva i metadati delle foto in Firestore
       const photoPromises = uploadedPhotos.map(async (photo, index) => {
         try {
-          // Cerca se il file selezionato corrispondente aveva un capitolo assegnato
-          const originalFile = selectedFiles[index];
-          const chapterId = originalFile.chapterId || null;
-          const chapterPosition = originalFile.position || 0;
+          // Recupera i metadati del capitolo dalla mappa
+          const fileKey = `${index}-${photo.name}`;
+          const metadata = fileMetadataMap.get(fileKey) || { chapterId: null, position: 0 };
+          const chapterId = metadata.chapterId || null;
+          const chapterPosition = metadata.position || 0;
           
           console.log(`Foto ${photo.name} - chapterId: ${chapterId}, position: ${chapterPosition}`);
           

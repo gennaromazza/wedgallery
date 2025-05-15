@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useLocation, Link } from "wouter";
-import { collection, getDocs, doc, updateDoc, deleteDoc, query, orderBy, collectionGroup, setDoc, getDoc } from "firebase/firestore";
+import { collection, getDocs, doc, updateDoc, deleteDoc, query, orderBy, collectionGroup, setDoc, getDoc, where } from "firebase/firestore";
 import { getAuth, signOut } from "firebase/auth";
 import { db, storage, auth } from "@/lib/firebase";
 import { createUrl } from "@/lib/basePath";
