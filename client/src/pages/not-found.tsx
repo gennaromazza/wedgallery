@@ -6,10 +6,13 @@ import { WeddingImage } from '@/components/WeddingImages';
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
 
+import { useLocation } from "wouter";
 export default function NotFound() {
+  const [, navigate] = useLocation();
+
   // Funzione per tornare alla home page
   const handleGoHome = () => {
-    window.location.href = createUrl("/");
+    navigate(createUrl("/"));
   };
   
   return (

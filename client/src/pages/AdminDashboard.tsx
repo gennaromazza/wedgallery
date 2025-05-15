@@ -353,7 +353,7 @@ export default function AdminDashboard() {
       // Rimuovi il flag di amministratore
       localStorage.removeItem('isAdmin');
       // Reindirizza alla pagina di login usando il percorso assoluto
-      window.location.href = createUrl("/admin");
+      navigate(createUrl("/admin"));
     } catch (error) {
       console.error("Errore durante il logout:", error);
       toast({
