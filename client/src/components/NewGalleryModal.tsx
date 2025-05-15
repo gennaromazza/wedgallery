@@ -268,9 +268,18 @@ export default function NewGalleryModal({ isOpen, onClose, onSuccess }: NewGalle
                 // Verifica e commit del batch se necessario
                 await checkAndCommitBatchIfNeeded();
 
-                // Usa il batch corrente
+                // Usa il batch corrente per la collezione galleries/{galleryId}/photos
                 const newPhotoRef = doc(photosCollection);
                 currentBatch.set(newPhotoRef, photoData);
+                operationsInCurrentBatch++;
+                
+                // Aggiungi anche alla collezione gallery-photos (necessario per la visualizzazione)
+                const galleryPhotoRef = doc(collection(db, "gallery-photos"));
+                const galleryPhotoData = {
+                  ...photoData,
+                  galleryId: galleryRef.id,  // Aggiungi l'ID della galleria per filtraggio
+                };
+                currentBatch.set(galleryPhotoRef, galleryPhotoData);
                 operationsInCurrentBatch++;
 
                 totalProcessed++;

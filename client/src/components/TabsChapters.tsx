@@ -146,7 +146,10 @@ export default function TabsChapters({
             )}
 
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2 sm:gap-4 lg:gap-6">
-              {photos.filter(p => p.chapterId === chapter.id).length === 0 ? (
+              {photos.filter(p => {
+                console.log(`Verifica foto ${p.name} - chapterId: ${p.chapterId}, capitolo corrente: ${chapter.id}`);
+                return p.chapterId === chapter.id;
+              }).length === 0 ? (
                 <div className="col-span-full text-center py-8">
                   <p className="text-gray-500 italic">Nessuna foto in questo capitolo.</p>
                 </div>

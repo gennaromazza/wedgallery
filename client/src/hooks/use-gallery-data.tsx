@@ -60,10 +60,14 @@ export function useGalleryData(galleryCode: string) {
     const photosSnapshot = await getDocs(photosQuery);
 
     // Converti i documenti in oggetti PhotoData
-    let photosData = photosSnapshot.docs.map(doc => ({
-      id: doc.id,
-      ...doc.data(),
-    })) as PhotoData[];
+    let photosData = photosSnapshot.docs.map(doc => {
+      const data = doc.data();
+      console.log(`Foto caricata: ${data.name}, chapterId: ${data.chapterId}, galleryId: ${data.galleryId}`);
+      return {
+        id: doc.id,
+        ...data,
+      };
+    }) as PhotoData[];
 
     // Ordina le foto per capitolo e posizione se la galleria ha capitoli
     if (galleryData.hasChapters && photosData.length > 0) {
