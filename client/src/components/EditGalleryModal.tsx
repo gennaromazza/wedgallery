@@ -292,7 +292,7 @@ export default function EditGalleryModal({ isOpen, onClose, gallery }: EditGalle
           
           console.log(`Foto ${photo.name} - chapterId: ${chapterId}, position: ${chapterPosition}`);
           
-          // Salva nella sottocollezione photos 
+          // Salva nella sottocollezione photos (lasciamo per compatibilità)
           await addDoc(collection(db, "galleries", gallery.id, "photos"), {
             name: photo.name,
             url: photo.url,
@@ -301,7 +301,19 @@ export default function EditGalleryModal({ isOpen, onClose, gallery }: EditGalle
             createdAt: photo.createdAt || serverTimestamp(),
             chapterId: chapterId,
             position: chapterPosition,
-            chapterPosition: chapterPosition // Aggiungiamo entrambi i campi per compatibilità
+            chapterPosition: chapterPosition
+          });
+          
+          // Salva nella collezione gallery-photos (principale)
+          await addDoc(collection(db, "gallery-photos"), {
+            name: photo.name,
+            url: photo.url,
+            size: photo.size,
+            contentType: photo.contentType,
+            createdAt: photo.createdAt || serverTimestamp(),
+            galleryId: gallery.id,
+            chapterId: chapterId,
+            chapterPosition: chapterPosition
           });
         } catch (err) {
           console.error("Errore nel salvataggio dei metadati:", err);

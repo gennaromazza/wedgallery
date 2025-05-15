@@ -46,12 +46,13 @@ export function useGalleryData(galleryCode: string) {
 
   // Funzione per caricare le foto della galleria
   const loadPhotos = async (galleryId: string, galleryData: any) => {
-    // Utilizza la collezione galleries/{galleryId}/photos per cercare le foto
-    const photosRef = collection(db, "galleries", galleryId, "photos");
+    // Utilizza la collezione gallery-photos per cercare le foto
+    const photosRef = collection(db, "gallery-photos");
 
     // Crea una query per ottenere le foto della galleria
     let photosQuery = query(
       photosRef,
+      where("galleryId", "==", galleryId),
       limit(photosPerPage)
     );
 
@@ -296,13 +297,15 @@ export function useGalleryData(galleryCode: string) {
 
     setLoadingMorePhotos(true);
     try {
-      // Utilizza la collezione galleries/{galleryId}/photos
-      const photosRef = collection(db, "galleries", gallery.id, "photos");
+      // Utilizza la collezione gallery-photos
+      const photosRef = collection(db, "gallery-photos");
       let photosQuery;
 
-      // Carichiamo un gruppo in più di foto
+      // Purtroppo Firestore non supporta startAfter con where nella stessa query
+      // Quindi dobbiamo utilizzare un approccio alternativo
       photosQuery = query(
         photosRef,
+        where("galleryId", "==", gallery.id),
         limit(photosPerPage + photos.length)
       );
 
