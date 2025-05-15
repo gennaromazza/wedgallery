@@ -1302,7 +1302,7 @@ export default function AdminDashboard() {
         onClose={closeModal} 
         onSuccess={() => {
           // Ricarichiamo le gallerie dopo la creazione
-          loadGalleries();
+          fetchData();
         }} 
       />
 
