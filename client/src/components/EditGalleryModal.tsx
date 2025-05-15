@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, ChangeEvent } from "react";
-import { doc, updateDoc, collection, getDocs, addDoc, serverTimestamp } from "firebase/firestore";
+import { doc, updateDoc, collection, getDocs, addDoc, serverTimestamp, where, query } from "firebase/firestore";
 import { ref, uploadBytesResumable, getDownloadURL } from "firebase/storage";
 import { db, storage } from "@/lib/firebase";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
@@ -244,6 +244,90 @@ export default function EditGalleryModal({ isOpen, onClose, gallery }: EditGalle
       setIsLoading(false);
     }
   };
+  
+  // Carica nuove foto alla galleria
+  const handleUploadPhotos = async () => {
+    if (!gallery || selectedFiles.length === 0) return;
+    
+    setIsUploading(true);
+    try {
+      // Carica le foto su Firebase Storage usando il nuovo percorso (gallery-photos)
+      const uploadedPhotos = await uploadPhotos(
+        gallery.id,
+        selectedFiles,
+        6, // concorrenza
+        (progress) => setUploadProgress(progress),
+        (summary) => setUploadSummary(summary)
+      );
+      
+      console.log(`Caricate ${uploadedPhotos.length} nuove foto nella galleria ${gallery.id}`);
+      
+      // Salva i metadati delle foto in Firestore
+      const photoPromises = uploadedPhotos.map(async (photo) => {
+        try {
+          // Salva nella sottocollezione photos (legacy)
+          await addDoc(collection(db, "galleries", gallery.id, "photos"), {
+            name: photo.name,
+            url: photo.url,
+            size: photo.size,
+            contentType: photo.contentType,
+            createdAt: photo.createdAt,
+            chapterId: null,
+            position: 0
+          });
+          
+          // Salva anche nella collection gallery-photos (nuovo sistema)
+          await addDoc(collection(db, "gallery-photos"), {
+            name: photo.name,
+            url: photo.url,
+            size: photo.size,
+            contentType: photo.contentType,
+            createdAt: photo.createdAt || serverTimestamp(),
+            galleryId: gallery.id,
+            chapterId: null,
+            chapterPosition: 0
+          });
+        } catch (err) {
+          console.error("Errore nel salvataggio dei metadati:", err);
+        }
+      });
+      
+      await Promise.all(photoPromises);
+      
+      // Aggiorna il numero di foto nella galleria
+      const galleryRef = doc(db, "galleries", gallery.id);
+      await updateDoc(galleryRef, {
+        photoCount: (photos.length + uploadedPhotos.length),
+        lastUpdated: serverTimestamp()
+      });
+      
+      toast({
+        title: "Foto caricate con successo",
+        description: `${uploadedPhotos.length} nuove foto sono state aggiunte alla galleria`
+      });
+      
+      // Resetta lo stato
+      setSelectedFiles([]);
+      setUploadProgress({});
+      setUploadSummary(null);
+      if (filesInputRef.current) {
+        filesInputRef.current.value = "";
+      }
+      
+      // Ricarica i capitoli e le foto per mostrare le nuove aggiunte
+      loadChaptersAndPhotos();
+      
+    } catch (error) {
+      console.error("Errore durante il caricamento delle foto:", error);
+      toast({
+        title: "Errore",
+        description: "Si è verificato un errore durante il caricamento delle foto",
+        variant: "destructive"
+      });
+    } finally {
+      setIsUploading(false);
+    }
+  };
 
   if (!gallery) return null;
 
@@ -468,6 +552,134 @@ export default function EditGalleryModal({ isOpen, onClose, gallery }: EditGalle
                 </DialogFooter>
               </>
             )}
+          </TabsContent>
+          
+          <TabsContent value="upload" className="min-h-[50vh]">
+            <div className="space-y-6">
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="photos">Aggiungi nuove foto a questa galleria</Label>
+                  <span className="text-sm text-muted-foreground">
+                    {selectedFiles.length > 0 ? `${selectedFiles.length} foto selezionate` : "Nessuna foto selezionata"}
+                  </span>
+                </div>
+                
+                <div 
+                  className={`border-2 border-dashed rounded-md p-8 text-center cursor-pointer transition-colors ${
+                    selectedFiles.length > 0 ? 'border-sage bg-sage/5' : 'border-gray-300 hover:border-sage'
+                  }`}
+                  onClick={() => filesInputRef.current?.click()}
+                >
+                  <div className="flex flex-col items-center space-y-2">
+                    <Image className="h-10 w-10 text-sage" />
+                    <h3 className="font-medium text-lg">Seleziona foto da aggiungere</h3>
+                    <p className="text-sm text-muted-foreground max-w-xs">
+                      Fai clic qui o trascina le tue foto in questa area per caricarle nella galleria
+                    </p>
+                    <div className="text-xs text-muted-foreground mt-2">
+                      Supporta immagini JPG, PNG, HEIC, ecc.
+                    </div>
+                    {selectedFiles.length > 0 && (
+                      <div className="bg-sage/10 text-sage px-3 py-1 rounded-full font-medium mt-2">
+                        {selectedFiles.length} foto selezionate
+                      </div>
+                    )}
+                  </div>
+                  <input
+                    ref={filesInputRef}
+                    type="file"
+                    id="photos"
+                    multiple
+                    accept="image/*"
+                    className="hidden"
+                    onChange={(e) => {
+                      if (e.target.files && e.target.files.length > 0) {
+                        setSelectedFiles(Array.from(e.target.files));
+                      }
+                    }}
+                  />
+                </div>
+              </div>
+              
+              {selectedFiles.length > 0 && (
+                <div className="space-y-4">
+                  <div className="bg-muted p-4 rounded-md">
+                    <h4 className="font-medium mb-2">Dettagli upload</h4>
+                    <ul className="text-sm space-y-1">
+                      <li>Numero totale di foto: <span className="font-medium">{selectedFiles.length}</span></li>
+                      <li>Dimensione totale: <span className="font-medium">
+                        {(selectedFiles.reduce((acc, file) => acc + file.size, 0) / (1024 * 1024)).toFixed(2)} MB
+                      </span></li>
+                    </ul>
+                  </div>
+                  
+                  {uploadSummary && (
+                    <div className="space-y-3">
+                      <div className="space-y-2">
+                        <div className="flex justify-between text-sm font-medium">
+                          <div>Avanzamento</div>
+                          <div>{Math.round(uploadSummary.avgProgress)}%</div>
+                        </div>
+                        <Progress value={uploadSummary.avgProgress} className="h-2" />
+                      </div>
+                      
+                      <div className="grid grid-cols-2 gap-2 text-sm">
+                        <div className="bg-muted p-2 rounded">
+                          Completati: <span className="font-medium">{uploadSummary.completed}</span>
+                        </div>
+                        <div className="bg-muted p-2 rounded">
+                          In corso: <span className="font-medium">{uploadSummary.inProgress}</span>
+                        </div>
+                        <div className="bg-muted p-2 rounded">
+                          In attesa: <span className="font-medium">{uploadSummary.waiting}</span>
+                        </div>
+                        <div className="bg-muted p-2 rounded">
+                          Falliti: <span className="font-medium text-red-500">{uploadSummary.failed}</span>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+              
+              <DialogFooter className="space-x-2 pt-2">
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    // Reset stato
+                    setSelectedFiles([]);
+                    setUploadProgress({});
+                    setUploadSummary(null);
+                    
+                    // Reset input file
+                    if (filesInputRef.current) {
+                      filesInputRef.current.value = "";
+                    }
+                  }}
+                  disabled={isUploading || selectedFiles.length === 0}
+                >
+                  Cancella selezione
+                </Button>
+                
+                <Button
+                  onClick={handleUploadPhotos}
+                  disabled={isUploading || selectedFiles.length === 0}
+                  className="flex items-center"
+                >
+                  {isUploading ? (
+                    <>
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                      Upload in corso...
+                    </>
+                  ) : (
+                    <>
+                      <UploadCloud className="h-4 w-4 mr-2" />
+                      Carica foto selezionate
+                    </>
+                  )}
+                </Button>
+              </DialogFooter>
+            </div>
           </TabsContent>
         </Tabs>
       </DialogContent>
