@@ -221,13 +221,42 @@ export default function EditGalleryModal({ isOpen, onClose, gallery }: EditGalle
         });
       }
       
-      // Aggiorna le foto
+      // Aggiorna le foto in entrambe le collezioni
       for (const photo of photos) {
+        // 1. Aggiorna nella sottocollezione galleries/{galleryId}/photos
         const photoRef = doc(db, "galleries", gallery.id, "photos", photo.id);
         await updateDoc(photoRef, {
           chapterId: photo.chapterId,
-          position: photo.position
+          position: photo.position,
+          chapterPosition: photo.position // Per compatibilità
         });
+        
+        // 2. Cerca il documento corrispondente in gallery-photos
+        try {
+          // Otteniamo il documento gallery-photos che corrisponde a questa foto
+          const galleryPhotosQuery = query(
+            collection(db, "gallery-photos"),
+            where("galleryId", "==", gallery.id),
+            where("name", "==", photo.name)
+          );
+          
+          const querySnapshot = await getDocs(galleryPhotosQuery);
+          
+          if (!querySnapshot.empty) {
+            // Aggiorna ogni documento trovato (dovrebbe essere uno solo)
+            querySnapshot.forEach(async (doc) => {
+              await updateDoc(doc.ref, {
+                chapterId: photo.chapterId,
+                chapterPosition: photo.position
+              });
+              console.log(`Aggiornato chapterId a ${photo.chapterId} per foto ${photo.name} in gallery-photos`);
+            });
+          } else {
+            console.warn(`Non è stato trovato un documento corrispondente in gallery-photos per la foto ${photo.name}`);
+          }
+        } catch (error) {
+          console.error(`Errore durante l'aggiornamento della foto ${photo.name} in gallery-photos:`, error);
+        }
       }
       
       toast({
