@@ -45,7 +45,8 @@ export default function EditGalleryModal({ isOpen, onClose, gallery }: EditGalle
   const [photos, setPhotos] = useState<PhotoWithChapter[]>([]);
   const [chapters, setChapters] = useState<Chapter[]>([]);
   const [isChaptersLoading, setIsChaptersLoading] = useState(false);
-  const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
+  // Usiamo PhotoWithChapter invece di File per mantenere le informazioni del capitolo
+  const [selectedFiles, setSelectedFiles] = useState<PhotoWithChapter[]>([]);
   const [uploadProgress, setUploadProgress] = useState<{[key: string]: UploadProgressInfo}>({});
   const [uploadSummary, setUploadSummary] = useState<UploadSummary | null>(null);
   const [isUploading, setIsUploading] = useState(false);
@@ -251,10 +252,13 @@ export default function EditGalleryModal({ isOpen, onClose, gallery }: EditGalle
     
     setIsUploading(true);
     try {
+      // Estrai i File reali dall'array di PhotoWithChapter per uploadPhotos
+      const filesToUpload = selectedFiles.map(photoWithChapter => photoWithChapter.file);
+      
       // Carica le foto su Firebase Storage usando il nuovo percorso (gallery-photos)
       const uploadedPhotos = await uploadPhotos(
         gallery.id,
-        selectedFiles,
+        filesToUpload,
         6, // concorrenza
         (progress) => setUploadProgress(progress),
         (summary) => setUploadSummary(summary)
@@ -263,8 +267,15 @@ export default function EditGalleryModal({ isOpen, onClose, gallery }: EditGalle
       console.log(`Caricate ${uploadedPhotos.length} nuove foto nella galleria ${gallery.id}`);
       
       // Salva i metadati delle foto in Firestore
-      const photoPromises = uploadedPhotos.map(async (photo) => {
+      const photoPromises = uploadedPhotos.map(async (photo, index) => {
         try {
+          // Cerca se il file selezionato corrispondente aveva un capitolo assegnato
+          const originalFile = selectedFiles[index];
+          const chapterId = originalFile.chapterId || null;
+          const chapterPosition = originalFile.position || 0;
+          
+          console.log(`Foto ${photo.name} - chapterId: ${chapterId}, position: ${chapterPosition}`);
+          
           // Salva nella sottocollezione photos (legacy)
           await addDoc(collection(db, "galleries", gallery.id, "photos"), {
             name: photo.name,
@@ -272,8 +283,8 @@ export default function EditGalleryModal({ isOpen, onClose, gallery }: EditGalle
             size: photo.size,
             contentType: photo.contentType,
             createdAt: photo.createdAt,
-            chapterId: null,
-            position: 0
+            chapterId: chapterId,
+            position: chapterPosition
           });
           
           // Salva anche nella collection gallery-photos (nuovo sistema)
@@ -284,8 +295,8 @@ export default function EditGalleryModal({ isOpen, onClose, gallery }: EditGalle
             contentType: photo.contentType,
             createdAt: photo.createdAt || serverTimestamp(),
             galleryId: gallery.id,
-            chapterId: null,
-            chapterPosition: 0
+            chapterId: chapterId,
+            chapterPosition: chapterPosition
           });
         } catch (err) {
           console.error("Errore nel salvataggio dei metadati:", err);
@@ -594,7 +605,18 @@ export default function EditGalleryModal({ isOpen, onClose, gallery }: EditGalle
                     className="hidden"
                     onChange={(e) => {
                       if (e.target.files && e.target.files.length > 0) {
-                        setSelectedFiles(Array.from(e.target.files));
+                        // Convertiamo i File in PhotoWithChapter
+                        const filesArray = Array.from(e.target.files);
+                        const photosWithChapter: PhotoWithChapter[] = filesArray.map((file, index) => ({
+                          id: `temp-${Date.now()}-${index}`,
+                          file: file,
+                          url: URL.createObjectURL(file), // URL temporaneo per l'anteprima
+                          name: file.name,
+                          position: index,
+                          // Nessun capitolo assegnato inizialmente
+                          chapterId: undefined
+                        }));
+                        setSelectedFiles(photosWithChapter);
                       }
                     }}
                   />
@@ -608,7 +630,7 @@ export default function EditGalleryModal({ isOpen, onClose, gallery }: EditGalle
                     <ul className="text-sm space-y-1">
                       <li>Numero totale di foto: <span className="font-medium">{selectedFiles.length}</span></li>
                       <li>Dimensione totale: <span className="font-medium">
-                        {(selectedFiles.reduce((acc, file) => acc + file.size, 0) / (1024 * 1024)).toFixed(2)} MB
+                        {(selectedFiles.reduce((acc, file) => acc + file.file.size, 0) / (1024 * 1024)).toFixed(2)} MB
                       </span></li>
                     </ul>
                   </div>
