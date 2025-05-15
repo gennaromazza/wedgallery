@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { format } from 'date-fns';
 import { it } from 'date-fns/locale/it';
 import { FloralCorner, BackgroundDecoration } from '@/components/WeddingIllustrations';
@@ -11,6 +11,13 @@ interface GalleryHeaderProps {
   coverImageUrl?: string;
 }
 
+interface ImageDimensions {
+  width: number;
+  height: number;
+  aspectRatio: number;
+  isLandscape: boolean;
+}
+
 export default function GalleryHeader({ 
   name, 
   date, 
@@ -18,6 +25,33 @@ export default function GalleryHeader({
   description, 
   coverImageUrl
 }: GalleryHeaderProps) {
+  const [imageDimensions, setImageDimensions] = useState<ImageDimensions | null>(null);
+  const [imageLoaded, setImageLoaded] = useState(false);
+  
+  // Carica e analizza le dimensioni dell'immagine di copertina
+  useEffect(() => {
+    if (coverImageUrl && coverImageUrl.trim() !== "") {
+      const img = new Image();
+      img.onload = () => {
+        const width = img.width;
+        const height = img.height;
+        const aspectRatio = width / height;
+        setImageDimensions({
+          width,
+          height,
+          aspectRatio,
+          isLandscape: aspectRatio >= 1
+        });
+        setImageLoaded(true);
+      };
+      img.onerror = () => {
+        console.error("Errore nel caricamento dell'immagine di copertina");
+        setImageLoaded(true); // Imposta a true anche in caso di errore per evitare il caricamento infinito
+      };
+      img.src = coverImageUrl;
+    }
+  }, [coverImageUrl]);
+  
   // Formatta la data in italiano
   const formatDate = (dateString: string) => {
     try {
