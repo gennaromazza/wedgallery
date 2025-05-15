@@ -195,6 +195,15 @@ export default function ChaptersManager({
     const targetChapterPhotos = photos.filter(p => p.chapterId === chapterId);
     const newPosition = targetChapterPhotos.length;
     
+    // Aggiungi un'animazione di feedback per mostrare che la foto è stata assegnata
+    const photoElement = document.getElementById(`photo-${photoId}`);
+    if (photoElement) {
+      photoElement.classList.add('assignment-animation');
+      setTimeout(() => {
+        photoElement.classList.remove('assignment-animation');
+      }, 800);
+    }
+    
     const updatedPhotos = photos.map(photo => 
       photo.id === photoId 
         ? { 
@@ -210,6 +219,22 @@ export default function ChaptersManager({
     const updatedPhoto = updatedPhotos.find(p => p.id === photoId);
     if (updatedPhoto) {
       console.log(`Dopo l'aggiornamento: ${updatedPhoto.name}, nuovo capitolo: ${updatedPhoto.chapterId || 'nessuno'}`);
+      
+      // Mostra un feedback visivo nella UI per l'assegnazione
+      const chapterName = chapterId 
+        ? chapters.find(c => c.id === chapterId)?.title || 'Capitolo sconosciuto'
+        : 'Nessun capitolo';
+        
+      // Aggiorna il valore del capitolo nell'interfaccia
+      const selectElement = document.getElementById(`chapter-select-${photoId}`) as HTMLSelectElement;
+      if (selectElement) {
+        selectElement.value = chapterId || '';
+        // Aggiungi un'animazione di evidenziazione al select
+        selectElement.classList.add('highlight-selection');
+        setTimeout(() => {
+          selectElement.classList.remove('highlight-selection');
+        }, 1500);
+      }
     }
     
     onPhotosUpdate(updatedPhotos);
@@ -226,11 +251,50 @@ export default function ChaptersManager({
   
   // Assegna più foto a un capitolo
   const assignMultiplePhotosToChapter = (photoIds: string[], chapterId: string | undefined) => {
-    const updatedPhotos = photos.map(photo => 
-      photoIds.includes(photo.id)
-        ? { ...photo, chapterId } 
-        : photo
-    );
+    // Calcola le posizioni per ciascuna foto nel nuovo capitolo
+    const currentPhotosInChapter = photos.filter(p => p.chapterId === chapterId).length;
+    let position = currentPhotosInChapter;
+    
+    // Animazione di feedback per le foto selezionate
+    photoIds.forEach(id => {
+      const photoElement = document.getElementById(`photo-${id}`);
+      if (photoElement) {
+        photoElement.classList.add('bulk-assignment-animation');
+        setTimeout(() => {
+          photoElement.classList.remove('bulk-assignment-animation');
+        }, 800);
+      }
+    });
+    
+    const updatedPhotos = photos.map(photo => {
+      if (photoIds.includes(photo.id)) {
+        return { 
+          ...photo, 
+          chapterId,
+          chapterPosition: position++,
+        };
+      }
+      return photo;
+    });
+    
+    // Mostra messaggio di conferma nella UI
+    const chapterName = chapterId 
+      ? chapters.find(c => c.id === chapterId)?.title || 'un capitolo'
+      : 'nessun capitolo';
+    
+    // Aggiungi una notifica visiva temporanea
+    const container = document.querySelector('.chapters-manager-container');
+    if (container) {
+      const notification = document.createElement('div');
+      notification.className = 'fixed top-4 right-4 bg-green-500 text-white px-4 py-2 rounded-md shadow-md z-50 fade-out-notification';
+      notification.textContent = `${photoIds.length} foto assegnate a ${chapterName}`;
+      container.appendChild(notification);
+      
+      setTimeout(() => {
+        notification.classList.add('opacity-0');
+        setTimeout(() => notification.remove(), 500);
+      }, 2000);
+    }
     
     onPhotosUpdate(updatedPhotos);
     setSelectedPhotos([]); // Reset della selezione dopo l'assegnazione
@@ -282,7 +346,7 @@ export default function ChaptersManager({
   
   // Renderizza il componente
   return (
-    <div className="w-full max-w-6xl mx-auto">
+    <div className="w-full max-w-6xl mx-auto chapters-manager-container">
       <Tabs 
         value={activeTab} 
         onValueChange={setActiveTab}

@@ -157,8 +157,8 @@ export default function TabsChapters({
                 photos
                     .filter(p => p.chapterId === chapter.id)
                     .sort((a, b) => {
-                      const posA = typeof a.chapterPosition === 'number' ? a.chapterPosition : a.position || 0;
-                      const posB = typeof b.chapterPosition === 'number' ? b.chapterPosition : b.position || 0;
+                      const posA = typeof a.chapterPosition === 'number' ? a.chapterPosition : 0;
+                      const posB = typeof b.chapterPosition === 'number' ? b.chapterPosition : 0;
                       return posA - posB;
                     })
                     .map((photo, index) => (
