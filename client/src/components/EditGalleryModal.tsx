@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, ChangeEvent } from "react";
-import { doc, updateDoc, collection, getDocs } from "firebase/firestore";
+import { doc, updateDoc, collection, getDocs, addDoc, serverTimestamp } from "firebase/firestore";
 import { ref, uploadBytesResumable, getDownloadURL } from "firebase/storage";
 import { db, storage } from "@/lib/firebase";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
@@ -10,6 +10,9 @@ import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
 import ChaptersManager, { Chapter, PhotoWithChapter } from "@/components/ChaptersManager";
+import { uploadPhotos, UploadSummary, UploadProgressInfo } from "@/lib/photoUploader";
+import { UploadCloud, Image } from "lucide-react";
+import { Progress } from "@/components/ui/progress";
 
 interface EditGalleryModalProps {
   isOpen: boolean;
@@ -42,7 +45,12 @@ export default function EditGalleryModal({ isOpen, onClose, gallery }: EditGalle
   const [photos, setPhotos] = useState<PhotoWithChapter[]>([]);
   const [chapters, setChapters] = useState<Chapter[]>([]);
   const [isChaptersLoading, setIsChaptersLoading] = useState(false);
+  const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
+  const [uploadProgress, setUploadProgress] = useState<{[key: string]: UploadProgressInfo}>({});
+  const [uploadSummary, setUploadSummary] = useState<UploadSummary | null>(null);
+  const [isUploading, setIsUploading] = useState(false);
   const coverInputRef = useRef<HTMLInputElement>(null);
+  const filesInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
 
   // Carica i dati della galleria quando cambia
@@ -253,6 +261,10 @@ export default function EditGalleryModal({ isOpen, onClose, gallery }: EditGalle
           <TabsList className="w-full mb-4">
             <TabsTrigger value="details" className="flex-1">Dettagli</TabsTrigger>
             <TabsTrigger value="chapters" className="flex-1">Capitoli e Foto</TabsTrigger>
+            <TabsTrigger value="upload" className="flex-1">
+              <UploadCloud className="h-4 w-4 mr-2" />
+              Aggiungi Foto
+            </TabsTrigger>
           </TabsList>
           
           <TabsContent value="details" className="space-y-4 min-h-[50vh]">
