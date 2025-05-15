@@ -24,52 +24,22 @@ export const getBasePath = (): string => {
  * @returns URL normalizzato
  */
 export const createUrl = (path: string): string => {
-  const basePath = getBasePath();
-  
   // Gestione percorsi speciali
   if (path === '' || path === '/') {
-    return basePath;
+    return '/';
   }
   
   // Normalizza il percorso aggiungendo slash iniziale se mancante
-  const normalizedPath = path.startsWith('/') ? path : `/${path}`;
-  
-  // Se siamo in ambiente di produzione con basePath diverso da /
-  if (basePath !== '/') {
-    // Rimuove lo slash iniziale per unire i percorsi correttamente
-    const pathWithoutLeadingSlash = normalizedPath.startsWith('/') 
-      ? normalizedPath.substring(1) 
-      : normalizedPath;
-    
-    // Garantisce che basePath termini con uno slash
-    const basePathWithTrailingSlash = basePath.endsWith('/') 
-      ? basePath 
-      : `${basePath}/`;
-    
-    return `${basePathWithTrailingSlash}${pathWithoutLeadingSlash}`;
-  }
-  
-  return normalizedPath;
+  return path.startsWith('/') ? path : `/${path}`;
 };
 
 /**
  * Crea URL assoluto con origine
  * @param path Percorso relativo
- * @returns URL assoluto completo di origine e percorso base
+ * @returns URL assoluto completo di origine
  */
 export const createAbsoluteUrl = (path: string): string => {
-  // Utilizziamo createUrl che ora gestisce correttamente il percorso base
-  const fullPath = createUrl(path);
-  
-  console.log("Creazione URL assoluto:", {
-    origin: window.location.origin,
-    path,
-    basePath: getBasePath(),
-    fullPath,
-    result: `${window.location.origin}${fullPath}`
-  });
-  
-  return `${window.location.origin}${fullPath}`;
+  return `${window.location.origin}${createUrl(path)}`;
 };
 
 /**
@@ -82,8 +52,8 @@ export const isProduction = (): boolean => {
 
 /**
  * Verifica se siamo in sottodirectory
- * @returns true se l'app è in una sottodirectory, false se è alla radice
+ * @returns sempre false poiché l'app è configurata per eseguire alla radice
  */
 export const isInSubdirectory = (): boolean => {
-  return getBasePath() !== '/';
+  return false;
 };
