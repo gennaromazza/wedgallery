@@ -1297,7 +1297,14 @@ export default function AdminDashboard() {
       </main>
 
       {/* Finestra modale per creare una nuova galleria */}
-      <NewGalleryModal isOpen={isModalOpen} onClose={closeModal} />
+      <NewGalleryModal 
+        isOpen={isModalOpen} 
+        onClose={closeModal} 
+        onSuccess={() => {
+          // Ricarichiamo le gallerie dopo la creazione
+          loadGalleries();
+        }} 
+      />
 
       {/* Finestra modale per modificare una galleria esistente */}
       {selectedGallery && (
