@@ -46,10 +46,14 @@ export default function GalleryHeader({
   
   // Funzione per condividere la galleria
   const handleShare = () => {
-    // Crea l'URL della galleria usando createAbsoluteUrl per gestire correttamente i percorsi
-    // anche quando l'app è installata in una sottocartella
+    // Crea l'URL della galleria con percorso specifico per wedgallery
     const pathToShare = galleryId ? `/view/${galleryId}` : window.location.pathname;
-    const url = createAbsoluteUrl(pathToShare);
+    
+    // Utilizziamo il dominio corrente
+    const domain = window.location.origin;
+    
+    // Costruiamo l'URL completo con la sottocartella wedgallery
+    const url = `${domain}/wedgallery${pathToShare}`;
     
     console.log("Condivisione URL:", url);
     
