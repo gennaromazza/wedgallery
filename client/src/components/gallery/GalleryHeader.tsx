@@ -2,8 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { format } from 'date-fns';
 import { it } from 'date-fns/locale/it';
 import { FloralCorner, BackgroundDecoration } from '@/components/WeddingIllustrations';
-import { Dialog, DialogContent } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
 import { Expand } from 'lucide-react';
+import { VisuallyHidden } from '@radix-ui/react-visually-hidden';
 
 interface GalleryHeaderProps {
   name: string;
@@ -159,6 +160,10 @@ export default function GalleryHeader({
       {/* Modale per l'immagine ingrandita */}
       <Dialog open={isImageDialogOpen} onOpenChange={setIsImageDialogOpen}>
         <DialogContent className="max-w-[90vw] h-[90vh] p-0 bg-transparent border-none shadow-none">
+          <DialogTitle>
+            <VisuallyHidden>Immagine di copertina: {name}</VisuallyHidden>
+          </DialogTitle>
+          
           <div className="w-full h-full relative flex items-center justify-center bg-black/90 rounded-lg overflow-hidden">
             <button 
               onClick={() => setIsImageDialogOpen(false)}
