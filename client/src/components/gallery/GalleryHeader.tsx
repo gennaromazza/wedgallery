@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { format } from 'date-fns';
 import { it } from 'date-fns/locale/it';
 import { FloralCorner, BackgroundDecoration } from '@/components/WeddingIllustrations';
+import { Dialog, DialogContent } from '@/components/ui/dialog';
+import { Expand } from 'lucide-react';
 
 interface GalleryHeaderProps {
   name: string;
@@ -27,6 +29,7 @@ export default function GalleryHeader({
 }: GalleryHeaderProps) {
   const [imageDimensions, setImageDimensions] = useState<ImageDimensions | null>(null);
   const [imageLoaded, setImageLoaded] = useState(false);
+  const [isImageDialogOpen, setIsImageDialogOpen] = useState(false);
   
   // Carica e analizza le dimensioni dell'immagine di copertina
   useEffect(() => {
@@ -74,24 +77,54 @@ export default function GalleryHeader({
       
       {coverImageUrl && coverImageUrl.trim() !== "" ? (
         <div className="relative w-full mb-10">
-          <div className="relative w-full max-w-6xl mx-auto h-64 sm:h-80 md:h-96 lg:h-[450px] overflow-hidden rounded-lg shadow-lg">
-            <img 
-              src={coverImageUrl} 
-              alt={`Copertina: ${name}`} 
-              className="w-full h-full object-cover"
-            />
-            <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-black/70 flex flex-col items-center justify-end p-6 sm:p-8">
-              <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold text-white font-playfair text-center drop-shadow-md">
-                {name}
-              </h1>
-              <div className="mt-3 text-white/90 flex flex-wrap justify-center items-center gap-2 text-lg drop-shadow-md">
-                <span>{formatDate(date)}</span>
-                {location && (
-                  <>
-                    <span className="hidden sm:inline">•</span>
-                    <span>{location}</span>
-                  </>
-                )}
+          <div className={`relative w-full max-w-6xl mx-auto ${
+            imageDimensions?.isLandscape 
+              ? 'h-64 sm:h-80 md:h-96 lg:h-[450px]' 
+              : imageDimensions?.aspectRatio && imageDimensions.aspectRatio < 0.7
+                ? 'h-[500px] sm:h-[550px] md:h-[600px] lg:h-[650px]' // Immagini molto verticali
+                : 'h-[400px] sm:h-[450px] md:h-[500px] lg:h-[550px]' // Immagini verticali ma non estreme
+          } overflow-hidden rounded-lg shadow-lg`}>
+            <div className="relative w-full h-full">
+              {/* Pulsante per ingrandire l'immagine */}
+              <button 
+                onClick={() => setIsImageDialogOpen(true)}
+                className="absolute top-3 right-3 z-10 bg-black/40 hover:bg-black/60 text-white p-2 rounded-full transition-colors duration-200"
+                aria-label="Ingrandisci immagine"
+              >
+                <Expand className="h-5 w-5" />
+              </button>
+              
+              <img 
+                src={coverImageUrl} 
+                alt={`Copertina: ${name}`} 
+                className={`w-full ${
+                  imageDimensions?.isLandscape 
+                    ? 'h-full object-cover' 
+                    : 'h-auto object-contain'
+                } cursor-pointer`}
+                style={{
+                  position: 'absolute',
+                  top: '50%',
+                  left: '50%',
+                  transform: 'translate(-50%, -50%)',
+                  maxHeight: '100%',
+                  maxWidth: '100%'
+                }}
+                onClick={() => setIsImageDialogOpen(true)}
+              />
+              <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-black/70 flex flex-col items-center justify-end p-6 sm:p-8 pointer-events-none">
+                <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold text-white font-playfair text-center drop-shadow-md">
+                  {name}
+                </h1>
+                <div className="mt-3 text-white/90 flex flex-wrap justify-center items-center gap-2 text-lg drop-shadow-md">
+                  <span>{formatDate(date)}</span>
+                  {location && (
+                    <>
+                      <span className="hidden sm:inline">•</span>
+                      <span>{location}</span>
+                    </>
+                  )}
+                </div>
               </div>
             </div>
           </div>
@@ -122,6 +155,32 @@ export default function GalleryHeader({
           </div>
         </div>
       )}
+
+      {/* Modale per l'immagine ingrandita */}
+      <Dialog open={isImageDialogOpen} onOpenChange={setIsImageDialogOpen}>
+        <DialogContent className="max-w-[90vw] h-[90vh] p-0 bg-transparent border-none shadow-none">
+          <div className="w-full h-full relative flex items-center justify-center bg-black/90 rounded-lg overflow-hidden">
+            <button 
+              onClick={() => setIsImageDialogOpen(false)}
+              className="absolute top-3 right-3 z-10 bg-black/60 hover:bg-black/80 text-white p-2 rounded-full"
+              aria-label="Chiudi"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <line x1="18" y1="6" x2="6" y2="18"></line>
+                <line x1="6" y1="6" x2="18" y2="18"></line>
+              </svg>
+            </button>
+            
+            {coverImageUrl && (
+              <img 
+                src={coverImageUrl} 
+                alt={`Copertina: ${name}`} 
+                className="max-h-[85vh] max-w-[85vw] object-contain" 
+              />
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
