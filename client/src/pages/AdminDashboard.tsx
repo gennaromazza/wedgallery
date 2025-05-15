@@ -910,6 +910,7 @@ export default function AdminDashboard() {
                                       <div className="flex space-x-2">
                                         <Input 
                                           id={`new-password-${gallery.id}`}
+                                          type="text"
                                           placeholder="Nuova password"
                                           defaultValue={generateRandomPassword()}
                                         />
