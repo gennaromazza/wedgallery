@@ -344,6 +344,11 @@ export default function ChaptersManager({
     console.log("Foto per capitolo:", countsByChapter);
   }, [photos, chapters, unassignedPhotos.length]);
   
+  // Calcolo le statistiche per la barra di avanzamento
+  const totalPhotos = photos.length;
+  const assignedPhotos = photos.filter(photo => photo.chapterId).length;
+  const progressPercentage = totalPhotos > 0 ? Math.round((assignedPhotos / totalPhotos) * 100) : 0;
+  
   // Renderizza il componente
   return (
     <div className="w-full max-w-6xl mx-auto chapters-manager-container">
@@ -358,6 +363,21 @@ export default function ChaptersManager({
             <Plus className="h-4 w-4" />
             <span>Nuovo Capitolo</span>
           </Button>
+        </div>
+        
+        {/* Barra di avanzamento */}
+        <div className="mb-6">
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-sm font-medium">
+              Progresso: {assignedPhotos} di {totalPhotos} foto assegnate ({progressPercentage}%)
+            </span>
+          </div>
+          <div className="w-full bg-gray-200 rounded-full h-2.5">
+            <div 
+              className="bg-green-400 h-2.5 rounded-full transition-all duration-500 ease-in-out" 
+              style={{ width: `${progressPercentage}%` }}
+            ></div>
+          </div>
         </div>
         
         <TabsList className="mb-6 flex overflow-x-auto">
@@ -534,7 +554,8 @@ export default function ChaptersManager({
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
           {filteredPhotos.map(photo => (
             <Card 
-              key={photo.id} 
+              key={photo.id}
+              id={`photo-${photo.id}`}
               className={cn(
                 "overflow-hidden border-2", 
                 selectedPhotos.includes(photo.id) 
