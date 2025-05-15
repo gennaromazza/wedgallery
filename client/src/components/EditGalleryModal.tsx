@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, ChangeEvent } from "react";
-import { doc, updateDoc, collection, getDocs, addDoc, serverTimestamp, where, query } from "firebase/firestore";
+import { doc, updateDoc, collection, getDocs, addDoc, serverTimestamp, where, query, writeBatch, deleteDoc } from "firebase/firestore";
 import { ref, uploadBytesResumable, getDownloadURL } from "firebase/storage";
 import { db, storage } from "@/lib/firebase";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
@@ -14,20 +14,24 @@ import { uploadPhotos, UploadSummary, UploadProgressInfo } from "@/lib/photoUplo
 import { UploadCloud, Image } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 
+interface GalleryType {
+  id: string;
+  name: string;
+  code: string;
+  date: string;
+  location?: string;
+  description?: string;
+  password?: string;
+  coverImageUrl?: string;
+  youtubeUrl?: string;
+  hasChapters?: boolean;
+  photoCount?: number;
+}
+
 interface EditGalleryModalProps {
   isOpen: boolean;
   onClose: () => void;
-  gallery: {
-    id: string;
-    name: string;
-    code: string;
-    date: string;
-    location?: string;
-    description?: string;
-    password?: string;
-    coverImageUrl?: string;
-    youtubeUrl?: string;
-  } | null;
+  gallery: GalleryType | null;
 }
 
 export default function EditGalleryModal({ isOpen, onClose, gallery }: EditGalleryModalProps) {
