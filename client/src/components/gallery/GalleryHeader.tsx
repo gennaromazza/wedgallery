@@ -7,6 +7,7 @@ import { Expand, Share2 } from 'lucide-react';
 import { VisuallyHidden } from '@radix-ui/react-visually-hidden';
 import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
+import { createAbsoluteUrl } from '@/lib/basePath';
 import { 
   Tooltip,
   TooltipContent,
@@ -45,8 +46,12 @@ export default function GalleryHeader({
   
   // Funzione per condividere la galleria
   const handleShare = () => {
-    // Crea l'URL della galleria
-    const url = window.location.origin + window.location.pathname;
+    // Crea l'URL della galleria usando createAbsoluteUrl per gestire correttamente i percorsi
+    // anche quando l'app è installata in una sottocartella
+    const pathToShare = galleryId ? `/view/${galleryId}` : window.location.pathname;
+    const url = createAbsoluteUrl(pathToShare);
+    
+    console.log("Condivisione URL:", url);
     
     // Verifica se l'API Web Share è supportata
     if (navigator.share) {
