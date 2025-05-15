@@ -166,14 +166,16 @@ export default function GalleryAccess() {
                     <label htmlFor="password" className="block text-sm font-medium text-blue-gray mb-1">
                       Password
                     </label>
-                    <Input
-                      id="password"
-                      type="password"
-                      placeholder="Inserisci la password"
-                      {...form.register("password")}
-                      className="w-full px-3 py-2 border border-beige rounded-md focus:ring-sage focus:border-sage"
-                      autoFocus
-                    />
+                    <div className="relative">
+                      <Input
+                        id="password"
+                        type="text" 
+                        placeholder="Inserisci la password"
+                        {...form.register("password")}
+                        className="w-full px-3 py-2 border border-beige rounded-md focus:ring-sage focus:border-sage"
+                        autoFocus
+                      />
+                    </div>
                     {form.formState.errors.password && (
                       <p className="mt-1 text-sm text-red-500">{form.formState.errors.password.message}</p>
                     )}
