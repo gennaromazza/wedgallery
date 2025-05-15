@@ -142,6 +142,7 @@ export default function Gallery() {
           location={gallery.location}
           description={gallery.description}
           coverImageUrl={gallery.coverImageUrl}
+          galleryId={id}
         />
 
         {/* Video YouTube se presente */}

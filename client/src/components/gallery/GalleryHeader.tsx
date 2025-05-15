@@ -3,8 +3,16 @@ import { format } from 'date-fns';
 import { it } from 'date-fns/locale/it';
 import { FloralCorner, BackgroundDecoration } from '@/components/WeddingIllustrations';
 import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
-import { Expand } from 'lucide-react';
+import { Expand, Share2 } from 'lucide-react';
 import { VisuallyHidden } from '@radix-ui/react-visually-hidden';
+import { useToast } from '@/hooks/use-toast';
+import { Button } from '@/components/ui/button';
+import { 
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
 
 interface GalleryHeaderProps {
   name: string;
@@ -12,6 +20,7 @@ interface GalleryHeaderProps {
   location: string;
   description?: string;
   coverImageUrl?: string;
+  galleryId?: string;
 }
 
 interface ImageDimensions {
@@ -26,11 +35,54 @@ export default function GalleryHeader({
   date, 
   location, 
   description, 
-  coverImageUrl
+  coverImageUrl,
+  galleryId
 }: GalleryHeaderProps) {
   const [imageDimensions, setImageDimensions] = useState<ImageDimensions | null>(null);
   const [imageLoaded, setImageLoaded] = useState(false);
   const [isImageDialogOpen, setIsImageDialogOpen] = useState(false);
+  const { toast } = useToast();
+  
+  // Funzione per condividere la galleria
+  const handleShare = () => {
+    // Crea l'URL della galleria
+    const url = window.location.origin + window.location.pathname;
+    
+    // Verifica se l'API Web Share è supportata
+    if (navigator.share) {
+      navigator.share({
+        title: `Galleria fotografica - ${name}`,
+        text: `Guarda le foto del matrimonio di ${name}`,
+        url: url,
+      })
+      .catch((error) => {
+        console.error('Si è verificato un errore durante la condivisione', error);
+        // Fallback se la condivisione fallisce
+        copyToClipboard(url);
+      });
+    } else {
+      // Utilizza fallback per browser non supportati
+      copyToClipboard(url);
+    }
+  };
+
+  // Funzione di fallback per copiare l'URL negli appunti
+  const copyToClipboard = (text: string) => {
+    navigator.clipboard.writeText(text).then(
+      () => {
+        toast({
+          description: "Link copiato negli appunti! Ora puoi condividerlo con i tuoi amici.",
+        });
+      },
+      (err) => {
+        console.error('Impossibile copiare il testo negli appunti', err);
+        toast({
+          variant: "destructive",
+          description: "Impossibile copiare il link. Riprova più tardi.",
+        });
+      }
+    );
+  };
   
   // Carica e analizza le dimensioni dell'immagine di copertina
   useEffect(() => {
@@ -86,14 +138,42 @@ export default function GalleryHeader({
                 : 'h-[400px] sm:h-[450px] md:h-[500px] lg:h-[550px]' // Immagini verticali ma non estreme
           } overflow-hidden rounded-lg shadow-lg`}>
             <div className="relative w-full h-full">
-              {/* Pulsante per ingrandire l'immagine */}
-              <button 
-                onClick={() => setIsImageDialogOpen(true)}
-                className="absolute top-3 right-3 z-10 bg-black/40 hover:bg-black/60 text-white p-2 rounded-full transition-colors duration-200"
-                aria-label="Ingrandisci immagine"
-              >
-                <Expand className="h-5 w-5" />
-              </button>
+              {/* Pulsanti per ingrandire e condividere l'immagine */}
+              <div className="absolute top-3 right-3 z-10 flex space-x-2">
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <button 
+                        onClick={handleShare}
+                        className="bg-black/40 hover:bg-black/60 text-white p-2 rounded-full transition-colors duration-200"
+                        aria-label="Condividi galleria"
+                      >
+                        <Share2 className="h-5 w-5" />
+                      </button>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>Condividi galleria</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+                
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <button 
+                        onClick={() => setIsImageDialogOpen(true)}
+                        className="bg-black/40 hover:bg-black/60 text-white p-2 rounded-full transition-colors duration-200"
+                        aria-label="Ingrandisci immagine"
+                      >
+                        <Expand className="h-5 w-5" />
+                      </button>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>Ingrandisci immagine</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              </div>
               
               <img 
                 src={coverImageUrl} 
@@ -133,9 +213,27 @@ export default function GalleryHeader({
       ) : (
         <div className="max-w-7xl mx-auto sm:px-6 lg:px-8 relative z-10">
           <div className="px-4 text-center mb-10">
-            <h1 className="text-3xl md:text-4xl font-bold text-blue-gray font-playfair">
-              {name}
-            </h1>
+            <div className="flex justify-center items-center mb-2">
+              <h1 className="text-3xl md:text-4xl font-bold text-blue-gray font-playfair">
+                {name}
+              </h1>
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <button 
+                      onClick={handleShare}
+                      className="ml-3 bg-sage-100 hover:bg-sage-200 text-sage-600 p-2 rounded-full transition-colors duration-200"
+                      aria-label="Condividi galleria"
+                    >
+                      <Share2 className="h-5 w-5" />
+                    </button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>Condividi galleria</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            </div>
             <div className="mt-2 text-blue-gray/70 flex justify-center items-center space-x-2">
               <span>{formatDate(date)}</span>
               {location && (
