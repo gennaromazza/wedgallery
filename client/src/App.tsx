@@ -19,26 +19,22 @@ import PasswordResult from "@/pages/PasswordResult";
 import DeleteGalleryPage from "@/pages/DeleteGalleryPage";
 import NotFound from "@/pages/not-found";
 
-// Hook per tracciare le visualizzazioni delle pagine
+// 🔍 Tracciamento pagine (analytics)
 function useAnalytics() {
   const [location] = useLocation();
-  
+
   useEffect(() => {
-    // Traccia il cambio di pagina
     trackPageView(location);
     console.log(`[useAnalytics] tracking page view: ${location}`);
   }, [location]);
-  
+
   return null;
 }
 
-// Router personalizzato con basePath
+// 📍 Routing dichiarativo
 function Router() {
-  // Utilizza il hook per tracciare le navigazioni
   useAnalytics();
-  
-  console.log("[Router] Initializing router with all routes");
-  
+
   return (
     <Switch>
       <Route path="/" component={Home} />
@@ -54,34 +50,28 @@ function Router() {
   );
 }
 
+// 🚀 App principale
 function App() {
-  // Configura il base path per il router
-  const basePath = '/';
+  // ✅ Base dinamico: '/' in sviluppo, '/wedgallery' in produzione
+  const basePath = import.meta.env.PROD ? "/wedgallery" : "/";
   console.log(`[App] Using base path: "${basePath}"`);
-  
-  // Verifica URL corrente
+
   useEffect(() => {
     const { origin, pathname, search, href } = window.location;
     const isProduction = import.meta.env.PROD;
-    
-    console.log(`[App] Running in ${isProduction ? 'production' : 'development'} mode`);
+
+    console.log(`[App] Running in ${isProduction ? "production" : "development"} mode`);
     console.log('[App] Current URL:', href);
-    console.log('[App] Pathname:', pathname);
-    console.log('[App] Base Path:', basePath);
-    
-    // Controllo generico per slash multipli (es: //admin invece di /admin)
+
+    // ✅ Normalizza doppi slash
     if (/\/\/+/.test(pathname)) {
-      // Normalizza qualsiasi sequenza di slash multipli in un singolo slash
       const correctedPath = pathname.replace(/\/\/+/g, '/');
       const correctedUrl = `${origin}${correctedPath}${search}`;
-      
-      console.log('[App] Correzione slash multipli da:', href);
-      console.log('[App] A:', correctedUrl);
-      
+      console.log('[App] Correzione slash multipli:', correctedUrl);
       window.history.replaceState(null, '', correctedUrl);
     }
   }, [basePath]);
-  
+
   return (
     <QueryClientProvider client={queryClient}>
       <ThemeProvider attribute="class" defaultTheme="light">

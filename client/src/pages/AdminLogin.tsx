@@ -49,20 +49,17 @@ export default function AdminLogin() {
   const onSubmit = async (data: LoginFormData) => {
     setIsLoading(true);
     try {
-      // Utilizziamo direttamente le API di Firebase anziché l'AuthContext
       await signInWithEmailAndPassword(auth, data.email, data.password);
-      // Salva informazione che l'utente è un amministratore
       localStorage.setItem("isAdmin", "true");
-      
-      // Usa l'URL assoluto per garantire un reindirizzamento corretto
-      const dashboardUrl = createAbsoluteUrl("/admin/dashboard");
-      console.log("[AdminLogin] Reindirizzamento a dashboard:", dashboardUrl);
-      navigate(dashboardUrl);
+  
+      const dashboardPath = createUrl("/admin/dashboard");
+      console.log("[AdminLogin] Reindirizzamento a dashboard:", dashboardPath);
+      navigate(dashboardPath);
+  
     } catch (error: any) {
       console.error("Login error:", error);
       let errorMessage = "Si è verificato un errore durante l'accesso.";
-
-      // Handle specific Firebase auth errors
+  
       if (
         error.code === "auth/user-not-found" ||
         error.code === "auth/wrong-password"
@@ -71,7 +68,7 @@ export default function AdminLogin() {
       } else if (error.code === "auth/too-many-requests") {
         errorMessage = "Troppi tentativi di accesso. Riprova più tardi.";
       }
-
+  
       toast({
         title: "Errore di accesso",
         description: errorMessage,
@@ -81,6 +78,7 @@ export default function AdminLogin() {
       setIsLoading(false);
     }
   };
+  
 
   return (
     <div className="min-h-screen bg-off-white flex flex-col relative">
